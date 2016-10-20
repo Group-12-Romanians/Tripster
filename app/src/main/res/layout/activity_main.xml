@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    tools:context="tripster.test.MainActivity">
+
+    <TextView
+        android:text="T"
+        android:textSize="300dp"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_margin="50dp"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/logo" />
+
+    <TextView
+        android:text="Sign in with"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:textColor="#000000"
+        android:textSize="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_above="@+id/signins"/>
+
+    <LinearLayout
+        android:id="@+id/signins"
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+
+        <Button
+            android:id="@+id/sign_in_button"
+            android:layout_width="match_parent"
+            android:layout_weight=".5"
+            android:text="Google"
+            android:textColor="#FFFFFF"
+            android:textSize="20dp"
+            android:background="#dd4b39"
+            android:layout_height="0dp" />
+
+        <Button
+            android:id="@+id/btn_fb_login"
+            android:layout_width="match_parent"
+            android:text="Facebook"
+            android:textColor="#FFFFFF"
+            android:textSize="20dp"
+            android:background="@color/com_facebook_blue"
+            android:layout_weight=".5"
+            android:layout_height="0dp" />
+
+    </LinearLayout>
+
+</RelativeLayout>
