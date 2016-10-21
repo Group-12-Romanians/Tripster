@@ -116,7 +116,7 @@ public class FacebookProvider implements LoginProvider, LogoutProvider {
         fbLoginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                LoginManager.getInstance().logInWithReadPermissions(parentActivity, Arrays.asList("public_profile", "email", "contact_email"));
+                LoginManager.getInstance().logInWithReadPermissions(parentActivity, Arrays.asList("public_profile", "email"));
             }
         });
     }
