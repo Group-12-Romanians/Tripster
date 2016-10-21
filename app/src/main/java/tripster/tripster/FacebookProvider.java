@@ -18,6 +18,9 @@ import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.places.Places;
 
 import org.json.JSONObject;
 
@@ -87,6 +90,21 @@ public class FacebookProvider implements LoginProvider, LogoutProvider {
             }
         }).executeAsync();
         return userAccount;
+    }
+
+    @Override
+    public GoogleApiClient getGoogleApiClient() {
+        GoogleApiClient googleApiClient = new GoogleApiClient.Builder(parentActivity)
+                .enableAutoManage(parentActivity, new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed(ConnectionResult connectionResult) {
+                        Toast.makeText(parentActivity, "Login canceled", Toast.LENGTH_LONG).show();
+                    }
+                })
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .build();
+        return googleApiClient;
     }
 
     @Override

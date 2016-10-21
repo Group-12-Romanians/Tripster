@@ -16,6 +16,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Places;
 
 public class GoogleProvider implements LoginProvider, LogoutProvider {
 
@@ -37,6 +38,8 @@ public class GoogleProvider implements LoginProvider, LogoutProvider {
                     }
                 })
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
                 .build();
     }
 
@@ -95,6 +98,11 @@ public class GoogleProvider implements LoginProvider, LogoutProvider {
             return new UserAccount(username, email, avatar);
         }
         return null;
+    }
+
+    @Override
+    public GoogleApiClient getGoogleApiClient() {
+        return googleApiClient;
     }
 
     private void handleSignInResult(GoogleSignInResult result) {

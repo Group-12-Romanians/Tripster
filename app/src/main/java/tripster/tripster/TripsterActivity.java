@@ -12,6 +12,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
@@ -21,9 +23,11 @@ public class TripsterActivity extends AppCompatActivity
     private LogoutProvider logoutProvider;
     UserAccount userAccount;
 
-
-
     private static final String TAG = TripsterActivity.class.getName();
+
+    public GoogleApiClient getGoogleApiClient() {
+        return logoutProvider.getGoogleApiClient();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

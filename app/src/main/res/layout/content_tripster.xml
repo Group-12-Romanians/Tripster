@@ -13,8 +13,17 @@
     tools:context="tripster.tripster.TripsterActivity"
     tools:showIn="@layout/app_bar_tripster">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
+    <FrameLayout
+        android:id="@+id/main_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </FrameLayout>
+
+    <fragment
+        android:id="@+id/gps_tracking"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        class="tripster.tripster.GpsTrackingFragment"
+        />
 </RelativeLayout>
