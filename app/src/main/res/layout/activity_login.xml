@@ -5,12 +5,12 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#FFFFFF"
-    tools:context="tripster.test.MainActivity">
+    tools:context=".LoginActivity">
 
     <TextView
         android:text="T"
         android:textSize="300dp"
-        android:textColor="#000000"
+        android:textColor="@color/colorPrimaryDark"
         android:textStyle="bold"
         android:gravity="center"
         android:layout_width="300dp"
