@@ -1,6 +1,7 @@
 package tripster.tripster;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -13,8 +14,12 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+
+import org.json.JSONObject;
 
 import java.util.Arrays;
 
@@ -62,6 +67,29 @@ public class FacebookProvider implements LoginProvider, LogoutProvider {
     }
 
     @Override
+    public UserAccount getUserAccount() {
+        AccessToken at = AccessToken.getCurrentAccessToken();
+        Log.d(TAG, "token is" + (at == null ? "null" : at.getToken()));
+        final UserAccount userAccount = new UserAccount(null, null, null);
+        GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
+            @Override
+            public void onCompleted(JSONObject me, GraphResponse response) {
+                if (response.getError() != null) {
+                    Log.d(TAG, response.getError().toString());
+                } else {
+                    String username = me.optString("name");
+                    Log.d(TAG, "name" + username);
+                    userAccount.setUsername(username);
+                    String id = me.optString("id");
+                    Log.d(TAG, "id" + id);
+                    userAccount.setAvatar(Uri.parse("https://graph.facebook.com/" + id + "/picture?type=large"));
+                }
+            }
+        }).executeAsync();
+        return userAccount;
+    }
+
+    @Override
     public void setupLoginButton() {
         callbackManager = CallbackManager.Factory.create();
         LoginManager.getInstance().registerCallback(callbackManager,
@@ -88,7 +116,7 @@ public class FacebookProvider implements LoginProvider, LogoutProvider {
         fbLoginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                LoginManager.getInstance().logInWithReadPermissions(parentActivity, Arrays.asList("public_profile"));
+                LoginManager.getInstance().logInWithReadPermissions(parentActivity, Arrays.asList("public_profile", "email", "contact_email"));
             }
         });
     }

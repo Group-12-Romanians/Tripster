@@ -1,6 +1,7 @@
 package tripster.tripster;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -82,11 +83,24 @@ public class GoogleProvider implements LoginProvider, LogoutProvider {
         });
     }
 
+    @Override
+    public UserAccount getUserAccount() {
+        OptionalPendingResult<GoogleSignInResult> opr = Auth.GoogleSignInApi.silentSignIn(googleApiClient);
+        if (opr.isDone()) {
+            GoogleSignInResult result = opr.get();
+            GoogleSignInAccount account = result.getSignInAccount();
+            String username = account.getDisplayName();
+            String email = account.getEmail();
+            Uri avatar = account.getPhotoUrl();
+            return new UserAccount(username, email, avatar);
+        }
+        return null;
+    }
+
     private void handleSignInResult(GoogleSignInResult result) {
         Log.d(TAG, "Google handleSignInResult:" + result.isSuccess());
         if (result.isSuccess()) {
             Log.d(TAG, "Google login successful");
-            GoogleSignInAccount acct = result.getSignInAccount();
             ((LoginActivity) parentActivity).enterTripster(TAG);
         } else {
             Toast.makeText(parentActivity, "Login canceled", Toast.LENGTH_LONG).show();

@@ -10,6 +10,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -18,6 +19,9 @@ public class TripsterActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private LogoutProvider logoutProvider;
+    UserAccount userAccount;
+
+
 
     private static final String TAG = TripsterActivity.class.getName();
 
@@ -26,8 +30,10 @@ public class TripsterActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         recreateLoginSession();
+        userAccount = logoutProvider.getUserAccount();
 
         setContentView(R.layout.activity_tripster);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -77,7 +83,23 @@ public class TripsterActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.tripster, menu);
+
+        TextView usernameView = (TextView) findViewById(R.id.username);
+        TextView emailView = (TextView) findViewById(R.id.email);
+
+        usernameView.setText(userAccount.getUsername());
+        emailView.setText(userAccount.getEmail());
         return true;
+    }
+
+    @Override
+    public boolean onMenuOpened(int featureId, Menu menu) {
+        TextView usernameView = (TextView) findViewById(R.id.username);
+        TextView emailView = (TextView) findViewById(R.id.email);
+
+        usernameView.setText(userAccount.getUsername());
+        emailView.setText(userAccount.getEmail());
+        return super.onMenuOpened(featureId, menu);
     }
 
     @Override
