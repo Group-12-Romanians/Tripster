@@ -26,7 +26,7 @@ import org.json.JSONObject;
 
 import java.util.Arrays;
 
-public class FacebookProvider implements LoginProvider, LogoutProvider {
+public class FacebookProvider implements LoginProvider, AccountProvider {
 
     private AppCompatActivity parentActivity;
     private CallbackManager callbackManager;
@@ -34,6 +34,7 @@ public class FacebookProvider implements LoginProvider, LogoutProvider {
     private static final int RC_FB_SIGN_IN = 64206;
     private static final String TAG = FacebookProvider.class.getName();
 
+    // Initialize SDK and enter main activity if async login succeeds.
     public FacebookProvider(AppCompatActivity activity) {
         parentActivity = activity;
 

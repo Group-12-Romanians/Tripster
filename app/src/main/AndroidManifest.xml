@@ -32,7 +32,7 @@
             android:value="@string/facebook_app_id" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAqNnCogEJmLwkyewCfONeLd6Yo4TxGKGc"/>
+            android:value="AIzaSyCPG6vodOQNkJ2qH-wHXIYuHZiI1_2ipbM"/>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET"/>

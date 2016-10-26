@@ -2,6 +2,9 @@ package tripster.tripster;
 
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -20,13 +23,17 @@ import java.lang.reflect.InvocationTargetException;
 public class TripsterActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private LogoutProvider logoutProvider;
+    private AccountProvider accountProvider;
     UserAccount userAccount;
+    private GoogleApiClient googleApiClient = null;
 
     private static final String TAG = TripsterActivity.class.getName();
 
     public GoogleApiClient getGoogleApiClient() {
-        return logoutProvider.getGoogleApiClient();
+        if (googleApiClient == null) {
+            googleApiClient = accountProvider.getGoogleApiClient();
+        }
+        return googleApiClient;
     }
 
     @Override
@@ -34,7 +41,7 @@ public class TripsterActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         recreateLoginSession();
-        userAccount = logoutProvider.getUserAccount();
+        userAccount = accountProvider.getUserAccount();
 
         setContentView(R.layout.activity_tripster);
 
@@ -58,7 +65,7 @@ public class TripsterActivity extends AppCompatActivity
             Class<?> loginProviderClass = Class.forName(loginProviderClassName);
             Constructor<?> cons = loginProviderClass.getConstructor(AppCompatActivity.class);
             Object obj = cons.newInstance(this);
-            logoutProvider = (LogoutProvider) obj;
+            accountProvider = (AccountProvider) obj;
 
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -90,19 +97,17 @@ public class TripsterActivity extends AppCompatActivity
 
         TextView usernameView = (TextView) findViewById(R.id.username);
         TextView emailView = (TextView) findViewById(R.id.email);
-
-        usernameView.setText(userAccount.getUsername());
-        emailView.setText(userAccount.getEmail());
+        if (usernameView != null) {
+            usernameView.setText(userAccount.getUsername());
+        }
+        if (emailView != null) {
+            emailView.setText(userAccount.getEmail());
+        }
         return true;
     }
 
     @Override
     public boolean onMenuOpened(int featureId, Menu menu) {
-        TextView usernameView = (TextView) findViewById(R.id.username);
-        TextView emailView = (TextView) findViewById(R.id.email);
-
-        usernameView.setText(userAccount.getUsername());
-        emailView.setText(userAccount.getEmail());
         return super.onMenuOpened(featureId, menu);
     }
 
@@ -127,8 +132,11 @@ public class TripsterActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
+        Fragment frag = new TripsterFragment();
+
         if (id == R.id.nav_camera) {
-            // Handle the camera action
+            Log.d(TAG, "creates gpstrackingfrag");
+            frag = new GpsTrackingFragment();
         } else if (id == R.id.nav_gallery) {
 
         } else if (id == R.id.nav_slideshow) {
@@ -140,8 +148,14 @@ public class TripsterActivity extends AppCompatActivity
         } else if (id == R.id.nav_send) {
 
         } else if (id == R.id.nav_logout) {
-            logoutProvider.logOut();
+            accountProvider.logOut();
+            return true;
         }
+
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction transaction = fm.beginTransaction();
+        transaction.replace(R.id.content_tripster, frag);
+        transaction.commit();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

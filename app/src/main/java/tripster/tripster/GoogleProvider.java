@@ -18,7 +18,7 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Places;
 
-public class GoogleProvider implements LoginProvider, LogoutProvider {
+public class GoogleProvider implements LoginProvider, AccountProvider {
 
     private GoogleApiClient googleApiClient;
     private AppCompatActivity parentActivity;

@@ -2,12 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:weightSum="1"
     android:background="#FFFFFF">
 
-    <ListView
-        android:layout_width="match_parent"
+    <Button
+        android:id="@+id/start_tracking"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@android:id/list"
-        android:layout_weight="0.63" />
+        android:text="Start tracking"/>
+
 </LinearLayout>

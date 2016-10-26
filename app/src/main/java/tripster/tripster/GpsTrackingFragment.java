@@ -105,6 +105,9 @@ public class GpsTrackingFragment extends ListFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        if (container != null) {
+            container.removeAllViews();
+        }
         View rootView = inflater.inflate(R.layout.fragment_gps_tracking, container, false);
         locations = new ArrayList<>();
         adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, locations);
