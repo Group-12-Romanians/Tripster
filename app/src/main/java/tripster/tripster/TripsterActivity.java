@@ -136,7 +136,6 @@ public class TripsterActivity extends AppCompatActivity
 
         if (id == R.id.nav_camera) {
             Log.d(TAG, "creates gpstrackingfrag");
-            frag = new GpsTrackingFragment();
         } else if (id == R.id.nav_gallery) {
 
         } else if (id == R.id.nav_slideshow) {

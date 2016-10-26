@@ -20,13 +20,6 @@
     </FrameLayout>
 
     <fragment
-        android:id="@+id/gps_tracking"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        class="tripster.tripster.GpsTrackingFragment"
-        />
-
-    <fragment
         android:id="@+id/tripster_fragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
