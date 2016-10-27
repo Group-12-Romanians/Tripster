@@ -95,10 +95,13 @@ public class GoogleProvider implements LoginProvider, AccountProvider {
         if (opr.isDone()) {
             GoogleSignInResult result = opr.get();
             GoogleSignInAccount account = result.getSignInAccount();
+
             String username = account.getDisplayName();
             name.setText(username);
             Log.d(TAG, "username set:" + username);
+
             email.setText(account.getEmail());
+
             Uri avatarUrl = account.getPhotoUrl();
             if (Utils.getInstance().internetConnection(parentActivity)) {
                 if (avatarUrl != null) {

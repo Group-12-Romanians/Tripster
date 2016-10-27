@@ -83,13 +83,19 @@ public class FacebookProvider implements LoginProvider, AccountProvider {
                     if (response.getError() != null) {
                         Log.d(TAG, response.getError().toString());
                     } else {
+
                         String username = me.optString("name");
                         Log.d(TAG, "name" + username);
                         name.setText(username);
+
                         String id = me.optString("id");
                         Log.d(TAG, "id" + id);
                         Utils.getInstance().setImageFromUrl("https://graph.facebook.com/" + id + "/picture?type=large", avatar);
+
                         String mail = "facebook@stupid.com";
+                        if (me.optString("email") != null) {
+                            mail = me.optString("email");
+                        }
                         email.setText(mail);
 
                         // save preferences
