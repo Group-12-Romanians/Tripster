@@ -1,19 +1,19 @@
 {
   "project_info": {
-    "project_number": "310116995569",
-    "project_id": "firebase-tripster"
+    "project_number": "48936437017",
+    "project_id": "firebase-tripsterapp"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:310116995569:android:8fe2a155a633ef05",
+        "mobilesdk_app_id": "1:48936437017:android:8fe2a155a633ef05",
         "android_client_info": {
           "package_name": "tripster.tripster"
         }
       },
       "oauth_client": [
         {
-          "client_id": "310116995569-cri8rm5d04mtqg21ckbcuejp4mughief.apps.googleusercontent.com",
+          "client_id": "48936437017-e1h2oo1h7kq0rp2lo3qdm2uo5pb9si0i.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "tripster.tripster",
@@ -21,18 +21,21 @@
           }
         },
         {
-          "client_id": "310116995569-fmkva2p7but2b8ffhj0950ocl7d7khuc.apps.googleusercontent.com",
+          "client_id": "48936437017-g5eov7vog9h5tuaiugt5vb1gf9j5bd3v.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCPG6vodOQNkJ2qH-wHXIYuHZiI1_2ipbM"
+          "current_key": "AIzaSyBEcADKicF0ZeIooOSbh12Vu7BVyDOIjik"
         }
       ],
       "services": {
         "analytics_service": {
-          "status": 1
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-86438631-1"
+          }
         },
         "appinvite_service": {
           "status": 1,

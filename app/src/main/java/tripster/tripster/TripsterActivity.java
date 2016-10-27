@@ -11,11 +11,10 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
-
-import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -24,24 +23,12 @@ public class TripsterActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private AccountProvider accountProvider;
-    UserAccount userAccount;
-    private GoogleApiClient googleApiClient = null;
-
     private static final String TAG = TripsterActivity.class.getName();
-
-    public GoogleApiClient getGoogleApiClient() {
-        if (googleApiClient == null) {
-            googleApiClient = accountProvider.getGoogleApiClient();
-        }
-        return googleApiClient;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         recreateLoginSession();
-        userAccount = accountProvider.getUserAccount();
 
         setContentView(R.layout.activity_tripster);
 
@@ -51,11 +38,16 @@ public class TripsterActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
+        drawer.addDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        View header = navigationView.getHeaderView(0);
+
+        accountProvider.setUserAccountFields((TextView) header.findViewById(R.id.username),
+                (TextView) header.findViewById(R.id.email), (ImageView) header.findViewById(R.id.avatar));
     }
 
     private void recreateLoginSession() {
@@ -67,15 +59,7 @@ public class TripsterActivity extends AppCompatActivity
             Object obj = cons.newInstance(this);
             accountProvider = (AccountProvider) obj;
 
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
+        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
     }
@@ -88,27 +72,6 @@ public class TripsterActivity extends AppCompatActivity
         } else {
             super.onBackPressed();
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.tripster, menu);
-
-        TextView usernameView = (TextView) findViewById(R.id.username);
-        TextView emailView = (TextView) findViewById(R.id.email);
-        if (usernameView != null) {
-            usernameView.setText(userAccount.getUsername());
-        }
-        if (emailView != null) {
-            emailView.setText(userAccount.getEmail());
-        }
-        return true;
-    }
-
-    @Override
-    public boolean onMenuOpened(int featureId, Menu menu) {
-        return super.onMenuOpened(featureId, menu);
     }
 
     @Override

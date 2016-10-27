@@ -1,11 +1,10 @@
 package tripster.tripster;
 
-import com.google.android.gms.common.api.GoogleApiClient;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 public interface AccountProvider {
     void logOut();
 
-    UserAccount getUserAccount();
-
-    GoogleApiClient getGoogleApiClient();
+    void setUserAccountFields(final TextView name, final TextView email, final ImageView avatar);
 }

@@ -5,6 +5,8 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
@@ -16,7 +18,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.places.Places;
 
 public class GoogleProvider implements LoginProvider, AccountProvider {
 
@@ -38,8 +39,6 @@ public class GoogleProvider implements LoginProvider, AccountProvider {
                     }
                 })
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
                 .build();
     }
 
@@ -87,22 +86,21 @@ public class GoogleProvider implements LoginProvider, AccountProvider {
     }
 
     @Override
-    public UserAccount getUserAccount() {
+    public void setUserAccountFields(final TextView name, final TextView email, final ImageView avatar) {
         OptionalPendingResult<GoogleSignInResult> opr = Auth.GoogleSignInApi.silentSignIn(googleApiClient);
         if (opr.isDone()) {
             GoogleSignInResult result = opr.get();
             GoogleSignInAccount account = result.getSignInAccount();
             String username = account.getDisplayName();
-            String email = account.getEmail();
-            Uri avatar = account.getPhotoUrl();
-            return new UserAccount(username, email, avatar);
+            name.setText(username);
+            Log.d(TAG, "username set:" + username);
+            email.setText(account.getEmail());
+            Uri avatarUrl = account.getPhotoUrl();
+            if (avatarUrl != null) {
+                Log.d(TAG, "avatar:" + avatarUrl.toString());
+                Utils.getInstance().setImageFromUrl(avatarUrl.toString(), avatar);
+            }
         }
-        return null;
-    }
-
-    @Override
-    public GoogleApiClient getGoogleApiClient() {
-        return googleApiClient;
     }
 
     private void handleSignInResult(GoogleSignInResult result) {

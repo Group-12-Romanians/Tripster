@@ -1,11 +1,12 @@
 package tripster.tripster;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -18,9 +19,6 @@ import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.places.Places;
 
 import org.json.JSONObject;
 
@@ -71,10 +69,9 @@ public class FacebookProvider implements LoginProvider, AccountProvider {
     }
 
     @Override
-    public UserAccount getUserAccount() {
+    public void setUserAccountFields(final TextView name, final TextView email, final ImageView avatar) {
         AccessToken at = AccessToken.getCurrentAccessToken();
         Log.d(TAG, "token is" + (at == null ? "null" : at.getToken()));
-        final UserAccount userAccount = new UserAccount(null, null, null);
         GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
             @Override
             public void onCompleted(JSONObject me, GraphResponse response) {
@@ -83,29 +80,14 @@ public class FacebookProvider implements LoginProvider, AccountProvider {
                 } else {
                     String username = me.optString("name");
                     Log.d(TAG, "name" + username);
-                    userAccount.setUsername(username);
+                    name.setText(username);
                     String id = me.optString("id");
                     Log.d(TAG, "id" + id);
-                    userAccount.setAvatar(Uri.parse("https://graph.facebook.com/" + id + "/picture?type=large"));
+                    Utils.getInstance().setImageFromUrl("https://graph.facebook.com/" + id + "/picture?type=large", avatar);
+                    email.setText("facebook@stupid.com");
                 }
             }
         }).executeAsync();
-        return userAccount;
-    }
-
-    @Override
-    public GoogleApiClient getGoogleApiClient() {
-        GoogleApiClient googleApiClient = new GoogleApiClient.Builder(parentActivity)
-                .enableAutoManage(parentActivity, new GoogleApiClient.OnConnectionFailedListener() {
-                    @Override
-                    public void onConnectionFailed(ConnectionResult connectionResult) {
-                        Toast.makeText(parentActivity, "Login canceled", Toast.LENGTH_LONG).show();
-                    }
-                })
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
-                .build();
-        return googleApiClient;
     }
 
     @Override
