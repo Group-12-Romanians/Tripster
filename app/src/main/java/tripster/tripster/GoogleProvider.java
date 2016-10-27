@@ -1,6 +1,8 @@
 package tripster.tripster;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -75,6 +77,8 @@ public class GoogleProvider implements LoginProvider, AccountProvider {
 
     @Override
     public void logOut() {
+        SharedPreferences sharedPref = parentActivity.getPreferences(Context.MODE_PRIVATE);
+        sharedPref.edit().clear().apply();
         Auth.GoogleSignInApi.signOut(googleApiClient).setResultCallback(new ResultCallback<Status>() {
             @Override
             public void onResult(Status status) {
@@ -96,9 +100,13 @@ public class GoogleProvider implements LoginProvider, AccountProvider {
             Log.d(TAG, "username set:" + username);
             email.setText(account.getEmail());
             Uri avatarUrl = account.getPhotoUrl();
-            if (avatarUrl != null) {
-                Log.d(TAG, "avatar:" + avatarUrl.toString());
-                Utils.getInstance().setImageFromUrl(avatarUrl.toString(), avatar);
+            if (Utils.getInstance().internetConnection(parentActivity)) {
+                if (avatarUrl != null) {
+                    Log.d(TAG, "avatar:" + avatarUrl.toString());
+                    Utils.getInstance().setImageFromUrl(avatarUrl.toString(), avatar);
+                }
+            } else {
+                return;//TODO: handle case when no internet for photo
             }
         }
     }

@@ -3,8 +3,6 @@ package tripster.tripster;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -48,6 +46,18 @@ public class TripsterActivity extends AppCompatActivity
 
         accountProvider.setUserAccountFields((TextView) header.findViewById(R.id.username),
                 (TextView) header.findViewById(R.id.email), (ImageView) header.findViewById(R.id.avatar));
+
+        // Check that the activity is using the layout version with
+        // the fragment_container FrameLayout
+        if (findViewById(R.id.main_content) != null) {
+            if (savedInstanceState != null) { // This activity was already created once, so the fragment already exists
+                return;
+            }
+            Fragment initial = new TripsterFragment();
+
+            // Add the fragment to the 'main_container' FrameLayout
+            getSupportFragmentManager().beginTransaction().add(R.id.main_content, initial).commit();
+        }
     }
 
     private void recreateLoginSession() {
@@ -114,10 +124,7 @@ public class TripsterActivity extends AppCompatActivity
             return true;
         }
 
-        FragmentManager fm = getSupportFragmentManager();
-        FragmentTransaction transaction = fm.beginTransaction();
-        transaction.replace(R.id.content_tripster, frag);
-        transaction.commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.content_tripster, frag).commit();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

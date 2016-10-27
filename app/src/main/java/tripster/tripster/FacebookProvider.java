@@ -1,6 +1,8 @@
 package tripster.tripster;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -62,6 +64,8 @@ public class FacebookProvider implements LoginProvider, AccountProvider {
 
     @Override
     public void logOut() {
+        SharedPreferences sharedPref = parentActivity.getPreferences(Context.MODE_PRIVATE);
+        sharedPref.edit().clear().apply();
         LoginManager.getInstance().logOut();
         Intent i = new Intent(parentActivity, LoginActivity.class);
         parentActivity.startActivity(i);
@@ -72,22 +76,40 @@ public class FacebookProvider implements LoginProvider, AccountProvider {
     public void setUserAccountFields(final TextView name, final TextView email, final ImageView avatar) {
         AccessToken at = AccessToken.getCurrentAccessToken();
         Log.d(TAG, "token is" + (at == null ? "null" : at.getToken()));
-        GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
-            @Override
-            public void onCompleted(JSONObject me, GraphResponse response) {
-                if (response.getError() != null) {
-                    Log.d(TAG, response.getError().toString());
-                } else {
-                    String username = me.optString("name");
-                    Log.d(TAG, "name" + username);
-                    name.setText(username);
-                    String id = me.optString("id");
-                    Log.d(TAG, "id" + id);
-                    Utils.getInstance().setImageFromUrl("https://graph.facebook.com/" + id + "/picture?type=large", avatar);
-                    email.setText("facebook@stupid.com");
+        if (Utils.getInstance().internetConnection(parentActivity)) {
+            GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
+                @Override
+                public void onCompleted(JSONObject me, GraphResponse response) {
+                    if (response.getError() != null) {
+                        Log.d(TAG, response.getError().toString());
+                    } else {
+                        String username = me.optString("name");
+                        Log.d(TAG, "name" + username);
+                        name.setText(username);
+                        String id = me.optString("id");
+                        Log.d(TAG, "id" + id);
+                        Utils.getInstance().setImageFromUrl("https://graph.facebook.com/" + id + "/picture?type=large", avatar);
+                        String mail = "facebook@stupid.com";
+                        email.setText(mail);
+
+                        // save preferences
+                        SharedPreferences sharedPref = parentActivity.getPreferences(Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPref.edit();
+                        editor.putString("username", username);
+                        editor.putString("email", mail);
+                        editor.apply();
+                    }
                 }
-            }
-        }).executeAsync();
+            }).executeAsync();
+        } else {
+            SharedPreferences sharedPref = parentActivity.getPreferences(Context.MODE_PRIVATE);
+            String username = sharedPref.getString("username", "John John"); //default value
+            name.setText(username);
+
+            String mail = sharedPref.getString("email", "john@john.com"); //default value
+            email.setText(mail);
+            //TODO: handle case when no internet for photo
+        }
     }
 
     @Override

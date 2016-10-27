@@ -1,8 +1,12 @@
 package tripster.tripster;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 
 import java.io.IOException;
@@ -47,6 +51,13 @@ public class Utils {
         protected Bitmap doInBackground(String... params) {
             return getBitmapFromURL(params[0]);
         }
+    }
+
+    public boolean internetConnection(AppCompatActivity activity) {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
     private static Bitmap getBitmapFromURL(String src) {

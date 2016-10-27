@@ -8,18 +8,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 public class TripsterFragment extends Fragment{
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        if (container != null) {
-            container.removeAllViews();
-        }
-        View rootView = inflater.inflate(R.layout.fragment_tripster, container, false);
-        return rootView;
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+        return inflater.inflate(R.layout.fragment_tripster, container, false);
     }
 }
