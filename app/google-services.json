@@ -20,6 +20,14 @@
             "certificate_hash": "F62969C8FACB8D8C28BC378635E1175DD7396432"
           }
         },
+				{
+          "client_id": "48936437017-l53u399irjlkinie2vthlcu3lrh5sk3b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "tripster.tripster",
+            "certificate_hash": "980A027BB1ADCC90FB0DB33FC7F8B53545C50C2B"
+          }
+        },
         {
           "client_id": "48936437017-g5eov7vog9h5tuaiugt5vb1gf9j5bd3v.apps.googleusercontent.com",
           "client_type": 3
