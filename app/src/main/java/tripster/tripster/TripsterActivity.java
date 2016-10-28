@@ -17,10 +17,12 @@ import android.widget.TextView;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import tripster.tripster.account.LogoutProvider;
+
 public class TripsterActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private AccountProvider accountProvider;
+    private LogoutProvider accountProvider;
     private static final String TAG = TripsterActivity.class.getName();
 
     @Override
@@ -67,7 +69,7 @@ public class TripsterActivity extends AppCompatActivity
             Class<?> loginProviderClass = Class.forName(loginProviderClassName);
             Constructor<?> cons = loginProviderClass.getConstructor(AppCompatActivity.class);
             Object obj = cons.newInstance(this);
-            accountProvider = (AccountProvider) obj;
+            accountProvider = (LogoutProvider) obj;
 
         } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();

@@ -1,8 +1,6 @@
-package tripster.tripster;
+package tripster.tripster.account;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -21,10 +19,12 @@ import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 
-public class GoogleProvider implements LoginProvider, AccountProvider {
+import tripster.tripster.LoginActivity;
+import tripster.tripster.R;
+
+public class GoogleProvider extends AccountProvider {
 
     private GoogleApiClient googleApiClient;
-    private AppCompatActivity parentActivity;
     private static final int RC_GOOGLE_SIGN_IN = 9001;
     private static final String TAG = GoogleProvider.class.getName();
 
@@ -75,18 +75,14 @@ public class GoogleProvider implements LoginProvider, AccountProvider {
         }
     }
 
-    @Override
-    public void logOut() {
-        SharedPreferences sharedPref = parentActivity.getPreferences(Context.MODE_PRIVATE);
-        sharedPref.edit().clear().apply();
-        Auth.GoogleSignInApi.signOut(googleApiClient).setResultCallback(new ResultCallback<Status>() {
-            @Override
-            public void onResult(Status status) {
-                Intent i = new Intent(parentActivity, LoginActivity.class);
-                parentActivity.startActivity(i);
-                parentActivity.finish();
-            }
-        });
+    private void handleSignInResult(GoogleSignInResult result) {
+        Log.d(TAG, "Google handleSignInResult:" + result.isSuccess());
+        if (result.isSuccess() && parentActivity instanceof LoginActivity) {
+            Log.d(TAG, "Google login successful");
+            ((LoginActivity) parentActivity).handleLogin(TAG);
+        } else {
+            Toast.makeText(parentActivity, "Login canceled", Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -103,24 +99,26 @@ public class GoogleProvider implements LoginProvider, AccountProvider {
             email.setText(account.getEmail());
 
             Uri avatarUrl = account.getPhotoUrl();
-            if (Utils.getInstance().internetConnection(parentActivity)) {
+            if (internetConnection(parentActivity)) {
                 if (avatarUrl != null) {
                     Log.d(TAG, "avatar:" + avatarUrl.toString());
-                    Utils.getInstance().setImageFromUrl(avatarUrl.toString(), avatar);
+                    setAvatarFromUrl(avatarUrl.toString(), avatar);
                 }
             } else {
-                return;//TODO: handle case when no internet for photo
+                setAvatarFromCache(avatar);
             }
         }
     }
 
-    private void handleSignInResult(GoogleSignInResult result) {
-        Log.d(TAG, "Google handleSignInResult:" + result.isSuccess());
-        if (result.isSuccess()) {
-            Log.d(TAG, "Google login successful");
-            ((LoginActivity) parentActivity).enterTripster(TAG);
-        } else {
-            Toast.makeText(parentActivity, "Login canceled", Toast.LENGTH_LONG).show();
-        }
+    @Override
+    public void logOut() {
+        removeAvatar();
+        Auth.GoogleSignInApi.signOut(googleApiClient).setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(Status status) {
+                switchToLogin();
+            }
+        });
     }
+
 }

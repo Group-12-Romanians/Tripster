@@ -1,4 +1,4 @@
-package tripster.tripster;
+package tripster.tripster.account;
 
 import android.content.Context;
 import android.content.Intent;
@@ -26,9 +26,11 @@ import org.json.JSONObject;
 
 import java.util.Arrays;
 
-public class FacebookProvider implements LoginProvider, AccountProvider {
+import tripster.tripster.LoginActivity;
+import tripster.tripster.R;
 
-    private AppCompatActivity parentActivity;
+public class FacebookProvider extends AccountProvider {
+
     private CallbackManager callbackManager;
 
     private static final int RC_FB_SIGN_IN = 64206;
@@ -44,7 +46,7 @@ public class FacebookProvider implements LoginProvider, AccountProvider {
             @Override
             protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken newAccessToken) {
                 if (newAccessToken != null && parentActivity instanceof LoginActivity) {
-                    ((LoginActivity) parentActivity).enterTripster(TAG);
+                    ((LoginActivity) parentActivity).handleLogin(TAG);
                 }
             }
         };
@@ -56,69 +58,6 @@ public class FacebookProvider implements LoginProvider, AccountProvider {
     }
 
     @Override
-    public void handleActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == RC_FB_SIGN_IN) {
-            callbackManager.onActivityResult(requestCode, resultCode, data);
-        }
-    }
-
-    @Override
-    public void logOut() {
-        SharedPreferences sharedPref = parentActivity.getPreferences(Context.MODE_PRIVATE);
-        sharedPref.edit().clear().apply();
-        LoginManager.getInstance().logOut();
-        Intent i = new Intent(parentActivity, LoginActivity.class);
-        parentActivity.startActivity(i);
-        parentActivity.finish();
-    }
-
-    @Override
-    public void setUserAccountFields(final TextView name, final TextView email, final ImageView avatar) {
-        AccessToken at = AccessToken.getCurrentAccessToken();
-        Log.d(TAG, "token is" + (at == null ? "null" : at.getToken()));
-        if (Utils.getInstance().internetConnection(parentActivity)) {
-            GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
-                @Override
-                public void onCompleted(JSONObject me, GraphResponse response) {
-                    if (response.getError() != null) {
-                        Log.d(TAG, response.getError().toString());
-                    } else {
-
-                        String username = me.optString("name");
-                        Log.d(TAG, "name" + username);
-                        name.setText(username);
-
-                        String id = me.optString("id");
-                        Log.d(TAG, "id" + id);
-                        Utils.getInstance().setImageFromUrl("https://graph.facebook.com/" + id + "/picture?type=large", avatar);
-
-                        String mail = "facebook@stupid.com";
-                        if (me.optString("email") != null) {
-                            mail = me.optString("email");
-                        }
-                        email.setText(mail);
-
-                        // save preferences
-                        SharedPreferences sharedPref = parentActivity.getPreferences(Context.MODE_PRIVATE);
-                        SharedPreferences.Editor editor = sharedPref.edit();
-                        editor.putString("username", username);
-                        editor.putString("email", mail);
-                        editor.apply();
-                    }
-                }
-            }).executeAsync();
-        } else {
-            SharedPreferences sharedPref = parentActivity.getPreferences(Context.MODE_PRIVATE);
-            String username = sharedPref.getString("username", "John John"); //default value
-            name.setText(username);
-
-            String mail = sharedPref.getString("email", "john@john.com"); //default value
-            email.setText(mail);
-            //TODO: handle case when no internet for photo
-        }
-    }
-
-    @Override
     public void setupLoginButton() {
         callbackManager = CallbackManager.Factory.create();
         LoginManager.getInstance().registerCallback(callbackManager,
@@ -126,7 +65,10 @@ public class FacebookProvider implements LoginProvider, AccountProvider {
                     @Override
                     public void onSuccess(LoginResult loginResult) {
                         Log.d(TAG, "Facebook login successful");
-                        ((LoginActivity) parentActivity).enterTripster(TAG);
+
+                        if (parentActivity instanceof LoginActivity) {
+                            ((LoginActivity) parentActivity).handleLogin(TAG);
+                        }
                     }
 
                     @Override
@@ -148,5 +90,72 @@ public class FacebookProvider implements LoginProvider, AccountProvider {
                 LoginManager.getInstance().logInWithReadPermissions(parentActivity, Arrays.asList("public_profile", "email"));
             }
         });
+    }
+
+    @Override
+    public void handleActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == RC_FB_SIGN_IN) {
+            callbackManager.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    @Override
+    public void setUserAccountFields(final TextView name, final TextView email, final ImageView avatar) {
+        AccessToken at = AccessToken.getCurrentAccessToken();
+        Log.d(TAG, "token is" + (at == null ? "null" : at.getToken()));
+
+        if (internetConnection(parentActivity)) {
+            GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
+                @Override
+                public void onCompleted(JSONObject me, GraphResponse response) {
+                    if (response.getError() != null) {
+                        Log.d(TAG, response.getError().toString());
+                    } else {
+                        String username = me.optString("name");
+                        String id = me.optString("id");
+                        String mail = me.optString("email");
+                        if (mail == null || mail.equals("")) {
+                            mail = "facebook@stupid.com";
+                        }
+                        name.setText(username);
+                        email.setText(mail);
+                        setAvatarFromUrl("https://graph.facebook.com/" + id + "/picture?type=large", avatar);
+
+                        Log.d(TAG, "username is: " + username + ", email is: " + mail + ", id is:" + id);
+
+                        cacheData(username, mail);
+                    }
+                }
+            }).executeAsync();
+        } else {
+            SharedPreferences sharedPref = parentActivity.getPreferences(Context.MODE_PRIVATE);
+            String username = sharedPref.getString("username", "John John"); //default value
+            String mail = sharedPref.getString("email", "john@john.com"); //default value
+
+            name.setText(username);
+            email.setText(mail);
+            setAvatarFromCache(avatar);
+        }
+    }
+
+    private void cacheData(String username, String email) {
+        SharedPreferences sharedPref = parentActivity.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("username", username);
+        editor.putString("email", email);
+        editor.apply();
+    }
+
+    @Override
+    public void logOut() {
+        clearCacheData();
+        LoginManager.getInstance().logOut();
+        switchToLogin();
+    }
+
+    private void clearCacheData() {
+        SharedPreferences sharedPref = parentActivity.getPreferences(Context.MODE_PRIVATE);
+        sharedPref.edit().clear().apply();
+        removeAvatar();
     }
 }

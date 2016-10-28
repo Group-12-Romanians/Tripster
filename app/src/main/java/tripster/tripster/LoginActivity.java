@@ -3,9 +3,14 @@ package tripster.tripster;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import tripster.tripster.account.FacebookProvider;
+import tripster.tripster.account.GoogleProvider;
+import tripster.tripster.account.LoginProvider;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -29,6 +34,8 @@ public class LoginActivity extends AppCompatActivity {
         for (LoginProvider lP : loginProviders) {
             lP.setupLoginButton();
         }
+
+        Log.d(TAG, "created LoginActivity and added possible Providers");
     }
 
     @Override
@@ -40,7 +47,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    protected void enterTripster(String loginProviderClassName) {
+    public void handleLogin(String loginProviderClassName) {
         Intent i = new Intent(LoginActivity.this, TripsterActivity.class);
         i.putExtra("loginProvider", loginProviderClassName);
         startActivity(i);

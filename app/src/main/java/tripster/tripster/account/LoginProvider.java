@@ -1,4 +1,4 @@
-package tripster.tripster;
+package tripster.tripster.account;
 
 
 import android.content.Intent;
