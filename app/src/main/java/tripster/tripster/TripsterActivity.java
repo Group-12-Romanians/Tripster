@@ -52,10 +52,11 @@ public class TripsterActivity extends AppCompatActivity
         // Check that the activity is using the layout version with
         // the fragment_container FrameLayout
         if (findViewById(R.id.main_content) != null) {
-            if (savedInstanceState != null) { // This activity was already created once, so the fragment already exists
+            if (savedInstanceState != null) { // This activity was already created once(but paused), so the fragment already exists
                 return;
             }
             Fragment initial = new TripsterFragment();
+            Log.d(TAG, "initialise TripsterFragment");
 
             // Add the fragment to the 'main_container' FrameLayout
             getSupportFragmentManager().beginTransaction().add(R.id.main_content, initial).commit();
