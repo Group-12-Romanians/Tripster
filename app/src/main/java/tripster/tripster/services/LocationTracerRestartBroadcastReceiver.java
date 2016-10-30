@@ -1,4 +1,4 @@
-package tripster.tripster;
+package tripster.tripster.services;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
