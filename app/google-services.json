@@ -13,6 +13,13 @@
       },
       "oauth_client": [
         {
+          "client_id": "48936437017-fpkkmt64e9jihnlga1ud6jpof0tfpjgu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "tripster.tripster",
+            "certificate_hash": "56F94EA17F81E1728081021F70E3F4576FD48183"
+          }
+        },
           "client_id": "48936437017-e1h2oo1h7kq0rp2lo3qdm2uo5pb9si0i.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
