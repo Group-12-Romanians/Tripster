@@ -37,15 +37,6 @@
             android:process=":mine">
         </service>
 
-        <receiver
-            android:name=".services.LocationTracerRestartBroadcastReceiver"
-            android:enabled="true"
-            android:exported="true"
-            android:label="RestartServiceWhenStopped">
-            <intent-filter>
-                <action android:name="tripster.tripster.RestartSensor"/>
-            </intent-filter>
-        </receiver>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET"/>

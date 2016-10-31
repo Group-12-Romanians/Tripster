@@ -28,14 +28,15 @@ public class LocationService extends Service
                GoogleApiClient.OnConnectionFailedListener {
 
   private static final String LOCATIONS_FILE_PATH = "locations.txt";
-  private static final int TRACKING_FREQUENCY = 10000;
+  private static final int TRACKING_FREQUENCY = 1000;
+  private static final int SYNC_FREQUENCY = 5000;
   private static final float MIN_DIST = 200;
   private String TAG = LocationService.class.getName();
 
   private GoogleApiClient googleClient;
-  private Timer timer;
   private TimerTask locationTimerTask;
   private Location previousLocation;
+  private Timer timer;
 
   public LocationService() {
     super();
@@ -43,51 +44,123 @@ public class LocationService extends Service
     Log.i(TAG, "LocationService created");
   }
 
-
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     super.onStartCommand(intent, flags, startId);
     if (intent != null) {
-      Log.d(TAG, "intent exists");
+      Log.d(TAG, "Initial intent exists");
+      if (intent.getStringExtra("flag").equals("start")) {
+        startRecording();
+      } else if (intent.getStringExtra("flag").equals("stop")) {
+        stopRecording();
+      } else {
+        Log.d(TAG, "Flag not recognised");
+      }
+    } else {
+      startRecording();
     }
-    buildGoogleClientForLocationTacking();
     return START_STICKY;
   }
 
-  @Override
-  public void onDestroy() {
-    super.onDestroy();
-    Log.i(TAG, "ondestroy!");
-    Intent broadcastIntent = new Intent("tripster.tripster.RestartSensor");
-    sendBroadcast(broadcastIntent);
+  private void startRecording() {
+    buildGoogleClientForLocationTacking();
+    Log.d(TAG, "Started by app");
   }
 
-  public void buildGoogleClientForLocationTacking() {
-    //Start location tracking.
-    timer = new Timer();
+  private void stopRecording() {
+    timer.cancel();
+    logLocations();
+    emptyFile();
+    stopSelf();
+    Log.d(TAG, "Stopped by app");
+  }
 
-    if (googleClient == null) {
-      googleClient = new GoogleApiClient.Builder(this)
-          .addApi(LocationServices.API)
-          .addConnectionCallbacks(this)
-          .addOnConnectionFailedListener(this)
-          .build();
-    }
-    if (!googleClient.isConnected()) {
-      googleClient.connect();
-    }
+  @Override
+  public void onConnected(Bundle bundle) {
+    Log.d("On connected", "Entered");
+    initializeLocationTrackingTask();
+    timer = new Timer();
+    //schedule the timer, to wake up every 10 seconds
+    timer.schedule(locationTimerTask, 0, TRACKING_FREQUENCY);
   }
 
   private void initializeLocationTrackingTask() {
     locationTimerTask = new TimerTask() {
       public void run() {
         Log.d(TAG, "LocationTask is running");
-        Location currentLocation
-            = LocationServices.FusedLocationApi.getLastLocation(googleClient);
+        Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleClient);
         addLocation(currentLocation);
         logLocations();
       }
     };
+  }
+
+  private void addLocation(Location location) {
+    if (location != null) {
+      if (previousLocation != null) {
+        if (previousLocation.distanceTo(location) < MIN_DIST) {
+          return;
+        }
+      }
+      previousLocation = location;
+      writeLocation(location);
+    }
+  }
+
+  private void buildGoogleClientForLocationTacking() {
+    if (googleClient == null) {
+      googleClient = new GoogleApiClient.Builder(this)
+              .addApi(LocationServices.API)
+              .addConnectionCallbacks(this)
+              .addOnConnectionFailedListener(this)
+              .build();
+    }
+    if (!googleClient.isConnected()) {
+      googleClient.connect();
+    }
+  }
+
+  @Override
+  public void onConnectionSuspended(int i) {
+    Log.d(TAG, "Connection Suspended " + i);
+  }
+
+  @Override
+  public void onConnectionFailed(ConnectionResult connectionResult) {
+    Log.d(TAG, "Connection Failed");
+  }
+
+  @Nullable
+  @Override
+  public IBinder onBind(Intent intent) {
+    return null;
+  }
+
+  private void writeLocation(Location location) {
+    FileOutputStream locationsFileStream = null;
+    try {
+      locationsFileStream = openFileOutput(LOCATIONS_FILE_PATH, MODE_APPEND);
+    } catch (FileNotFoundException e) {
+      File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
+      try {
+        locationsFileStream = new FileOutputStream(file);
+      } catch (FileNotFoundException e1) {
+        Log.d(TAG, "FileNotFound");
+      }
+    }
+    OutputStreamWriter out = new OutputStreamWriter(locationsFileStream);
+    try {
+      out.append(location.toString() + "\n");
+      out.flush();
+      out.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void emptyFile() {
+    File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
+    file.delete();
   }
 
   private void logLocations() {
@@ -104,58 +177,5 @@ public class LocationService extends Service
     } catch (IOException e) {
       e.printStackTrace();
     }
-  }
-
-  @Nullable
-  @Override
-  public IBinder onBind(Intent intent) {
-    return null;
-  }
-
-  public void addLocation(Location location) {
-    if (location != null) {
-      if (previousLocation != null) {
-        if (previousLocation.distanceTo(location) < MIN_DIST) {
-          return;
-        }
-      }
-      previousLocation = location;
-      writeLocation(location);
-    }
-  }
-
-  private void writeLocation(Location location) {
-    FileOutputStream locationsFileStream = null;
-    try {
-      locationsFileStream = openFileOutput(LOCATIONS_FILE_PATH, MODE_APPEND);
-    } catch (FileNotFoundException e) {
-      Log.d(TAG, "FIleNotFound");
-    }
-    OutputStreamWriter out = new OutputStreamWriter(locationsFileStream);
-    try {
-      out.append(location.toString() + "\n");
-      out.flush();
-      out.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-
-  @Override
-  public void onConnected(Bundle bundle) {
-    Log.d("On connected", "Entered");
-    initializeLocationTrackingTask();
-    //schedule the timer, to wake up every 10 seconds
-    timer.schedule(locationTimerTask, 0, TRACKING_FREQUENCY);
-  }
-
-  @Override
-  public void onConnectionSuspended(int i) {
-    Log.d(TAG, "Connection Suspended " + i);
-  }
-
-  @Override
-  public void onConnectionFailed(ConnectionResult connectionResult) {
-    Log.d(TAG, "Connection Failed");
   }
 }
