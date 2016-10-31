@@ -12,7 +12,14 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
-import java.util.HashSet;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -20,18 +27,19 @@ public class LocationService extends Service
     implements GoogleApiClient.ConnectionCallbacks,
                GoogleApiClient.OnConnectionFailedListener {
 
+  private static final String LOCATIONS_FILE_PATH = "locations.txt";
   private static final int TRACKING_FREQUENCY = 10000;
+  private static final float MIN_DIST = 200;
   private String TAG = LocationService.class.getName();
 
   private GoogleApiClient googleClient;
-  private HashSet<Location> locations;
   private Timer timer;
   private TimerTask locationTimerTask;
+  private Location previousLocation;
 
   public LocationService() {
     super();
     googleClient = null;
-    locations = new HashSet<>();
     Log.i(TAG, "LocationService created");
   }
 
@@ -39,6 +47,9 @@ public class LocationService extends Service
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     super.onStartCommand(intent, flags, startId);
+    if (intent != null) {
+      Log.d(TAG, "intent exists");
+    }
     buildGoogleClientForLocationTacking();
     return START_STICKY;
   }
@@ -74,9 +85,25 @@ public class LocationService extends Service
         Location currentLocation
             = LocationServices.FusedLocationApi.getLastLocation(googleClient);
         addLocation(currentLocation);
-        logDetectedLocations();
+        logLocations();
       }
     };
+  }
+
+  private void logLocations() {
+    try {
+      File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
+      FileInputStream locationStream = new FileInputStream(file);
+      BufferedReader reader = new BufferedReader(new InputStreamReader(locationStream));
+      String line;
+      while ((line = reader.readLine()) != null) {
+        Log.d(TAG, "Read line: " + line);
+      }
+    } catch (FileNotFoundException e) {
+      Log.d(TAG, "No file to read from");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   @Nullable
@@ -85,10 +112,32 @@ public class LocationService extends Service
     return null;
   }
 
-
   public void addLocation(Location location) {
     if (location != null) {
-      locations.add(location);
+      if (previousLocation != null) {
+        if (previousLocation.distanceTo(location) < MIN_DIST) {
+          return;
+        }
+      }
+      previousLocation = location;
+      writeLocation(location);
+    }
+  }
+
+  private void writeLocation(Location location) {
+    FileOutputStream locationsFileStream = null;
+    try {
+      locationsFileStream = openFileOutput(LOCATIONS_FILE_PATH, MODE_APPEND);
+    } catch (FileNotFoundException e) {
+      Log.d(TAG, "FIleNotFound");
+    }
+    OutputStreamWriter out = new OutputStreamWriter(locationsFileStream);
+    try {
+      out.append(location.toString() + "\n");
+      out.flush();
+      out.close();
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 
@@ -103,19 +152,10 @@ public class LocationService extends Service
   @Override
   public void onConnectionSuspended(int i) {
     Log.d(TAG, "Connection Suspended " + i);
-
   }
 
   @Override
   public void onConnectionFailed(ConnectionResult connectionResult) {
     Log.d(TAG, "Connection Failed");
-  }
-
-  private void logDetectedLocations() {
-    String locationsDetails = "";
-    for (Location location : locations) {
-      locationsDetails += "(" + location.getLatitude() + ", " + location.getLongitude() + "),";
-    }
-    Log.d(LocationService.class.getName(), locationsDetails);
   }
 }

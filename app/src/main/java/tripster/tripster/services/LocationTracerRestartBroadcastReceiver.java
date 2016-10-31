@@ -12,7 +12,9 @@ public class LocationTracerRestartBroadcastReceiver extends BroadcastReceiver {
   @Override
   public void onReceive(Context context, Intent intent) {
     Log.i(TAG, "Service Stopped");
-
-    context.startService(new Intent(context, LocationService.class));
+    Intent serviceIntent = new Intent(context, LocationService.class);
+    serviceIntent.putParcelableArrayListExtra("locations", intent.getParcelableArrayListExtra("locations"));
+    serviceIntent.putExtra("flag", intent.getStringExtra("flag"));
+    context.startService(serviceIntent);
   }
 }

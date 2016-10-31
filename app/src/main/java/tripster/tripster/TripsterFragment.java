@@ -3,7 +3,6 @@ package tripster.tripster;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -48,14 +47,5 @@ public class TripsterFragment extends Fragment {
     }
     Log.i ("isMyServiceRunning?", false+"");
     return false;
-  }
-
-
-  @Override
-  public void onDestroy() {
-    getActivity().stopService(serviceIntent);
-    Log.i(TAG, "onDestroy!");
-    super.onDestroy();
-
   }
 }
