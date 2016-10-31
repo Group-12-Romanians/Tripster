@@ -108,7 +108,8 @@ public class TripsterActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        Fragment frag = new TripsterFragment();
+        Fragment frag        = new TripsterFragment();
+        Fragment photosOnMap = new PhotosOnMapFragment();
 
         if (id == R.id.nav_camera) {
             Log.d(TAG, "creates gpstrackingfrag");
@@ -127,7 +128,8 @@ public class TripsterActivity extends AppCompatActivity
             return true;
         }
 
-        getSupportFragmentManager().beginTransaction().replace(R.id.content_tripster, frag).commit();
+        //getSupportFragmentManager().beginTransaction().replace(R.id.content_tripster, frag).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.content_tripster, photosOnMap).commit();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
