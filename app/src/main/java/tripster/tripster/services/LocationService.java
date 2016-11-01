@@ -98,6 +98,7 @@ public class LocationService extends Service
           @Override
           public void onResponse(String response) {
             Log.d("onResponse", "mamamama");
+            emptyFile();
           }
         }, new Response.ErrorListener() {
           @Override
@@ -108,8 +109,7 @@ public class LocationService extends Service
           @Override
           protected Map<String, String> getParams() throws AuthFailureError {
             Map<String, String> map = new HashMap<>();
-            Log.d(TAG, "Dargps");
-            map.put("locations", "Dragos");
+            map.put("locations", dumpLocationsFile());
             return map;
           }
         };
@@ -117,6 +117,25 @@ public class LocationService extends Service
       }
     };
     getTimer().schedule(task, SYNC_FREQUENCY, SYNC_FREQUENCY);
+  }
+
+  private String dumpLocationsFile() {
+    StringBuilder result = new StringBuilder();
+    try {
+      File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
+      FileInputStream locationStream = new FileInputStream(file);
+      BufferedReader reader = new BufferedReader(new InputStreamReader(locationStream));
+      String line;
+      while ((line = reader.readLine()) != null) {
+        result.append(line);
+        result.append('\n');
+      }
+    } catch (FileNotFoundException e) {
+      Log.d(TAG, "No file to read from");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return result.toString();
   }
 
   private void stopRecording() {
@@ -192,12 +211,23 @@ public class LocationService extends Service
     }
     OutputStreamWriter out = new OutputStreamWriter(locationsFileStream);
     try {
-      out.append(location.toString() + "\n");
+      out.append(getDetailsStr(location));
       out.flush();
       out.close();
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  private String getDetailsStr(Location location) {
+    StringBuilder result = new StringBuilder();
+    result.append(location.getTime());
+    result.append(',');
+    result.append(location.getLatitude());
+    result.append(',');
+    result.append(location.getLongitude());
+    result.append('\n');
+    return result.toString();
   }
 
   private void emptyFile() {
