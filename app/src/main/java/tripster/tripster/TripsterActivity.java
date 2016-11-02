@@ -16,6 +16,8 @@ import android.widget.TextView;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 
 import tripster.tripster.account.LogoutProvider;
 
@@ -24,6 +26,8 @@ public class TripsterActivity extends AppCompatActivity
 
     private LogoutProvider accountProvider;
     private static final String TAG = TripsterActivity.class.getName();
+
+    private Map<String, Fragment> fragments = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,14 +56,19 @@ public class TripsterActivity extends AppCompatActivity
         // Check that the activity is using the layout version with
         // the fragment_container FrameLayout
         if (findViewById(R.id.main_content) != null) {
-            if (savedInstanceState != null) { // This activity was already created once(but paused), so the fragment already exists
+            if (fragments != null && savedInstanceState != null) { // This activity was already created once(but paused), so the fragment already exists
+                Log.d(TAG, "fragments already exist");
                 return;
             }
-            Fragment initial = new TripsterFragment();
-            Log.d(TAG, "initialise TripsterFragment");
+            fragments = new HashMap<>();
+            fragments.put("initial", new TripsterFragment());
+            Log.d(TAG, "Initialise TripsterFragment");
+
+            fragments.put("friends", new FriendsFragment());
+            Log.d(TAG, "Initialise FriendsFragment");
 
             // Add the fragment to the 'main_container' FrameLayout
-            getSupportFragmentManager().beginTransaction().add(R.id.main_content, initial).commit();
+            getSupportFragmentManager().beginTransaction().add(R.id.main_content, fragments.get("initial")).commit();
         }
     }
 
@@ -108,12 +117,13 @@ public class TripsterActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        Fragment frag = new TripsterFragment();
+        Fragment frag = fragments.get("initial");
 
         if (id == R.id.nav_camera) {
-            Log.d(TAG, "creates gpstrackingfrag");
+            Log.d(TAG, "I want to switch to initial fragment");
         } else if (id == R.id.nav_gallery) {
-
+            frag = fragments.get("friends");
+            Log.d(TAG, "I want to switch to friends fragment");
         } else if (id == R.id.nav_slideshow) {
 
         } else if (id == R.id.nav_manage) {
@@ -127,7 +137,7 @@ public class TripsterActivity extends AppCompatActivity
             return true;
         }
 
-        getSupportFragmentManager().beginTransaction().replace(R.id.content_tripster, frag).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag).commit();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
