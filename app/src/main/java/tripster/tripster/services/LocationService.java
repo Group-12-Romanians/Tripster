@@ -98,7 +98,7 @@ public class LocationService extends Service
           @Override
           public void onResponse(String response) {
             Log.d("onResponse", "mamamama");
-            emptyFile();
+            //emptyFile();
           }
         }, new Response.ErrorListener() {
           @Override
@@ -204,6 +204,7 @@ public class LocationService extends Service
     } catch (FileNotFoundException e) {
       File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
       try {
+        Log.d(TAG, "Create file");
         locationsFileStream = new FileOutputStream(file);
       } catch (FileNotFoundException e1) {
         Log.d(TAG, "FileNotFound");

@@ -41,7 +41,7 @@ public class PicturesProvider {
     String selection = MediaStore.Images.Media.DATE_TAKEN + " > ?";
     String[] selectionArgs = { String.valueOf(startTime) };
     Cursor cur = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-        columns, selection, selectionArgs, null);
+        columns, null, null, null);
 
     cur.moveToFirst();
     while(!cur.isAfterLast()){
