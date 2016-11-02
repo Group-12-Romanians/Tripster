@@ -1,5 +1,6 @@
 package tripster.tripster;
 
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -25,6 +26,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Scanner;
 
 public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback {
 
@@ -35,7 +39,12 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         getActivity().setContentView(R.layout.activity_maps);
-        parseLocationFile(null);
+        AssetManager am = getContext().getAssets();
+        try {
+            parseLocationFile(new Scanner(am.open("Locations")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         SupportMapFragment mapFragment = (SupportMapFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
@@ -61,35 +70,44 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
 
-    public void parseLocationFile(File file) {
-        final LatLng newLocation = new LatLng(51.507653, -0.165726);
-        String url2 = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" +
-             "location=51.507653,-0.165726&radius=100&key=AIzaSyBEcADKicF0ZeIooOSbh12Vu7BVyDOIjik";
+    public void parseLocationFile(Scanner scanner) {
+        String requestHead = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" +
+                             "location=";
+        String requestTail = "&radius=50&key=AIzaSyBEcADKicF0ZeIooOSbh12Vu7BVyDOIjik";
 
-        RequestQueue queue = Volley.newRequestQueue(getActivity());
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url2,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        try {
-                            Log.d("RESPONSE request place", response);
-                            JSONObject clientObject = new JSONObject(response);
-                            JSONArray array = clientObject.getJSONArray("results");
-                            String placeName = array.getJSONObject(1).getString("name");
-                            mMap.addMarker(new MarkerOptions().position(newLocation).title(placeName));
-                            Log.d("Place Name",placeName);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+        while (scanner.hasNextLine()) {
+            String latLongString = scanner.nextLine();
+            Double latitude = Double.parseDouble(latLongString.split(",")[0]);
+            Double longitude = Double.parseDouble(latLongString.split(",")[1]);
+            final LatLng latLng = new LatLng(latitude, longitude);
+            String url = requestHead + latLongString + requestTail;
+
+            RequestQueue queue = Volley.newRequestQueue(getActivity());
+            StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            try {
+                                Log.d("RESPONSE request place", response);
+                                JSONObject clientObject = new JSONObject(response);
+                                JSONArray array = clientObject.getJSONArray("results");
+                                int position = array.length() == 1 ? 0 : 1;
+                                String placeName = array.getJSONObject(position).getString("name");
+                                mMap.addMarker(new MarkerOptions()
+                                        .position(latLng).title(placeName));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
                         }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("Utils", "Didn't work request queue");
-                    }
-                });
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.d("Utils", "Didn't work request queue");
+                        }
+                    });
 
-        queue.add(stringRequest);
+            queue.add(stringRequest);
+        }
     }
 }
