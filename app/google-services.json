@@ -28,12 +28,20 @@
             "certificate_hash": "F62969C8FACB8D8C28BC378635E1175DD7396432"
           }
         },
-				{
+        {
           "client_id": "48936437017-l53u399irjlkinie2vthlcu3lrh5sk3b.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "tripster.tripster",
             "certificate_hash": "980A027BB1ADCC90FB0DB33FC7F8B53545C50C2B"
+          }
+        },
+        {
+          "client_id": "48936437017-20j70goarm9m5c11cd6r7bg38gqbos23.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "tripster.tripster",
+            "certificate_hash": "8CFB7C077A2BE8057C576FC90D27BAF7C219A9FA"
           }
         },
         {
