@@ -15,26 +15,33 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import tripster.tripster.R;
+import tripster.tripster.pictures.Picture;
 
 public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback {
-
+  private static final String TAG = PhotosOnMapFragment.class.getName();
+  private static final String LOCATIONS_FILE_PATH = "locations.txt";
   private GoogleMap mMap;
 
   @Nullable
@@ -53,24 +60,34 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
   }
 
   @Override
+  public void onPause() {
+    super.onPause();
+    mMap.clear();
+  }
+
+  @Override
   public void onMapReady(GoogleMap googleMap) {
     mMap = googleMap;
-    //TODO: Remove this. Added for guidance and testing.
-    // Add a marker in Sydney, Australia, and move the camera.
-    LatLng sydney = new LatLng(-34, 151);
-    LatLng london = new LatLng(47, 0.132);
-    LatLng london1 = new LatLng(49, -0.132);
-    LatLng london2 = new LatLng(48.3, 0.532);
-    mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-    //mMap.addMarker(new MarkerOptions().position(london).title("London Baby"));
-    Marker newMarker = mMap.addMarker(new MarkerOptions().position(london).
-        icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)));
-    mMap.addMarker(new MarkerOptions().position(london1).
-        icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)));
-    mMap.addMarker(new MarkerOptions().position(london2).
-        icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)));
-    // newMarker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.picture));
-    mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    List<LatLng> locations = getLocationsFromFile();
+    for (LatLng location : locations) {
+      mMap.addMarker(new MarkerOptions().position(location).title("Marker"));
+    }
+
+    if (PicturesFragment.pictures != null) {
+      for (Picture picture : PicturesFragment.pictures) {
+        LatLng location;
+        if (isLocationNull(picture)) {
+          long pictureDate = picture.getDateTaken();
+          location = new LatLng(51.3030, 0.0732);
+        } else {
+          double latitude = Double.parseDouble(picture.getLatitude());
+          double longitude = Double.parseDouble(picture.getLongitude());
+          location = new LatLng(latitude, longitude);
+        }
+        mMap.addMarker(new MarkerOptions().position(location).
+            icon(BitmapDescriptorFactory.fromBitmap(picture.getBitmap(200))));
+      }
+    }
   }
 
   public void parseLocationFile(Scanner scanner) {
@@ -112,5 +129,31 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
 
       queue.add(stringRequest);
     }
+  }
+
+  private List<LatLng> getLocationsFromFile() {
+    List<LatLng> locations = new ArrayList<>();
+    try {
+      File file = new File(getActivity().getFilesDir(), LOCATIONS_FILE_PATH);
+      FileInputStream locationStream = new FileInputStream(file);
+      BufferedReader reader = new BufferedReader(new InputStreamReader(locationStream));
+      String line;
+      while ((line = reader.readLine()) != null) {
+        String[] locationInfo = line.split(",");
+        double latitude = Double.parseDouble(locationInfo[1]);
+        double longitude = Double.parseDouble(locationInfo[2]);
+        locations.add(new LatLng(latitude, longitude));
+      }
+    } catch (FileNotFoundException e) {
+      Log.d(TAG, "No file to read from");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return locations;
+  }
+
+  private boolean isLocationNull(Picture picture) {
+    return picture.getLatitude() == null ||
+        picture.getLongitude() == null;
   }
 }

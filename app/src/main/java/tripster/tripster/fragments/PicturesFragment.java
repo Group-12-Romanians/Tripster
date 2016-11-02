@@ -1,9 +1,12 @@
 package tripster.tripster.fragments;
 
+import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +32,7 @@ public class PicturesFragment extends Fragment {
   private static final String LOCATIONS_FILE_PATH = "locations.txt";
   private long startTime = -1;
   private PicturesProvider picturesProvider;
+  static List<Picture> pictures;
 
   @Nullable
   @Override
@@ -37,6 +41,7 @@ public class PicturesFragment extends Fragment {
     Button button = (Button) view.findViewById(R.id.show_pics_button);
 
     startTime = getTripStartTime();
+    Log.d(TAG, getActivity().toString());
 
     picturesProvider = new PicturesProvider(getActivity(), startTime);
     button.setOnClickListener(new View.OnClickListener() {
@@ -44,7 +49,7 @@ public class PicturesFragment extends Fragment {
       public void onClick(View v) {
         Log.d(TAG, "Button Pressed");
         if (startTime != -1) {
-          List<Picture> pictures = getPicturesFromGallery();
+          pictures = getPicturesFromGallery();
           addPicturesToListView(pictures, view);
         } else {
           Log.d(TAG, "No time");
@@ -75,11 +80,15 @@ public class PicturesFragment extends Fragment {
   private void addPicturesToListView(List<Picture> pictures, View view) {
     int noOfPictures = pictures.size();
     String[] picturesDescriptions = new String[noOfPictures];
-    String[] photos = new String[noOfPictures];
+    Bitmap[] photos = new Bitmap[noOfPictures];
+    Display display = getActivity().getWindowManager().getDefaultDisplay();
+    Point size = new Point();
+    display.getSize(size);
+    Log.d("width of screen", "" + size.x + ", " + size.y);
     for (int i = 0; i < noOfPictures; i++) {
       Picture currentPicture = pictures.get(i);
       picturesDescriptions[i] = currentPicture.toString();
-      photos[i] = currentPicture.getPathToPhoto();
+      photos[i] = currentPicture.getBitmap(size.x);
     }
     PhotosListAdapter adapter = new PhotosListAdapter(getActivity(), picturesDescriptions, photos);
     ListView list = (ListView) view.findViewById(R.id.list);

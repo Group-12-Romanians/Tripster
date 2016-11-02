@@ -55,7 +55,7 @@ public class PicturesProvider {
         Log.e("Andreea", Long.toString(dateTaken));
         Log.e("DATA", pathToPhoto);
 
-        Picture photo = new Picture(dateTaken, latitude, longitude, pathToPhoto);
+        Picture photo = new Picture(dateTaken, latitude, longitude, pathToPhoto, activity);
         photos.add(photo);
       }
       cur.moveToNext();
