@@ -13,8 +13,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.io.File;
-
 import tripster.tripster.R;
 
 public class PhotosListAdapter extends ArrayAdapter<String> {
@@ -79,7 +77,6 @@ public class PhotosListAdapter extends ArrayAdapter<String> {
   }
 
   private Bitmap getBitmapFromPhotoPath(String photoPath) {
-    File image = new File(photoPath);
     Display display = activity.getWindowManager().getDefaultDisplay();
     Point size = new Point();
     display.getSize(size);

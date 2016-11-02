@@ -1,4 +1,4 @@
-package tripster.tripster;
+package tripster.tripster.fragments;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -13,6 +13,9 @@ import android.widget.ListView;
 
 import java.util.Arrays;
 import java.util.List;
+
+import tripster.tripster.R;
+import tripster.tripster.SearchableAdapter;
 
 public class FriendsFragment extends Fragment {
     private static final String TAG = FriendsFragment.class.getName();

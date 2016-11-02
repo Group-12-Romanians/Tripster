@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import tripster.tripster.account.LogoutProvider;
+import tripster.tripster.fragments.FriendsFragment;
 import tripster.tripster.fragments.PicturesFragment;
 import tripster.tripster.fragments.TripsterFragment;
 
