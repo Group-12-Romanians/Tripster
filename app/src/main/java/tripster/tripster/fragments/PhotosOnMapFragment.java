@@ -119,12 +119,15 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
                 Log.d("RESPONSE request place", response);
                 JSONObject clientObject = new JSONObject(response);
                 JSONArray array = clientObject.getJSONArray("results");
-                int position = array.length() == 1 ? 0 : 1;
-                String placeName = array.getJSONObject(position).getString("name");
+                MarkerOptions options = new MarkerOptions().position(location);
+                if (array.length() > 0) {
+                  int position = array.length() == 1 ? 0 : 1;
+                  String placeName = array.getJSONObject(position).getString("name");
+                  options.title(placeName);
+                }
                 if (mMap != null) {
-                  mMap.addMarker(new MarkerOptions()
-                      .position(location).title(placeName));
-                } 
+                  mMap.addMarker(options);
+                }
               } catch (JSONException e) {
                 e.printStackTrace();
               }
