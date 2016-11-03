@@ -21,6 +21,7 @@ import java.util.Map;
 
 import tripster.tripster.account.LogoutProvider;
 import tripster.tripster.fragments.FriendsFragment;
+import tripster.tripster.fragments.HomeFragment;
 import tripster.tripster.fragments.PhotosOnMapFragment;
 import tripster.tripster.fragments.PicturesFragment;
 import tripster.tripster.fragments.TripsterFragment;
@@ -78,6 +79,10 @@ public class TripsterActivity extends AppCompatActivity
 
       fragments.put("map", new PhotosOnMapFragment());
       Log.d(TAG, "Initialise PhotosOnMapFragment");
+
+      fragments.put("home", new HomeFragment());
+      Log.d(TAG, "Initialise HomeFragment");
+
 
       // Add the fragment to the 'main_container' FrameLayout
       getSupportFragmentManager().beginTransaction().add(R.id.main_content, fragments.get("initial")).commit();
@@ -141,6 +146,9 @@ public class TripsterActivity extends AppCompatActivity
     } else if (id == R.id.nav_manage) {
       frag = fragments.get("map");
       Log.d(TAG, "I want to switch to map fragment");
+    } else if (id == R.id.home) {
+      frag = fragments.get("home");
+      Log.d(TAG, "I want to switch to home fragment");
     } else if (id == R.id.nav_share) {
 
     } else if (id == R.id.nav_send) {

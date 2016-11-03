@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,18 +46,30 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
   private GoogleMap mMap;
   private HashMap<Long, LatLng> locationHistory;
 
+  private static View view;
+
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-    View view = inflater.inflate(R.layout.fragment_map, container, false);
-    locationHistory = getLocationHistoryFromFile();
-    List<LatLng> locations = new ArrayList<>();
-    for (Map.Entry<Long, LatLng> location : locationHistory.entrySet()) {
-      locations.add(location.getValue());
+    if (view != null) {
+      ViewGroup parent = (ViewGroup) view.getParent();
+      if (parent != null)
+        parent.removeView(view);
     }
-    getPlacesNames(locations);
-    SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-    mapFragment.getMapAsync(this);
+
+    try {
+      view = inflater.inflate(R.layout.fragment_map, container, false);
+      locationHistory = getLocationHistoryFromFile();
+      List<LatLng> locations = new ArrayList<>();
+      for (Map.Entry<Long, LatLng> location : locationHistory.entrySet()) {
+        locations.add(location.getValue());
+      }
+      getPlacesNames(locations);
+      SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+      mapFragment.getMapAsync(this);
+    } catch (InflateException e) {
+        /* map is already there, just return view as it is */
+    }
     return view;
   }
 
