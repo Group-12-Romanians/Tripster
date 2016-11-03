@@ -10,7 +10,6 @@ import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ListView;
 
 import java.io.BufferedReader;
@@ -37,25 +36,19 @@ public class PicturesFragment extends Fragment {
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-    final View view =  inflater.inflate(R.layout.fragment_pictures, container, false);
-    Button button = (Button) view.findViewById(R.id.show_pics_button);
+    final View view = inflater.inflate(R.layout.fragment_pictures, container, false);
 
     startTime = getTripStartTime();
     Log.d(TAG, getActivity().toString());
 
     picturesProvider = new PicturesProvider(getActivity(), startTime);
-    button.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        Log.d(TAG, "Button Pressed");
-        if (startTime != -1) {
-          pictures = getPicturesFromGallery();
-          addPicturesToListView(pictures, view);
-        } else {
-          Log.d(TAG, "No time");
-        }
-      }
-    });
+    if (startTime != -1) {
+      pictures = getPicturesFromGallery();
+      addPicturesToListView(pictures, view);
+    } else {
+      Log.d(TAG, "No time");
+    }
+
     return view;
   }
 

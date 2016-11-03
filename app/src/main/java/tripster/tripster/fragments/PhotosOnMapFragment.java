@@ -53,23 +53,25 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     if (view != null) {
       ViewGroup parent = (ViewGroup) view.getParent();
-      if (parent != null)
+      if (parent != null) {
         parent.removeView(view);
+      }
     }
 
     try {
       view = inflater.inflate(R.layout.fragment_map, container, false);
-      locationHistory = getLocationHistoryFromFile();
-      List<LatLng> locations = new ArrayList<>();
-      for (Map.Entry<Long, LatLng> location : locationHistory.entrySet()) {
-        locations.add(location.getValue());
-      }
-      getPlacesNames(locations);
-      SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-      mapFragment.getMapAsync(this);
     } catch (InflateException e) {
-        /* map is already there, just return view as it is */
+      /* map is already there, just return view as it is */
+      Log.d(TAG, "locations on map exception");
     }
+    locationHistory = getLocationHistoryFromFile();
+    List<LatLng> locations = new ArrayList<>();
+    for (Map.Entry<Long, LatLng> location : locationHistory.entrySet()) {
+      locations.add(location.getValue());
+    }
+    getPlacesNames(locations);
+    SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+    mapFragment.getMapAsync(this);
     return view;
   }
 
@@ -119,8 +121,10 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
                 JSONArray array = clientObject.getJSONArray("results");
                 int position = array.length() == 1 ? 0 : 1;
                 String placeName = array.getJSONObject(position).getString("name");
-                mMap.addMarker(new MarkerOptions()
-                    .position(location).title(placeName));
+                if (mMap != null) {
+                  mMap.addMarker(new MarkerOptions()
+                      .position(location).title(placeName));
+                } 
               } catch (JSONException e) {
                 e.printStackTrace();
               }
