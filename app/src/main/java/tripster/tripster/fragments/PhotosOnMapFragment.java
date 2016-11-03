@@ -1,6 +1,5 @@
 package tripster.tripster.fragments;
 
-import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -33,8 +32,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Scanner;
+import java.util.Map;
 
 import tripster.tripster.R;
 import tripster.tripster.pictures.Picture;
@@ -43,17 +43,18 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
   private static final String TAG = PhotosOnMapFragment.class.getName();
   private static final String LOCATIONS_FILE_PATH = "locations.txt";
   private GoogleMap mMap;
+  private HashMap<Long, LatLng> locationHistory;
 
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_map, container, false);
-    AssetManager am = getActivity().getAssets();
-    try {
-      parseLocationFile(new Scanner(am.open("Locations")));
-    } catch (IOException e) {
-      e.printStackTrace();
+    locationHistory = getLocationHistoryFromFile();
+    List<LatLng> locations = new ArrayList<>();
+    for (Map.Entry<Long, LatLng> location : locationHistory.entrySet()) {
+      locations.add(location.getValue());
     }
+    getPlacesNames(locations);
     SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
     mapFragment.getMapAsync(this);
     return view;
@@ -68,10 +69,6 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
   @Override
   public void onMapReady(GoogleMap googleMap) {
     mMap = googleMap;
-    List<LatLng> locations = getLocationsFromFile();
-    for (LatLng location : locations) {
-      mMap.addMarker(new MarkerOptions().position(location).title("Marker"));
-    }
 
     if (PicturesFragment.pictures != null) {
       for (Picture picture : PicturesFragment.pictures) {
@@ -85,22 +82,18 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
           location = new LatLng(latitude, longitude);
         }
         mMap.addMarker(new MarkerOptions().position(location).
-            icon(BitmapDescriptorFactory.fromBitmap(picture.getBitmap(200))));
+            icon(BitmapDescriptorFactory.fromBitmap(picture.getBitmap(100))));
       }
     }
   }
 
-  public void parseLocationFile(Scanner scanner) {
+  public void getPlacesNames(List<LatLng> locations) {
     String requestHead = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" +
         "location=";
     String requestTail = "&radius=50&key=AIzaSyBEcADKicF0ZeIooOSbh12Vu7BVyDOIjik";
 
-    while (scanner.hasNextLine()) {
-      String latLongString = scanner.nextLine();
-      Double latitude = Double.parseDouble(latLongString.split(",")[0]);
-      Double longitude = Double.parseDouble(latLongString.split(",")[1]);
-      final LatLng latLng = new LatLng(latitude, longitude);
-      String url = requestHead + latLongString + requestTail;
+   for (final LatLng location : locations) {
+      String url = requestHead + location.latitude + "," + location.longitude + requestTail;
 
       RequestQueue queue = Volley.newRequestQueue(getActivity());
       StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -114,7 +107,7 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
                 int position = array.length() == 1 ? 0 : 1;
                 String placeName = array.getJSONObject(position).getString("name");
                 mMap.addMarker(new MarkerOptions()
-                    .position(latLng).title(placeName));
+                    .position(location).title(placeName));
               } catch (JSONException e) {
                 e.printStackTrace();
               }
@@ -129,10 +122,11 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
 
       queue.add(stringRequest);
     }
+
   }
 
-  private List<LatLng> getLocationsFromFile() {
-    List<LatLng> locations = new ArrayList<>();
+  private HashMap<Long, LatLng> getLocationHistoryFromFile() {
+    HashMap<Long, LatLng> locationHistory = new HashMap<>();
     try {
       File file = new File(getActivity().getFilesDir(), LOCATIONS_FILE_PATH);
       FileInputStream locationStream = new FileInputStream(file);
@@ -140,16 +134,17 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
       String line;
       while ((line = reader.readLine()) != null) {
         String[] locationInfo = line.split(",");
+        long time = Long.parseLong(locationInfo[0]);
         double latitude = Double.parseDouble(locationInfo[1]);
         double longitude = Double.parseDouble(locationInfo[2]);
-        locations.add(new LatLng(latitude, longitude));
+        locationHistory.put(time, new LatLng(latitude, longitude));
       }
     } catch (FileNotFoundException e) {
       Log.d(TAG, "No file to read from");
     } catch (IOException e) {
       e.printStackTrace();
     }
-    return locations;
+    return locationHistory;
   }
 
   private boolean isLocationNull(Picture picture) {
