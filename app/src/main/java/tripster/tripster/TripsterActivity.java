@@ -28,10 +28,7 @@ import java.util.Map;
 
 import tripster.tripster.account.LogoutProvider;
 import tripster.tripster.fragments.FriendsFragment;
-import tripster.tripster.fragments.HomeFragment;
-import tripster.tripster.fragments.PhotosOnMapFragment;
-import tripster.tripster.fragments.PicturesFragment;
-import tripster.tripster.fragments.TripsterFragment;
+import tripster.tripster.fragments.MyTripsFragment;
 import tripster.tripster.services.LocationService;
 
 public class TripsterActivity extends AppCompatActivity
@@ -75,24 +72,15 @@ public class TripsterActivity extends AppCompatActivity
       }
       fragments = new HashMap<>();
 
-      fragments.put("initial", new TripsterFragment());
-      Log.d(TAG, "Initialise TripsterFragment");
-
       fragments.put("friends", new FriendsFragment());
       Log.d(TAG, "Initialise FriendsFragment");
 
-      fragments.put("pictures", new PicturesFragment());
-      Log.d(TAG, "Initialise PicturesFragment");
-
-      fragments.put("map", new PhotosOnMapFragment());
-      Log.d(TAG, "Initialise PhotosOnMapFragment");
-
-      fragments.put("home", new HomeFragment());
-      Log.d(TAG, "Initialise HomeFragment");
+      fragments.put("myTrips", new MyTripsFragment());
+      Log.d(TAG, "Initialise MyTripsFragment");
 
 
       // Add the fragment to the 'main_container' FrameLayout
-      getSupportFragmentManager().beginTransaction().add(R.id.main_content, fragments.get("initial")).commit();
+      getSupportFragmentManager().beginTransaction().add(R.id.main_content, fragments.get("myTrips")).commit();
     }
 
     final FloatingActionMenu fabMenu = (FloatingActionMenu) findViewById(R.id.tracking_menu);
@@ -208,22 +196,13 @@ public class TripsterActivity extends AppCompatActivity
     // Handle navigation view item clicks here.
     int id = item.getItemId();
 
-    Fragment frag = fragments.get("initial");
+    Fragment frag = fragments.get("myTrips");
 
     if (id == R.id.nav_camera) {
-      Log.d(TAG, "I want to switch to initial fragment");
-    } else if (id == R.id.nav_gallery) {
-      frag = fragments.get("pictures");
-      Log.d(TAG, "I want to switch to pictures fragment");
+      Log.d(TAG, "I want to switch to myTrips fragment");
     } else if (id == R.id.nav_slideshow) {
       frag = fragments.get("friends");
       Log.d(TAG, "I want to switch to friends fragment");
-    } else if (id == R.id.nav_manage) {
-      frag = fragments.get("map");
-      Log.d(TAG, "I want to switch to map fragment");
-    } else if (id == R.id.home) {
-      frag = fragments.get("home");
-      Log.d(TAG, "I want to switch to home fragment");
     } else if (id == R.id.nav_share) {
 
     } else if (id == R.id.nav_send) {
