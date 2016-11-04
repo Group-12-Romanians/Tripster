@@ -41,6 +41,18 @@
             android:enabled="true"
             android:process=":mine">
         </service>
+
+        <receiver
+            android:name=".CameraEventReceiver"
+            android:enabled="true" >
+            <intent-filter>
+                <action android:name="com.android.camera.NEW_PICTURE" />
+                <action android:name="android.hardware.action.NEW_PICTURE" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+
+
+        </receiver>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />

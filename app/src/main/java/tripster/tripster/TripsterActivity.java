@@ -241,7 +241,7 @@ public class TripsterActivity extends AppCompatActivity
   }
 
   private boolean isServiceRunning(Class<?> serviceClass) {
-    ActivityManager manager = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
+    ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
     for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
       if (serviceClass.getName().equals(service.service.getClassName())) {
         Log.i("isMyServiceRunning?", true + "");
