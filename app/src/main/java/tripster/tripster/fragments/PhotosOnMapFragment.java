@@ -85,8 +85,8 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
   public void onMapReady(GoogleMap googleMap) {
     mMap = googleMap;
 
-    if (PicturesFragment.pictures != null) {
-      for (Picture picture : PicturesFragment.pictures) {
+    if (HomeFragment.pictures != null) {
+      for (Picture picture : HomeFragment.pictures) {
         LatLng location;
         if (isLocationNull(picture)) {
           long pictureDate = picture.getDateTaken();

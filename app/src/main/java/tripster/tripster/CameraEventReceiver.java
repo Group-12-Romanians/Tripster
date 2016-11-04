@@ -25,9 +25,11 @@ public class CameraEventReceiver extends BroadcastReceiver {
   @Override
   public void onReceive(Context context, Intent intent) {
     Log.d("HAHAHHAHAHHA", "gotPic");
+
     Cursor cursor = context.getContentResolver().query(intent.getData(), null, null, null, null);
     cursor.moveToFirst();
-    String image_path = cursor.getString(cursor.getColumnIndex("_data"));
+    String image_path = cursor.getString(cursor.getColumnIndex("_data")); // _data = path to photo
+    long dateTaken = cursor.getLong(cursor.getColumnIndex("datetaken"));
 
     try {
       File file = new File(context.getFilesDir(), LOCATIONS_FILE_PATH);
@@ -43,9 +45,11 @@ public class CameraEventReceiver extends BroadcastReceiver {
         reader.close();
         FileOutputStream locationsFileStream = context.openFileOutput(LOCATIONS_FILE_PATH, MODE_APPEND);
         OutputStreamWriter out = new OutputStreamWriter(locationsFileStream);
-          out.append(lastLine + "," + image_path);
-          out.flush();
-          out.close();
+        String[] lastLineDetails = lastLine.split(",");
+        String details = dateTaken + "," + lastLineDetails[1] + "," + lastLineDetails[2] + "," + image_path + "\n";
+        out.append(details);
+        out.flush();
+        out.close();
       }
     } catch (FileNotFoundException e) {
       Log.d(TAG, "No file to read from so service must be paused");

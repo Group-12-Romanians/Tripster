@@ -1,6 +1,5 @@
 package tripster.tripster.pictures;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
@@ -12,7 +11,7 @@ public class Picture {
 
   private long dateTaken;
 
-  public Picture(long dateTaken, String latitude, String longitude, String pathToPhoto, Activity activity) {
+  public Picture(long dateTaken, String latitude, String longitude, String pathToPhoto) {
     this.dateTaken = dateTaken;
     this.latitude = latitude;
     this.longitude = longitude;
