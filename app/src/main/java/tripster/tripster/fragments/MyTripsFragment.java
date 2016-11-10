@@ -11,7 +11,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import tripster.tripster.R;
-import tripster.tripster.TripPreviewAdapter;
+import tripster.tripster.adapters.TripPreviewAdapter;
 
 public class MyTripsFragment extends Fragment {
   private static final String TAG = MyTripsFragment.class.getName();

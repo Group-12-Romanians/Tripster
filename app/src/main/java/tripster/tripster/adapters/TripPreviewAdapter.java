@@ -1,4 +1,4 @@
-package tripster.tripster;
+package tripster.tripster.adapters;
 
 import android.app.Activity;
 import android.view.Gravity;
@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import tripster.tripster.R;
 
 public class TripPreviewAdapter extends BaseAdapter {
   private Activity activity;

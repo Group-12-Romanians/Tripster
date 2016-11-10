@@ -1,4 +1,4 @@
-package tripster.tripster.pictures;
+package tripster.tripster.adapters;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -34,6 +34,6 @@ public class PhotosListAdapter extends ArrayAdapter<String> {
     txtTitle.setText(photosDescriptions[position]);
     imageView.setImageBitmap(photos[position]);
     return rowView;
-  };
+  }
 
 }

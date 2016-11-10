@@ -31,131 +31,148 @@ import tripster.tripster.R;
 
 public class FacebookProvider extends AccountProvider {
 
-    private CallbackManager callbackManager;
+  private CallbackManager callbackManager;
 
-    private static final int RC_FB_SIGN_IN = 64206;
-    private static final String TAG = FacebookProvider.class.getName();
+  private static final int RC_FB_SIGN_IN = 64206;
+  private static final String TAG = FacebookProvider.class.getName();
 
-    // Initialize SDK and enter main activity if async login succeeds.
-    public FacebookProvider(AppCompatActivity activity) {
-        parentActivity = activity;
+  // Initialize SDK and enter main activity if async login succeeds.
+  public FacebookProvider(AppCompatActivity activity) {
+    parentActivity = activity;
 
-        FacebookSdk.sdkInitialize(parentActivity.getApplicationContext());
+    FacebookSdk.sdkInitialize(parentActivity.getApplicationContext());
 
-        AccessTokenTracker accessTokenTracker = new AccessTokenTracker() {
-            @Override
-            protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken newAccessToken) {
-                if (newAccessToken != null && parentActivity instanceof LoginActivity) {
-                    ((LoginActivity) parentActivity).handleLogin(TAG);
-                }
-            }
-        };
-    }
-
-    @Override
-    public boolean isLoggedIn() {
-        return false;
-    }
-
-    @Override
-    public void setupLoginButton() {
-        callbackManager = CallbackManager.Factory.create();
-        LoginManager.getInstance().registerCallback(callbackManager,
-                new FacebookCallback<LoginResult>() {
-                    @Override
-                    public void onSuccess(LoginResult loginResult) {
-                        Log.d(TAG, "Facebook login successful");
-
-                        if (parentActivity instanceof LoginActivity) {
-                            ((LoginActivity) parentActivity).handleLogin(TAG);
-                        }
-                    }
-
-                    @Override
-                    public void onCancel() {
-                        Toast.makeText(parentActivity, "Login canceled", Toast.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    public void onError(FacebookException exception) {
-                        Toast.makeText(parentActivity, exception.getMessage(), Toast.LENGTH_LONG).show();
-                    }
-                });
-
-        Button fbLoginButton = (Button) parentActivity.findViewById(R.id.btn_fb_login);
-
-        fbLoginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                LoginManager.getInstance().logInWithReadPermissions(parentActivity, Arrays.asList("public_profile", "email"));
-            }
-        });
-    }
-
-    @Override
-    public void handleActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == RC_FB_SIGN_IN) {
-            callbackManager.onActivityResult(requestCode, resultCode, data);
+    AccessTokenTracker accessTokenTracker = new AccessTokenTracker() {
+      @Override
+      protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken newAccessToken) {
+        if (newAccessToken != null && parentActivity instanceof LoginActivity) {
+          ((LoginActivity) parentActivity).handleLogin(TAG);
         }
-    }
+      }
+    };
+  }
 
-    @Override
-    public void setUserAccountFields(final TextView name, final TextView email, final ImageView avatar) {
-        AccessToken at = AccessToken.getCurrentAccessToken();
-        Log.d(TAG, "token is" + (at == null ? "null" : at.getToken()));
+  @Override
+  public boolean isLoggedIn() {
+    return false;
+  }
 
-        if (internetConnection(parentActivity)) {
-            GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
-                @Override
-                public void onCompleted(JSONObject me, GraphResponse response) {
-                    if (response.getError() != null) {
-                        Log.d(TAG, response.getError().toString());
-                    } else {
-                        String username = me.optString("name");
-                        String id = me.optString("id");
-                        String mail = me.optString("email");
-                        if (mail == null || mail.equals("")) {
-                            mail = "facebook@stupid.com";
-                        }
-                        name.setText(username);
-                        email.setText(mail);
-                        setAvatarFromUrl("https://graph.facebook.com/" + id + "/picture?type=large", avatar);
+  @Override
+  public void setupLoginButton() {
+    callbackManager = CallbackManager.Factory.create();
+    LoginManager.getInstance().registerCallback(callbackManager,
+        new FacebookCallback<LoginResult>() {
+          @Override
+          public void onSuccess(LoginResult loginResult) {
+            Log.d(TAG, "Facebook login successful");
+            GraphRequest.newMeRequest(loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
+              @Override
+              public void onCompleted(JSONObject me, GraphResponse response) {
+                if (response.getError() != null) {
+                  Log.d(TAG, response.getError().toString());
+                } else {
+                  String username = me.optString("name");
+                  String id = me.optString("id");
+                  String mail = me.optString("email");
+                  if (mail == null || mail.equals("")) {
+                    mail = "facebook@stupid.com";
+                  }
+                  Log.d(TAG, "username is: " + username + ", email is: " + mail + ", id is:" + id);
 
-                        Log.d(TAG, "username is: " + username + ", email is: " + mail + ", id is:" + id);
-
-                        cacheData(username, mail);
-                    }
+                  cacheData(username, mail);
+                  saveUser(id, username);
                 }
+              }
             }).executeAsync();
-        } else {
-            SharedPreferences sharedPref = parentActivity.getPreferences(Context.MODE_PRIVATE);
-            String username = sharedPref.getString("username", "John John"); //default value
-            String mail = sharedPref.getString("email", "john@john.com"); //default value
+          }
 
+          @Override
+          public void onCancel() {
+            Toast.makeText(parentActivity, "Login canceled", Toast.LENGTH_LONG).show();
+          }
+
+          @Override
+          public void onError(FacebookException exception) {
+            Toast.makeText(parentActivity, exception.getMessage(), Toast.LENGTH_LONG).show();
+          }
+        });
+
+    Button fbLoginButton = (Button) parentActivity.findViewById(R.id.btn_fb_login);
+
+    fbLoginButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        LoginManager
+            .getInstance()
+            .logInWithReadPermissions(parentActivity,
+                                      Arrays.asList("public_profile", "email"));
+      }
+    });
+  }
+
+  @Override
+  public void handleActivityResult(int requestCode, int resultCode, Intent data) {
+    if (requestCode == RC_FB_SIGN_IN) {
+      callbackManager.onActivityResult(requestCode, resultCode, data);
+    }
+  }
+
+  @Override
+  public void setUserAccountFields(final TextView name,
+                                   final TextView email,
+                                   final ImageView avatar) {
+    AccessToken at = AccessToken.getCurrentAccessToken();
+    Log.d(TAG, "token is" + (at == null ? "null" : at.getToken()));
+
+    if (internetConnection(parentActivity)) {
+      GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
+        @Override
+        public void onCompleted(JSONObject me, GraphResponse response) {
+          if (response.getError() != null) {
+            Log.d(TAG, response.getError().toString());
+          } else {
+            String username = me.optString("name");
+            String id = me.optString("id");
+            String mail = me.optString("email");
+            if (mail == null || mail.equals("")) {
+              mail = "facebook@stupid.com";
+            }
             name.setText(username);
             email.setText(mail);
-            setAvatarFromCache(avatar);
+            setAvatarFromUrl("https://graph.facebook.com/" + id + "/picture?type=large", avatar);
+
+            Log.d(TAG, "username is: " + username + ", email is: " + mail + ", id is:" + id);
+
+            cacheData(username, mail);
+          }
         }
-    }
+      }).executeAsync();
+    } else {
+      SharedPreferences sharedPref = parentActivity
+          .getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+      String username = sharedPref.getString("username", "John John"); //default value
+      String mail = sharedPref.getString("email", "john@john.com"); //default value
 
-    private void cacheData(String username, String email) {
-        SharedPreferences sharedPref = parentActivity.getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString("username", username);
-        editor.putString("email", email);
-        editor.apply();
+      name.setText(username);
+      email.setText(mail);
+      setAvatarFromCache(avatar);
     }
+  }
 
-    @Override
-    public void logOut() {
-        clearCacheData();
-        LoginManager.getInstance().logOut();
-        switchToLogin();
-    }
+  private void cacheData(String username, String email) {
+    SharedPreferences sharedPref = parentActivity
+        .getSharedPreferences(SHARED_PREF_NAME,
+                              Context.MODE_PRIVATE);
+    SharedPreferences.Editor editor = sharedPref.edit();
+    editor.putString("username", username);
+    editor.putString("email", email);
+    editor.apply();
+  }
 
-    private void clearCacheData() {
-        SharedPreferences sharedPref = parentActivity.getPreferences(Context.MODE_PRIVATE);
-        sharedPref.edit().clear().apply();
-        removeAvatar();
-    }
+  @Override
+  public void logOut() {
+    clearCacheData();
+    LoginManager.getInstance().logOut();
+    switchToLogin();
+  }
 }

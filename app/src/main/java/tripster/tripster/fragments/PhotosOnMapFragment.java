@@ -64,15 +64,19 @@ public class PhotosOnMapFragment extends Fragment implements OnMapReadyCallback 
       /* map is already there, just return view as it is */
       Log.d(TAG, "locations on map exception");
     }
+    addPlacesOnMap();
+    SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+    mapFragment.getMapAsync(this);
+    return view;
+  }
+
+  private void addPlacesOnMap() {
     locationHistory = getLocationHistoryFromFile();
     List<LatLng> locations = new ArrayList<>();
     for (Map.Entry<Long, LatLng> location : locationHistory.entrySet()) {
       locations.add(location.getValue());
     }
     getPlacesNames(locations);
-    SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-    mapFragment.getMapAsync(this);
-    return view;
   }
 
   @Override

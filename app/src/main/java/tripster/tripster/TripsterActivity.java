@@ -1,6 +1,5 @@
 package tripster.tripster;
 
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +17,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
@@ -34,17 +35,20 @@ import tripster.tripster.services.LocationService;
 public class TripsterActivity extends AppCompatActivity
     implements NavigationView.OnNavigationItemSelectedListener {
 
+  public static String SERVER_URL = "http://146.169.46.220:8081";
+  public static String USER_ID = "";
+
   private LogoutProvider accountProvider;
   private static final String TAG = TripsterActivity.class.getName();
 
   private Map<String, Fragment> fragments = null;
-  private Activity activity = this;
+  public static RequestQueue reqQ;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     recreateLoginSession();
-
+    reqQ =  Volley.newRequestQueue(this);
     setContentView(R.layout.activity_tripster);
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
@@ -62,6 +66,8 @@ public class TripsterActivity extends AppCompatActivity
 
     accountProvider.setUserAccountFields((TextView) header.findViewById(R.id.username),
         (TextView) header.findViewById(R.id.email), (ImageView) header.findViewById(R.id.avatar));
+    USER_ID = accountProvider.getUserId();
+    Log.d(TAG, "useridis" + USER_ID);
 
     // Check that the activity is using the layout version with
     // the fragment_container FrameLayout

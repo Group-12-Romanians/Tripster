@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="horizontal"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/notification_text"
+        android:layout_width="270dp"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:paddingTop="5dp"/>
+
+    <Button
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@+id/decline_button"
+        android:text="Accept"
+        android:background="@color/colorPrimary"
+        android:textColor="@color/white"
+        android:id="@+id/accept_button" />
+
+    <Button
+        android:layout_width="60dp"
+        android:layout_marginLeft="5dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:text="Decline"
+        android:background="@color/colorPrimary"
+        android:textColor="@color/white"
+        android:id="@+id/decline_button" />
+
+
+
+</RelativeLayout>

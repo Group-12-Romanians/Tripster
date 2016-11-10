@@ -15,7 +15,7 @@ import android.widget.ListView;
 import java.util.List;
 
 import tripster.tripster.R;
-import tripster.tripster.pictures.PhotosListAdapter;
+import tripster.tripster.adapters.PhotosListAdapter;
 import tripster.tripster.pictures.Picture;
 
 public class PicturesFragment extends Fragment {

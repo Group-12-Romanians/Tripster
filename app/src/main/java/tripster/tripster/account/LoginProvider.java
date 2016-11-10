@@ -4,9 +4,9 @@ package tripster.tripster.account;
 import android.content.Intent;
 
 public interface LoginProvider {
-    boolean isLoggedIn();
+  boolean isLoggedIn();
 
-    void setupLoginButton();
+  void setupLoginButton();
 
-    void handleActivityResult(int requestCode, int resultCode, Intent data);
+  void handleActivityResult(int requestCode, int resultCode, Intent data);
 }
