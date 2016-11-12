@@ -39,10 +39,10 @@ abstract class AccountProvider implements LoginProvider, LogoutProvider {
   public static final String SHARED_PREF_NAME = "Tripster";
   AppCompatActivity parentActivity;
 
-  boolean saveUser(String id, String name) {
+  boolean saveUser(String id, String name, String tag) {
     RequestQueue requestQueue = Volley.newRequestQueue(parentActivity);
     if (internetConnection(parentActivity)) {
-      StringRequest userRequest = createUserRequest(id, name);
+      StringRequest userRequest = createUserRequest(id, name, tag);
       requestQueue.add(userRequest);
       Log.d(TAG, "Here is my user id: " + id);
       return true;
@@ -50,7 +50,7 @@ abstract class AccountProvider implements LoginProvider, LogoutProvider {
     return false;
   }
 
-  private StringRequest createUserRequest(final String id, final String name) {
+  private StringRequest createUserRequest(final String id, final String name, final String tag) {
     String userURL = "http://146.169.46.220:8081/new_user";
     return new StringRequest(Request.Method.POST,
         userURL,
@@ -68,7 +68,7 @@ abstract class AccountProvider implements LoginProvider, LogoutProvider {
                   .apply();
 
               if (parentActivity instanceof LoginActivity) {
-                  ((LoginActivity) parentActivity).handleLogin(TAG);
+                  ((LoginActivity) parentActivity).handleLogin(tag);
               }
             } catch (JSONException e) {
               e.printStackTrace();

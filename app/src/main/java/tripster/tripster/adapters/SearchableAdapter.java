@@ -24,6 +24,7 @@ import java.util.Map;
 
 import tripster.tripster.R;
 import tripster.tripster.TripsterActivity;
+import tripster.tripster.fragments.FriendsFragment;
 
 public class SearchableAdapter extends BaseAdapter implements Filterable {
 
@@ -84,16 +85,20 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
       holder = (ViewHolder) convertView.getTag();
     }
 
-    holder.text.setText(filteredData
-        .get(position)
-        .second);
-    if (!isFriend()) {
+    String userName = filteredData.get(position).second;
+    holder.text.setText(userName);
+
+    if (!isFriend(filteredData.get(position))) {
       holder.addFriendButton.setVisibility(View.VISIBLE);
       String friendId = filteredData.get(position).first;
       holder
           .addFriendButton
           .setOnClickListener(getFriendRequestListener(friendId,
                                                        holder.addFriendButton));
+    } else if (isFriendRequestSent(userName)) {
+      holder.addFriendButton.setVisibility(View.VISIBLE);
+      holder.addFriendButton.setText("Request Sent");
+      holder.addFriendButton.setClickable(false);
     }
 
     return convertView;
@@ -129,9 +134,12 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
     }
   }
 
-  private boolean isFriend() {
-    // TODO: Search list of friends for this.
-    return false;
+  private boolean isFriend(Pair<String, String> user) {
+    return FriendsFragment.friends.contains(user);
+  }
+
+  private boolean isFriendRequestSent(String userName) {
+    return FriendsFragment.friendRequests.contains(userName);
   }
 
   private View.OnClickListener getFriendRequestListener(final String friendId,
@@ -156,6 +164,7 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
         new Response.Listener<String>() {
           @Override
           public void onResponse(String response) {
+            Log.d(TAG, "Friend request sent");
           }
         },
         new Response.ErrorListener() {
@@ -169,7 +178,7 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
       public Map<String, String> getParams() {
         Map<String, String> params = new HashMap<>();
         Log.d(TAG, "Parameters were assigned");
-        Log.d(TAG, "friwnd id is: " + friendId.replace("\"", ""));
+        Log.d(TAG, "Friend id is: " + friendId.replace("\"", ""));
         params.put("friend", friendId.replace("\"", ""));
         return params;
       }

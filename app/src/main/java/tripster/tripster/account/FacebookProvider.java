@@ -80,7 +80,7 @@ public class FacebookProvider extends AccountProvider {
                   Log.d(TAG, "username is: " + username + ", email is: " + mail + ", id is:" + id);
 
                   cacheData(username, mail);
-                  saveUser(id, username);
+                  saveUser(id, username, TAG);
                 }
               }
             }).executeAsync();
