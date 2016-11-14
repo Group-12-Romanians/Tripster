@@ -35,7 +35,9 @@ import tripster.tripster.services.LocationService;
 public class TripsterActivity extends AppCompatActivity
     implements NavigationView.OnNavigationItemSelectedListener {
 
-  public static String SERVER_URL = "http://146.169.46.220:8081";
+  public static final String SERVER_URL = "http://146.169.46.220:8081";
+  public static final String LOCATIONS_FILE_PATH = "locations.txt";
+
   public static String USER_ID = "";
 
   private LogoutProvider accountProvider;
