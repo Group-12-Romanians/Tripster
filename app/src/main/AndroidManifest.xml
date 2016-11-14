@@ -50,7 +50,7 @@
         </service>
 
         <receiver
-            android:name=".CameraEventReceiver"
+            android:name=".services.CameraEventReceiver"
             android:enabled="true" >
             <intent-filter>
                 <action android:name="com.android.camera.NEW_PICTURE" />

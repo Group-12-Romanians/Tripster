@@ -35,13 +35,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
+
+import static tripster.tripster.TripsterActivity.LOCATIONS_FILE_PATH;
+import static tripster.tripster.TripsterActivity.SERVER_URL;
+
 
 public class LocationService extends Service
     implements GoogleApiClient.ConnectionCallbacks,
                GoogleApiClient.OnConnectionFailedListener {
 
-  private static final String LOCATIONS_FILE_PATH = "locations.txt";
-  private static final String SERVER_URL = "https://tripster-serverside.herokuapp.com/sync_locations";
+  private static final String TRIP_NAME = "Unnamed";
   private static final int TRACKING_FREQUENCY = 1000;
   private static final int SYNC_FREQUENCY = 5000;
   private static final float MIN_DIST = 200;
@@ -79,9 +83,38 @@ public class LocationService extends Service
   }
 
   private void startRecording() {
+    checkAndInitFile();
     startSyncLocations();
     startLocationTracking();
     Log.d(TAG, "Started by app");
+  }
+
+  private void checkAndInitFile() {
+    FileOutputStream locationsFileStream = null;
+    try {
+      locationsFileStream
+          = openFileOutput(LOCATIONS_FILE_PATH, MODE_APPEND);
+      // File already exists so we do not need to do any initialisations.
+      return;
+    } catch (FileNotFoundException e) {
+      File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
+      try {
+        Log.d(TAG, "Create file");
+        locationsFileStream = new FileOutputStream(file);
+      } catch (FileNotFoundException e1) {
+        Log.d(TAG, "Cannot create file");
+      }
+    }
+    OutputStreamWriter out = new OutputStreamWriter(locationsFileStream);
+    try {
+      out.append(UUID.randomUUID().toString());
+      out.append(",");
+      out.append(TRIP_NAME);
+      out.flush();
+      out.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   private void startSyncLocations() {
@@ -94,7 +127,9 @@ public class LocationService extends Service
       @Override
       public void run() {
         Log.d(TAG, "syncing");
-        StringRequest strReq = new StringRequest(Request.Method.POST, SERVER_URL, new Response.Listener<String>() {
+        StringRequest strReq = new StringRequest(Request.Method.POST,
+            SERVER_URL,
+            new Response.Listener<String>() {
           @Override
           public void onResponse(String response) {
             Log.d("onResponse", "mamamama");
@@ -202,13 +237,8 @@ public class LocationService extends Service
     try {
       locationsFileStream = openFileOutput(LOCATIONS_FILE_PATH, MODE_APPEND);
     } catch (FileNotFoundException e) {
-      File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
-      try {
-        Log.d(TAG, "Create file");
-        locationsFileStream = new FileOutputStream(file);
-      } catch (FileNotFoundException e1) {
-        Log.d(TAG, "FileNotFound");
-      }
+      Log.e(TAG, "File has not been initialised");
+      return;
     }
     OutputStreamWriter out = new OutputStreamWriter(locationsFileStream);
     try {
@@ -222,12 +252,12 @@ public class LocationService extends Service
 
   private String getDetailsStr(Location location) {
     StringBuilder result = new StringBuilder();
+    result.append('\n');
     result.append(location.getTime());
     result.append(',');
     result.append(location.getLatitude());
     result.append(',');
     result.append(location.getLongitude());
-    result.append('\n');
     return result.toString();
   }
 

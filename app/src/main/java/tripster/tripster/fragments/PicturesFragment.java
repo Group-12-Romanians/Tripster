@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import tripster.tripster.R;
@@ -26,10 +27,15 @@ public class PicturesFragment extends Fragment {
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     final View view = inflater.inflate(R.layout.fragment_pictures, container, false);
-
-    addPicturesToListView(HomeFragment.pictures, view);
+    List<Picture> pictures = getPicturesFromJSON(getArguments().getString("trip_json"));
+    addPicturesToListView(pictures, view);
 
     return view;
+  }
+
+  private List<Picture> getPicturesFromJSON(String trip_json) {
+    //TODO: Extract necessary data from file and use them to display pictures.
+    return new ArrayList<>();
   }
 
   private void addPicturesToListView(List<Picture> pictures, View view) {
@@ -52,4 +58,6 @@ public class PicturesFragment extends Fragment {
     ListView list = (ListView) view.findViewById(R.id.list);
     list.setAdapter(adapter);
   }
+
+
 }
