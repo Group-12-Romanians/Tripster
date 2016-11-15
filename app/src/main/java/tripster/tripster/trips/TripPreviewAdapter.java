@@ -1,7 +1,6 @@
-package tripster.tripster.adapters;
+package tripster.tripster.trips;
 
 import android.app.Activity;
-import android.net.Uri;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,13 +12,13 @@ import android.widget.TextView;
 import java.util.List;
 
 import tripster.tripster.R;
-import tripster.tripster.Trip;
+import tripster.tripster.trips.pictures.Photo;
 
 public class TripPreviewAdapter extends BaseAdapter {
   private Activity activity;
-  private List<Trip> trips;
+  private List<TripPreview> trips;
 
-  public TripPreviewAdapter(Activity activity, List<Trip> trips) {
+  public TripPreviewAdapter(Activity activity, List<TripPreview> trips) {
     this.activity = activity;
     this.trips = trips;
   }
@@ -42,14 +41,15 @@ public class TripPreviewAdapter extends BaseAdapter {
       LayoutInflater inflater = activity.getLayoutInflater();
       rowView = inflater.inflate(R.layout.photos_list, null, true);
 
-      Trip trip = trips.get(position);
+      TripPreview trip = trips.get(position);
 
       TextView txtTitle = (TextView) rowView.findViewById(R.id.photo_info);
       txtTitle.setText(trip.getName());
       txtTitle.setGravity(Gravity.CENTER);
 
       ImageView imageView = (ImageView) rowView.findViewById(R.id.photo);
-      imageView.setImageURI(Uri.parse(trip.getPreviewURI()));
+      Photo photo = new Photo(trip.getPreviewURI(), trip.getName());
+      photo.displayIn(imageView);
 
       rowView.setTag(trip);
     } else {

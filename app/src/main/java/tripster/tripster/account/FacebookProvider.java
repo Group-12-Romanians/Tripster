@@ -149,7 +149,7 @@ public class FacebookProvider extends AccountProvider {
       }).executeAsync();
     } else {
       SharedPreferences sharedPref = parentActivity
-          .getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+          .getSharedPreferences(SHARED_PREF_ID, Context.MODE_PRIVATE);
       String username = sharedPref.getString("username", "John John"); //default value
       String mail = sharedPref.getString("email", "john@john.com"); //default value
 
@@ -161,7 +161,7 @@ public class FacebookProvider extends AccountProvider {
 
   private void cacheData(String username, String email) {
     SharedPreferences sharedPref = parentActivity
-        .getSharedPreferences(SHARED_PREF_NAME,
+        .getSharedPreferences(SHARED_PREF_ID,
                               Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = sharedPref.edit();
     editor.putString("username", username);

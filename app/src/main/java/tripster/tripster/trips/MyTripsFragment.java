@@ -1,4 +1,4 @@
-package tripster.tripster.fragments;
+package tripster.tripster.trips;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -15,6 +15,10 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,16 +29,15 @@ import java.util.LinkedList;
 import java.util.List;
 
 import tripster.tripster.R;
-import tripster.tripster.Trip;
 import tripster.tripster.TripsterActivity;
-import tripster.tripster.adapters.TripPreviewAdapter;
+import tripster.tripster.trips.tabs.HomeFragment;
 
 import static tripster.tripster.TripsterActivity.LOCATIONS_FILE_PATH;
 import static tripster.tripster.TripsterActivity.SERVER_URL;
 
 public class MyTripsFragment extends Fragment {
   private static final String TAG = MyTripsFragment.class.getName();
-  private static final String SERVER_TRIPS = SERVER_URL + "/get_trips";
+  private static final String SERVER_TRIPS = SERVER_URL + "/my_trips";
   public static final String CURRENT_TRIP_IMAGE_URL
       = "https://cdn1.tekrevue.com/wp-content/uploads/2015/04/map-location-pin.jpg";
   private GridView grid;
@@ -52,32 +55,41 @@ public class MyTripsFragment extends Fragment {
     String tripsRequestUrl = SERVER_TRIPS
         + "?user_id="
         + TripsterActivity.USER_ID;
-    StringRequest tripsRequest = new StringRequest(Request.Method.GET,
-        tripsRequestUrl,
-        new Response.Listener<String>() {
-          @Override
-          public void onResponse(String tripsJSON) {
-            Log.d(TAG, "Got following trips " + tripsJSON);
-            List<Trip> myTrips = parseJSONResponse(tripsJSON);
-            populateGrid(myTrips);
-          }
+    StringRequest tripsRequest = new StringRequest(Request.Method.GET, tripsRequestUrl, new Response.Listener<String>() {
+      @Override
+      public void onResponse(String tripsStr) {
+        Log.d(TAG, "Got following trips " + tripsStr);
+        List<TripPreview> myTrips = parseJSONResponse(tripsStr);
+        populateGrid(myTrips);
+      }
 
-          private List<Trip> parseJSONResponse(String tripsJSON) {
-            // TODO: Implement this once server done.
-            return new LinkedList<>();
+      private List<TripPreview> parseJSONResponse(String tripsStr) {
+        List<TripPreview> trips = new LinkedList<>();
+        try {
+          JSONArray tripsJSON = new JSONArray(tripsStr);
+          for (int i = 0; i < tripsJSON.length(); i++) {
+            JSONObject tripJSON = tripsJSON.getJSONObject(i);
+            String tripName = tripJSON.getString("name");
+            String tripId = tripJSON.getString("trip_id");
+            String tripPreview = SERVER_URL + "/" + tripJSON.getString("preview") + ".jpg";
+            trips.add(new TripPreview(tripId, tripName, tripPreview));
           }
-        },
-        new Response.ErrorListener() {
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            Log.d(TAG, "Unable to get the list of trips: " + error.networkResponse.data);
-          }
-        });
+        } catch (JSONException e) {
+          e.printStackTrace();
+        }
+        return trips;
+      }
+    }, new Response.ErrorListener() {
+      @Override
+      public void onErrorResponse(VolleyError error) {
+        Log.d(TAG, "Unable to get the list of trips: " + error.networkResponse.data);
+      }
+    });
     TripsterActivity.reqQ.add(tripsRequest);
   }
 
-  private void populateGrid(List<Trip> myTrips) {
-    Trip currentTrip = getCurrentTrip();
+  private void populateGrid(List<TripPreview> myTrips) {
+    TripPreview currentTrip = getCurrentTrip();
     if (currentTrip != null) {
       myTrips.add(0, currentTrip);
     }
@@ -86,12 +98,12 @@ public class MyTripsFragment extends Fragment {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.d(TAG, "A trip has been chosen!");
-        accessTrip((Trip) view.getTag());
+        accessTrip((TripPreview) view.getTag());
       }
     });
   }
 
-  private void accessTrip(Trip trip) {
+  private void accessTrip(TripPreview trip) {
     HomeFragment frag = new HomeFragment();
     Bundle arguments = new Bundle();
     arguments.putString("trip_id", trip.getId());
@@ -99,15 +111,17 @@ public class MyTripsFragment extends Fragment {
     getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag).commit();
   }
 
-  private Trip getCurrentTrip() {
+  private TripPreview getCurrentTrip() {
     try {
       File file = new File(getActivity().getFilesDir(), LOCATIONS_FILE_PATH);
       FileInputStream locationStream = new FileInputStream(file);
       BufferedReader reader = new BufferedReader(new InputStreamReader(locationStream));
-      String[] tripInfo = reader.readLine().split(",");
+      String line = reader.readLine();
+      Log.d(TAG, line);
+      String[] tripInfo = line.split(",");
       String tripId = "current";
       String tripName = tripInfo[1];
-      return new Trip(tripId, tripName, CURRENT_TRIP_IMAGE_URL);
+      return new TripPreview(tripId, tripName, CURRENT_TRIP_IMAGE_URL);
     } catch (FileNotFoundException e) {
       Log.d(TAG, "No current trip");
       return null;

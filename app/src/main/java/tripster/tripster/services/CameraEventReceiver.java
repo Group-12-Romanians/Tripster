@@ -15,10 +15,11 @@ import java.io.OutputStreamWriter;
 import java.util.UUID;
 
 import static android.content.Context.MODE_APPEND;
+import static android.content.Context.MODE_PRIVATE;
+import static tripster.tripster.TripsterActivity.LOCATIONS_FILE_PATH;
+import static tripster.tripster.TripsterActivity.SHARED_PREF_PHOTOS;
 
 public class CameraEventReceiver extends BroadcastReceiver {
-  private static final String LOCATIONS_FILE_PATH = "locations.txt";
-  public static final String SHARED_PREF_NAME = "TripsterPhotosIds";
   private static final String TAG = CameraEventReceiver.class.getName();
 
   @Override
@@ -63,7 +64,7 @@ public class CameraEventReceiver extends BroadcastReceiver {
   private String generatePhotoId(Context context, String imagePath) {
     String photoUUID = UUID.randomUUID().toString();
     SharedPreferences sharedPref
-        = context.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        = context.getSharedPreferences(SHARED_PREF_PHOTOS, MODE_PRIVATE);
     sharedPref.edit().putString(photoUUID, imagePath).apply();
     return photoUUID;
   }

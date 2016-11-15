@@ -22,14 +22,15 @@ import com.android.volley.toolbox.Volley;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
 import tripster.tripster.account.LogoutProvider;
-import tripster.tripster.fragments.FriendsFragment;
-import tripster.tripster.fragments.MyTripsFragment;
+import tripster.tripster.friends.FriendsFragment;
+import tripster.tripster.trips.MyTripsFragment;
 import tripster.tripster.services.LocationService;
 
 public class TripsterActivity extends AppCompatActivity
@@ -37,6 +38,7 @@ public class TripsterActivity extends AppCompatActivity
 
   public static final String SERVER_URL = "http://146.169.46.220:8081";
   public static final String LOCATIONS_FILE_PATH = "locations.txt";
+  public static final String SHARED_PREF_PHOTOS = "TripsterPhotosIds";
 
   public static String USER_ID = "";
 
@@ -49,6 +51,10 @@ public class TripsterActivity extends AppCompatActivity
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    //TODO: TESTING PURPOSES
+    File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
+    file.delete();
+
     recreateLoginSession();
     reqQ =  Volley.newRequestQueue(this);
     setContentView(R.layout.activity_tripster);
@@ -130,7 +136,7 @@ public class TripsterActivity extends AppCompatActivity
 //
 //        pauseButton.hideButtonInMenu(true);
 //        endButton.showButtonInMenu(true);
-//        startButton.setLabelText("Resume Trip");
+//        startButton.setLabelText("Resume TripPreview");
 //        startButton.showButtonInMenu(true);
       }
     });
@@ -153,7 +159,7 @@ public class TripsterActivity extends AppCompatActivity
 
           pauseButton.hideButtonInMenu(true);
           endButton.hideButtonInMenu(true);
-          startButton.setLabelText("Start Trip");
+          startButton.setLabelText("Start TripPreview");
           startButton.showButtonInMenu(true);
         }
       }

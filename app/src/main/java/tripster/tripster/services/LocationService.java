@@ -39,6 +39,7 @@ import java.util.UUID;
 
 import static tripster.tripster.TripsterActivity.LOCATIONS_FILE_PATH;
 import static tripster.tripster.TripsterActivity.SERVER_URL;
+import static tripster.tripster.TripsterActivity.USER_ID;
 
 
 public class LocationService extends Service
@@ -84,40 +85,36 @@ public class LocationService extends Service
 
   private void startRecording() {
     checkAndInitFile();
-    startSyncLocations();
+    //startSyncLocations();
     startLocationTracking();
     Log.d(TAG, "Started by app");
   }
 
   private void checkAndInitFile() {
-    FileOutputStream locationsFileStream = null;
-    try {
-      locationsFileStream
-          = openFileOutput(LOCATIONS_FILE_PATH, MODE_APPEND);
-      // File already exists so we do not need to do any initialisations.
-      return;
-    } catch (FileNotFoundException e) {
-      File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
+    File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
+    if (file.exists()) {
+      Log.d(TAG, "No init needed.");
+    } else {
       try {
         Log.d(TAG, "Create file");
-        locationsFileStream = new FileOutputStream(file);
-      } catch (FileNotFoundException e1) {
-        Log.d(TAG, "Cannot create file");
+        FileOutputStream locationsFileStream = new FileOutputStream(file);
+        OutputStreamWriter out = new OutputStreamWriter(locationsFileStream);
+        try {
+          String line = UUID.randomUUID().toString() + "," + TRIP_NAME;
+          Log.d(TAG, "Line is:" + line);
+          out.append(line);
+          out.flush();
+          out.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      } catch (FileNotFoundException e) {
+        Log.d(TAG, "Cannot create file" + e.toString());
       }
-    }
-    OutputStreamWriter out = new OutputStreamWriter(locationsFileStream);
-    try {
-      out.append(UUID.randomUUID().toString());
-      out.append(",");
-      out.append(TRIP_NAME);
-      out.flush();
-      out.close();
-    } catch (IOException e) {
-      e.printStackTrace();
     }
   }
 
-  private void startSyncLocations() {
+  private void startSyncLocations(final String file) {
     Log.d(TAG, "creating request queue");
     Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
     Network network = new BasicNetwork(new HurlStack());
@@ -127,8 +124,8 @@ public class LocationService extends Service
       @Override
       public void run() {
         Log.d(TAG, "syncing");
-        StringRequest strReq = new StringRequest(Request.Method.POST,
-            SERVER_URL,
+        String url =  SERVER_URL + "/sync_locations?user_id=" + USER_ID;
+        StringRequest strReq = new StringRequest(Request.Method.POST, url,
             new Response.Listener<String>() {
           @Override
           public void onResponse(String response) {
@@ -144,14 +141,14 @@ public class LocationService extends Service
           @Override
           protected Map<String, String> getParams() throws AuthFailureError {
             Map<String, String> map = new HashMap<>();
-            map.put("locations", dumpLocationsFile());
+            map.put("locations", file);
             return map;
           }
         };
         reqQ.add(strReq);
       }
     };
-    getTimer().schedule(task, SYNC_FREQUENCY, SYNC_FREQUENCY);
+    //getTimer().schedule(task, SYNC_FREQUENCY, SYNC_FREQUENCY);
   }
 
   private String dumpLocationsFile() {
@@ -174,6 +171,7 @@ public class LocationService extends Service
   }
 
   private void stopRecording() {
+    startSyncLocations(dumpLocationsFile());
     timer.cancel();
     logLocations();
     emptyFile();

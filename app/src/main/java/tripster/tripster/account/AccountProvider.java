@@ -36,7 +36,7 @@ import tripster.tripster.LoginActivity;
 
 abstract class AccountProvider implements LoginProvider, LogoutProvider {
   private static final String TAG = AccountProvider.class.getName();
-  public static final String SHARED_PREF_NAME = "Tripster";
+  public static final String SHARED_PREF_ID = "TripsterID";
   AppCompatActivity parentActivity;
 
   boolean saveUser(String id, String name, String tag) {
@@ -61,7 +61,7 @@ abstract class AccountProvider implements LoginProvider, LogoutProvider {
             try {
               JSONObject userObject = new JSONObject(response);
               SharedPreferences sharedPref = parentActivity
-                  .getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+                  .getSharedPreferences(SHARED_PREF_ID, Context.MODE_PRIVATE);
               sharedPref
                   .edit()
                   .putString("id", userObject.getString("_id").replace("\"", ""))
@@ -98,13 +98,13 @@ abstract class AccountProvider implements LoginProvider, LogoutProvider {
   @Override
   public String getUserId() {
     SharedPreferences sharedPref = parentActivity
-        .getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        .getSharedPreferences(SHARED_PREF_ID, Context.MODE_PRIVATE);
     return sharedPref.getString("id", "");
   }
 
   void clearCacheData() {
     SharedPreferences sharedPref = parentActivity
-        .getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        .getSharedPreferences(SHARED_PREF_ID, Context.MODE_PRIVATE);
     sharedPref.edit().clear().apply();
     removeAvatar();
   }

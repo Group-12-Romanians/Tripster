@@ -1,4 +1,4 @@
-package tripster.tripster.fragments;
+package tripster.tripster.friends;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tripster.tripster.R;
-import tripster.tripster.adapters.SearchableAdapter;
 import tripster.tripster.TripsterActivity;
 
 public class SearchForUsersFragment extends Fragment {

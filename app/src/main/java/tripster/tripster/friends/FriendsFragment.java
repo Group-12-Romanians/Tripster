@@ -1,4 +1,4 @@
-package tripster.tripster.fragments;
+package tripster.tripster.friends;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;

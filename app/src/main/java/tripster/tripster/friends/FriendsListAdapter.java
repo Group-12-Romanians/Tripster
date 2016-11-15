@@ -1,4 +1,4 @@
-package tripster.tripster.adapters;
+package tripster.tripster.friends;
 
 import android.app.Activity;
 import android.util.Pair;

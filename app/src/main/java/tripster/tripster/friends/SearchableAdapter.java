@@ -1,4 +1,4 @@
-package tripster.tripster.adapters;
+package tripster.tripster.friends;
 
 import android.content.Context;
 import android.util.Log;
@@ -24,7 +24,6 @@ import java.util.Map;
 
 import tripster.tripster.R;
 import tripster.tripster.TripsterActivity;
-import tripster.tripster.fragments.FriendsFragment;
 
 public class SearchableAdapter extends BaseAdapter implements Filterable {
 

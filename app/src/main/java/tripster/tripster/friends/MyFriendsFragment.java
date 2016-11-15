@@ -1,4 +1,4 @@
-package tripster.tripster.fragments;
+package tripster.tripster.friends;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -12,7 +12,6 @@ import android.widget.ListView;
 import java.util.List;
 
 import tripster.tripster.R;
-import tripster.tripster.adapters.FriendsListAdapter;
 
 public class MyFriendsFragment extends Fragment {
 

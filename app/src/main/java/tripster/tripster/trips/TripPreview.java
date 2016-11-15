@@ -1,11 +1,11 @@
-package tripster.tripster;
+package tripster.tripster.trips;
 
-public class Trip {
+public class TripPreview {
   private String id;
   private String name;
   private String previewPicture;
 
-  public Trip(String id, String name, String previewPicture) {
+  public TripPreview(String id, String name, String previewPicture) {
     this.id = id;
     this.name = name;
     this.previewPicture = previewPicture;

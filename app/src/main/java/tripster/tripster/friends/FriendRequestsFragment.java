@@ -1,4 +1,4 @@
-package tripster.tripster.fragments;
+package tripster.tripster.friends;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 import tripster.tripster.R;
-import tripster.tripster.adapters.NotificationsListAdapter;
 
 public class FriendRequestsFragment extends Fragment {
   ListView pendingRequestsListView;
