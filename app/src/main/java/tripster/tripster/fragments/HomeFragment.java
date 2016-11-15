@@ -39,8 +39,8 @@ public class HomeFragment extends Fragment {
 
     mTabHost.addTab(mTabHost.newTabSpec("map").setIndicator("Map"),
         PhotosOnMapFragment.class, null);
-    mTabHost.addTab(mTabHost.newTabSpec("photos").setIndicator("Photos"),
-        PicturesFragment.class, null);
+    mTabHost.addTab(mTabHost.newTabSpec("photos").setIndicator("Timeline"),
+        TimelineFragment.class, null);
     return rootView;
   }
 }
