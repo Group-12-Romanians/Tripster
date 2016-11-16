@@ -5,6 +5,8 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
+
 public class Photo {
   private static final String TAG = Photo.class.getName();
 
@@ -31,10 +33,22 @@ public class Photo {
 
   public void displayIn(ImageView imageView) {
     Log.d(TAG, photoUri);
-    Picasso.with(imageView.getContext())
-        .load(photoUri)
-        .resize(300, 300)
-        .centerInside()
-        .into(imageView);
+    if (localFile(photoUri)) {
+      Picasso.with(imageView.getContext())
+          .load(new File(photoUri))
+          .fit()
+          .centerInside()
+          .into(imageView);
+    } else {
+      Picasso.with(imageView.getContext())
+          .load(photoUri)
+          .fit()
+          .centerInside()
+          .into(imageView);
+    }
+  }
+
+  private boolean localFile(String photoUri) {
+    return photoUri.charAt(0) == '/';
   }
 }

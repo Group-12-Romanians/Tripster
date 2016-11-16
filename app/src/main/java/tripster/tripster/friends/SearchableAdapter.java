@@ -158,29 +158,27 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
         + "?user_id="
         + TripsterActivity.USER_ID;
 
-    StringRequest friendRequest = new StringRequest(Request.Method.POST,
-        friendRequestUrl,
-        new Response.Listener<String>() {
-          @Override
-          public void onResponse(String response) {
-            Log.d(TAG, "Friend request sent");
-          }
-        },
-        new Response.ErrorListener() {
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            Log.d(TAG, "Unable to send friend request. " + error.networkResponse.data);
-          }
-        }) {
-
-      @Override
-      public Map<String, String> getParams() {
-        Map<String, String> params = new HashMap<>();
-        Log.d(TAG, "Parameters were assigned");
-        Log.d(TAG, "Friend id is: " + friendId.replace("\"", ""));
-        params.put("friend", friendId.replace("\"", ""));
-        return params;
-      }
+    StringRequest friendRequest = new StringRequest(Request.Method.POST, friendRequestUrl,
+      new Response.Listener<String>() {
+        @Override
+        public void onResponse(String response) {
+          Log.d(TAG, "Friend request sent");
+        }
+      },
+      new Response.ErrorListener() {
+        @Override
+        public void onErrorResponse(VolleyError error) {
+          Log.d(TAG, "Unable to send friend request. " + error.networkResponse.data);
+        }
+      }) {
+        @Override
+        public Map<String, String> getParams() {
+          Map<String, String> params = new HashMap<>();
+          Log.d(TAG, "Parameters were assigned");
+          Log.d(TAG, "Friend id is: " + friendId.replace("\"", ""));
+          params.put("friend", friendId.replace("\"", ""));
+          return params;
+        }
     };
     TripsterActivity.reqQ.add(friendRequest);
   }

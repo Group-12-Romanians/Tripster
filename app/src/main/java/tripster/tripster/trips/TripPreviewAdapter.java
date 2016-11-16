@@ -23,16 +23,19 @@ public class TripPreviewAdapter extends BaseAdapter {
     this.trips = trips;
   }
 
+  @Override
   public int getCount() {
     return trips.size();
   }
 
+  @Override
   public Object getItem(int position) {
-    return null;
+    return trips.get(position);
   }
 
+  @Override
   public long getItemId(int position) {
-    return 0;
+    return position;
   }
 
   public View getView(int position, View convertView, ViewGroup parent) {

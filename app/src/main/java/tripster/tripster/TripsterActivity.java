@@ -20,7 +20,6 @@ import android.widget.TextView;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 import com.github.clans.fab.FloatingActionButton;
-import com.github.clans.fab.FloatingActionMenu;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -30,8 +29,8 @@ import java.util.Map;
 
 import tripster.tripster.account.LogoutProvider;
 import tripster.tripster.friends.FriendsFragment;
-import tripster.tripster.trips.MyTripsFragment;
 import tripster.tripster.services.LocationService;
+import tripster.tripster.trips.MyTripsFragment;
 
 public class TripsterActivity extends AppCompatActivity
     implements NavigationView.OnNavigationItemSelectedListener {
@@ -39,43 +38,41 @@ public class TripsterActivity extends AppCompatActivity
   public static final String SERVER_URL = "http://146.169.46.220:8081";
   public static final String LOCATIONS_FILE_PATH = "locations.txt";
   public static final String SHARED_PREF_PHOTOS = "TripsterPhotosIds";
-
-  public static String USER_ID = "";
-
-  private LogoutProvider accountProvider;
+  public static final String SHARED_PREF_ID = "TripsterID";
   private static final String TAG = TripsterActivity.class.getName();
 
-  private Map<String, Fragment> fragments = null;
+  public static String USER_ID = "";
   public static RequestQueue reqQ;
+
+  private LogoutProvider accountProvider;
+
+  private Map<String, Fragment> fragments = null;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    //TODO: TESTING PURPOSES
-    File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
-    file.delete();
-
     recreateLoginSession();
-    reqQ =  Volley.newRequestQueue(this);
+
+    reqQ = Volley.newRequestQueue(this);
+
     setContentView(R.layout.activity_tripster);
+
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
-
     DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-    ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-        this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+    ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
     drawer.addDrawerListener(toggle);
     toggle.syncState();
-
     NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
     navigationView.setNavigationItemSelectedListener(this);
-
     View header = navigationView.getHeaderView(0);
 
     accountProvider.setUserAccountFields((TextView) header.findViewById(R.id.username),
         (TextView) header.findViewById(R.id.email), (ImageView) header.findViewById(R.id.avatar));
+
     USER_ID = accountProvider.getUserId();
-    Log.d(TAG, "useridis" + USER_ID);
+
+    Log.d(TAG, "User ID is: " + USER_ID);
 
     // Check that the activity is using the layout version with
     // the fragment_container FrameLayout
@@ -92,29 +89,43 @@ public class TripsterActivity extends AppCompatActivity
       fragments.put("myTrips", new MyTripsFragment());
       Log.d(TAG, "Initialise MyTripsFragment");
 
-
       // Add the fragment to the 'main_container' FrameLayout
       getSupportFragmentManager().beginTransaction().add(R.id.main_content, fragments.get("myTrips")).commit();
     }
 
-    final FloatingActionMenu fabMenu = (FloatingActionMenu) findViewById(R.id.tracking_menu);
+    initializeFab();
+  }
+
+  private void initializeFab() {
     final FloatingActionButton startButton = (FloatingActionButton) findViewById(R.id.tracking_start);
     final FloatingActionButton pauseButton = (FloatingActionButton) findViewById(R.id.tracking_pause);
+    final FloatingActionButton resumeButton = (FloatingActionButton) findViewById(R.id.tracking_resume);
     final FloatingActionButton endButton = (FloatingActionButton) findViewById(R.id.tracking_stop);
 
-    if (isServiceRunning(LocationService.class)) {
-      startButton.hideButtonInMenu(true);
-    } else {
-      pauseButton.hideButtonInMenu(true);
-      endButton.hideButtonInMenu(true);
+    switch(getServiceStatus()) {
+      case "running":
+        // show pause and end
+        startButton.hideButtonInMenu(true);
+        resumeButton.hideButtonInMenu(true);
+        break;
+      case "stopped":
+        // show start
+        pauseButton.hideButtonInMenu(true);
+        resumeButton.hideButtonInMenu(true);
+        endButton.hideButtonInMenu(true);
+        break;
+      case "paused":
+        // show resume and end
+        startButton.hideButtonInMenu(true);
+        pauseButton.hideButtonInMenu(true);
+        break;
     }
 
     startButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         Log.d(TAG, "wanna switch to start recording");
-
-        if (!isServiceRunning(LocationService.class)) {
+        if (!isServiceRunning()) {
           Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
           serviceIntent.putExtra("flag", "start");
           TripsterActivity.this.startService(serviceIntent);
@@ -129,41 +140,75 @@ public class TripsterActivity extends AppCompatActivity
     pauseButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-//        Log.d(TAG, "wanna switch to pause recording");
-//        Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
-//        serviceIntent.putExtra("flag", "pause");
-//        TripsterActivity.this.startService(serviceIntent);
-//
-//        pauseButton.hideButtonInMenu(true);
-//        endButton.showButtonInMenu(true);
-//        startButton.setLabelText("Resume TripPreview");
-//        startButton.showButtonInMenu(true);
+        Log.d(TAG, "wanna switch to pause recording");
+        if (isServiceRunning()) {
+          Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
+          serviceIntent.putExtra("flag", "pause");
+          TripsterActivity.this.startService(serviceIntent);
+
+          pauseButton.hideButtonInMenu(true);
+          resumeButton.showButtonInMenu(true);
+        }
+      }
+    });
+
+    resumeButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        Log.d(TAG, "wanna switch to pause recording");
+        if (!isServiceRunning()) {
+          Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
+          serviceIntent.putExtra("flag", "resume");
+          TripsterActivity.this.startService(serviceIntent);
+
+          resumeButton.hideButtonInMenu(true);
+          pauseButton.showButtonInMenu(true);
+        }
       }
     });
 
     endButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        Intent serviceIntent;
-        if (!isServiceRunning(LocationService.class)) {
-//          Log.d(TAG, "wanna switch to start recording");
-//          serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
-//          serviceIntent.putExtra("flag", "start");
-//          TripsterActivity.this.startService(serviceIntent);
-        }
-        if (isServiceRunning(LocationService.class)) {
-          Log.d(TAG, "wanna switch to stop recording");
-          serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
-          serviceIntent.putExtra("flag", "stop");
-          TripsterActivity.this.startService(serviceIntent);
+        Log.d(TAG, "wanna switch to stop recording");
+        Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
+        serviceIntent.putExtra("flag", "stop");
+        serviceIntent.putExtra("user_id", USER_ID);
+        TripsterActivity.this.startService(serviceIntent);
 
-          pauseButton.hideButtonInMenu(true);
-          endButton.hideButtonInMenu(true);
-          startButton.setLabelText("Start TripPreview");
-          startButton.showButtonInMenu(true);
-        }
+        resumeButton.hideButtonInMenu(true);
+        pauseButton.hideButtonInMenu(true);
+        endButton.hideButtonInMenu(true);
+        startButton.showButtonInMenu(true);
       }
     });
+  }
+
+  private String getServiceStatus() {
+    if (isServiceRunning()) {
+      return "running";
+    }
+    if (locationFileExists()) {
+      return "paused";
+    }
+    return "stopped";
+  }
+
+  private boolean locationFileExists() {
+    File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
+    return file.exists();
+  }
+
+  private boolean isServiceRunning() {
+    ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+    for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+      if (LocationService.class.getName().equals(service.service.getClassName())) {
+        Log.i("isMyServiceRunning?", true + "");
+        return true;
+      }
+    }
+    Log.i("isMyServiceRunning?", false + "");
+    return false;
   }
 
   private void recreateLoginSession() {
@@ -231,17 +276,5 @@ public class TripsterActivity extends AppCompatActivity
     DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
     drawer.closeDrawer(GravityCompat.START);
     return true;
-  }
-
-  private boolean isServiceRunning(Class<?> serviceClass) {
-    ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-    for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-      if (serviceClass.getName().equals(service.service.getClassName())) {
-        Log.i("isMyServiceRunning?", true + "");
-        return true;
-      }
-    }
-    Log.i("isMyServiceRunning?", false + "");
-    return false;
   }
 }

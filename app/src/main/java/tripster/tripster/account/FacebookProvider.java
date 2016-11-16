@@ -1,6 +1,5 @@
 package tripster.tripster.account;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
@@ -29,12 +28,15 @@ import java.util.Arrays;
 import tripster.tripster.LoginActivity;
 import tripster.tripster.R;
 
-public class FacebookProvider extends AccountProvider {
+import static android.content.Context.MODE_PRIVATE;
+import static tripster.tripster.TripsterActivity.SHARED_PREF_ID;
 
-  private CallbackManager callbackManager;
+public class FacebookProvider extends AccountProvider {
 
   private static final int RC_FB_SIGN_IN = 64206;
   private static final String TAG = FacebookProvider.class.getName();
+
+  private CallbackManager callbackManager;
 
   // Initialize SDK and enter main activity if async login succeeds.
   public FacebookProvider(AppCompatActivity activity) {
@@ -104,8 +106,7 @@ public class FacebookProvider extends AccountProvider {
       public void onClick(View view) {
         LoginManager
             .getInstance()
-            .logInWithReadPermissions(parentActivity,
-                                      Arrays.asList("public_profile", "email"));
+            .logInWithReadPermissions(parentActivity, Arrays.asList("public_profile", "email"));
       }
     });
   }
@@ -149,7 +150,7 @@ public class FacebookProvider extends AccountProvider {
       }).executeAsync();
     } else {
       SharedPreferences sharedPref = parentActivity
-          .getSharedPreferences(SHARED_PREF_ID, Context.MODE_PRIVATE);
+          .getSharedPreferences(SHARED_PREF_ID, MODE_PRIVATE);
       String username = sharedPref.getString("username", "John John"); //default value
       String mail = sharedPref.getString("email", "john@john.com"); //default value
 
@@ -160,9 +161,7 @@ public class FacebookProvider extends AccountProvider {
   }
 
   private void cacheData(String username, String email) {
-    SharedPreferences sharedPref = parentActivity
-        .getSharedPreferences(SHARED_PREF_ID,
-                              Context.MODE_PRIVATE);
+    SharedPreferences sharedPref = parentActivity.getSharedPreferences(SHARED_PREF_ID, MODE_PRIVATE);
     SharedPreferences.Editor editor = sharedPref.edit();
     editor.putString("username", username);
     editor.putString("email", email);

@@ -24,9 +24,10 @@ import tripster.tripster.R;
 
 public class GoogleProvider extends AccountProvider {
 
-  private GoogleApiClient googleApiClient;
   private static final int RC_GOOGLE_SIGN_IN = 9001;
   private static final String TAG = GoogleProvider.class.getName();
+
+  private GoogleApiClient googleApiClient;
 
   public GoogleProvider(AppCompatActivity activity) {
     parentActivity = activity;
@@ -48,8 +49,7 @@ public class GoogleProvider extends AccountProvider {
 
   @Override
   public boolean isLoggedIn() {
-    OptionalPendingResult<GoogleSignInResult> opr
-        = Auth.GoogleSignInApi.silentSignIn(googleApiClient);
+    OptionalPendingResult<GoogleSignInResult> opr = Auth.GoogleSignInApi.silentSignIn(googleApiClient);
     if (opr.isDone()) {
       Log.d(TAG, "Google cached sign-in");
       GoogleSignInResult result = opr.get();
@@ -76,8 +76,7 @@ public class GoogleProvider extends AccountProvider {
   @Override
   public void handleActivityResult(int requestCode, int resultCode, Intent data) {
     if (requestCode == RC_GOOGLE_SIGN_IN) {
-      GoogleSignInResult result
-          = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+      GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
       handleSignInResult(result);
     }
   }
@@ -98,8 +97,7 @@ public class GoogleProvider extends AccountProvider {
   public void setUserAccountFields(final TextView name,
                                    final TextView email,
                                    final ImageView avatar) {
-    OptionalPendingResult<GoogleSignInResult> opr
-        = Auth.GoogleSignInApi.silentSignIn(googleApiClient);
+    OptionalPendingResult<GoogleSignInResult> opr = Auth.GoogleSignInApi.silentSignIn(googleApiClient);
     if (opr.isDone()) {
       GoogleSignInResult result = opr.get();
       GoogleSignInAccount account = result.getSignInAccount();
@@ -135,5 +133,4 @@ public class GoogleProvider extends AccountProvider {
       }
     });
   }
-
 }

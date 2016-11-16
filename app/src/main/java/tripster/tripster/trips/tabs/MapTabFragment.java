@@ -66,12 +66,6 @@ public class MapTabFragment extends Fragment implements OnMapReadyCallback {
   }
 
   @Override
-  public void onPause() {
-    super.onPause();
-    mMap.clear();
-  }
-
-  @Override
   public void onMapReady(GoogleMap googleMap) {
     mMap = googleMap;
     ArrayList<Event> events = this.getArguments().getParcelableArrayList("events");
@@ -112,10 +106,12 @@ public class MapTabFragment extends Fragment implements OnMapReadyCallback {
 
     if (path.charAt(0) == '/') { // is photo from local storage
       Log.d(TAG, "Positioning local photo on map:" + path);
-      Picasso.with(getContext()).load(new File(path)).resize(300, 300).into(onMap);
+      Picasso.with(getContext()).load(new File(path)).resize(300, 300)
+          .centerInside().into(onMap);
     } else {
       Log.d(TAG, "Positioning server photo on map:" + path);
-      Picasso.with(getContext()).load(path).resize(300, 300).into(onMap);
+      Picasso.with(getContext()).load(path).resize(300, 300)
+          .centerInside().into(onMap);
     }
   }
 
