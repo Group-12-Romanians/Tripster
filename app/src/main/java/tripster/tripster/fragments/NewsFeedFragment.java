@@ -1,123 +1,144 @@
 package tripster.tripster.fragments;
 
-import android.content.res.AssetFileDescriptor;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.AbsListView;
 
-import com.squareup.picasso.Picasso;
-
-import java.io.IOException;
+import java.util.ArrayList;
 
 import tripster.tripster.R;
+import tripster.tripster.newsFeed.list_visibility_utils.calculator.DefaultSingleItemCalculatorCallback;
+import tripster.tripster.newsFeed.list_visibility_utils.calculator.ListItemsVisibilityCalculator;
+import tripster.tripster.newsFeed.list_visibility_utils.calculator.SingleListViewItemActiveCalculator;
+import tripster.tripster.newsFeed.list_visibility_utils.scroll_utils.ItemsPositionGetter;
+import tripster.tripster.newsFeed.list_visibility_utils.scroll_utils.RecyclerViewItemPositionGetter;
+import tripster.tripster.newsFeed.video_list_demo.adapter.VideoRecyclerViewAdapter;
+import tripster.tripster.newsFeed.video_list_demo.adapter.items.BaseVideoItem;
+import tripster.tripster.newsFeed.video_list_demo.adapter.items.ItemFactory;
+import tripster.tripster.newsFeed.video_player_manager.Config;
 
-public class NewsFeedFragment extends Fragment implements View.OnClickListener {
-    private static final String TAG = NewsFeedFragment.class.getName();
-    private tripster.tripster.newsFeed.video_player_manager.ui.VideoPlayerView mVideoPlayer_1;
-    private tripster.tripster.newsFeed.video_player_manager.ui.VideoPlayerView mVideoPlayer_2;
+public class NewsFeedFragment extends Fragment {
 
-    private tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager<tripster.tripster.newsFeed.video_player_manager.meta.MetaData> mVideoPlayerManager = new tripster.tripster.newsFeed.video_player_manager.manager.SingleVideoPlayerManager(new tripster.tripster.newsFeed.video_player_manager.manager.PlayerItemChangeListener() {
+    private static final boolean SHOW_LOGS = Config.SHOW_LOGS;
+    private static final String TAG = NewsFeedFragment.class.getSimpleName();
+
+    private final ArrayList<BaseVideoItem> mList = new ArrayList<>();
+
+    /**
+     * Only the one (most visible) view should be active (and playing).
+     * To calculate visibility of views we use {@link SingleListViewItemActiveCalculator}
+     */
+    private final ListItemsVisibilityCalculator mVideoVisibilityCalculator =
+            new SingleListViewItemActiveCalculator(new DefaultSingleItemCalculatorCallback(), mList);
+
+    private RecyclerView mRecyclerView;
+    private LinearLayoutManager mLayoutManager;
+
+    /**
+     * ItemsPositionGetter is used by {@link ListItemsVisibilityCalculator} for getting information about
+     * items position in the RecyclerView and LayoutManager
+     */
+    private ItemsPositionGetter mItemsPositionGetter;
+
+    /**
+     * Here we use {@link tripster.tripster.newsFeed.video_player_manager.manager.SingleVideoPlayerManager}, which means that only one video playback is possible.
+     */
+    private final tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager<tripster.tripster.newsFeed.video_player_manager.meta.MetaData> mVideoPlayerManager = new tripster.tripster.newsFeed.video_player_manager.manager.SingleVideoPlayerManager(new tripster.tripster.newsFeed.video_player_manager.manager.PlayerItemChangeListener() {
         @Override
         public void onPlayerItemChanged(tripster.tripster.newsFeed.video_player_manager.meta.MetaData metaData) {
 
         }
     });
-    private AssetFileDescriptor mVideoFileDescriptor_sample_1;
-    private AssetFileDescriptor mVideoFileDescriptor_sample_2;
 
-    private ImageView mVideoCover;
-    private ImageView mVideoCover2;
+    private int mScrollState = AbsListView.OnScrollListener.SCROLL_STATE_IDLE;
 
-    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
 
-        View root = inflater.inflate(R.layout.video_player_manager_fragment, container, false);
+        mList.add(ItemFactory.createItemFomDirectLink("Trip Italy 1",
+                "https://www.youtube.com/watch?v=GzKFEx-wsJo&ab_channel=Izabela%C5%9Awirkowska",
+                R.mipmap.video_sample_1_pic, getActivity(), mVideoPlayerManager));
 
-        try {
+//        mList.add(ItemFactory.createItemFomDirectLink("Trip Italy 2",
+//                "https://www.youtube.com/watch?v=ezSD8F5zQqk&list=PL-ZNkGMYczu566sSLNooxhcaEsIuX_ntk&index=14&ab_channel=mithosDC",
+//                R.mipmap.video_sample_2_pic, getActivity(), mVideoPlayerManager));
 
-            mVideoFileDescriptor_sample_1 = getActivity().getAssets().openFd("video_sample_1.mp4");
-            mVideoFileDescriptor_sample_2 = getActivity().getAssets().openFd("video_sample_2.mp4");
 
+        View rootView = inflater.inflate(R.layout.fragment_video_recycler_view, container, false);
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view);
+        // use this setting to improve performance if you know that changes
+        // in content do not change the layout size of the RecyclerView
+        mRecyclerView.setHasFixedSize(true);
 
-        mVideoPlayer_1 = (tripster.tripster.newsFeed.video_player_manager.ui.VideoPlayerView)root.findViewById(R.id.video_player_1);
-        mVideoPlayer_1.addMediaPlayerListener(new tripster.tripster.newsFeed.video_player_manager.ui.SimpleMainThreadMediaPlayerListener(){
+        // use a linear layout manager
+        mLayoutManager = new LinearLayoutManager(getActivity());
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
+        VideoRecyclerViewAdapter videoRecyclerViewAdapter =
+                            new VideoRecyclerViewAdapter(mVideoPlayerManager, getActivity(), mList);
+
+        mRecyclerView.setAdapter(videoRecyclerViewAdapter);
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+
             @Override
-            public void onVideoPreparedMainThread() {
-                // We hide the cover when video is prepared. Playback is about to start
-                mVideoCover.setVisibility(View.INVISIBLE);
+            public void onScrollStateChanged(RecyclerView recyclerView, int scrollState) {
+                mScrollState = scrollState;
+                if(scrollState == RecyclerView.SCROLL_STATE_IDLE && !mList.isEmpty()){
+
+                    mVideoVisibilityCalculator.onScrollStateIdle(
+                            mItemsPositionGetter,
+                            mLayoutManager.findFirstVisibleItemPosition(),
+                            mLayoutManager.findLastVisibleItemPosition());
+                }
             }
 
             @Override
-            public void onVideoStoppedMainThread() {
-                // We show the cover when video is stopped
-                mVideoCover.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onVideoCompletionMainThread() {
-                // We show the cover when video is completed
-                mVideoCover.setVisibility(View.VISIBLE);
-            }
-        });
-        mVideoCover = (ImageView)root.findViewById(R.id.video_cover_1);
-        mVideoCover.setOnClickListener(this);
-
-        mVideoPlayer_2 = (tripster.tripster.newsFeed.video_player_manager.ui.VideoPlayerView)root.findViewById(R.id.video_player_2);
-        mVideoPlayer_2.addMediaPlayerListener(new tripster.tripster.newsFeed.video_player_manager.ui.SimpleMainThreadMediaPlayerListener(){
-            @Override
-            public void onVideoPreparedMainThread() {
-                // We hide the cover when video is prepared. Playback is about to start
-                mVideoCover2.setVisibility(View.INVISIBLE);
-            }
-
-            @Override
-            public void onVideoStoppedMainThread() {
-                // We show the cover when video is stopped
-                mVideoCover2.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onVideoCompletionMainThread() {
-                // We show the cover when video is completed
-                mVideoCover2.setVisibility(View.VISIBLE);
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if(!mList.isEmpty()){
+                    mVideoVisibilityCalculator.onScroll(
+                            mItemsPositionGetter,
+                            mLayoutManager.findFirstVisibleItemPosition(),
+                            mLayoutManager.findLastVisibleItemPosition() - mLayoutManager.findFirstVisibleItemPosition() + 1,
+                            mScrollState);
+                }
             }
         });
-        mVideoCover2 = (ImageView)root.findViewById(R.id.video_cover_2);
-        mVideoCover2.setOnClickListener(this);
+        mItemsPositionGetter = new RecyclerViewItemPositionGetter(mLayoutManager, mRecyclerView);
 
-        Picasso.with(getActivity()).load(R.mipmap.video_sample_1_pic).into(mVideoCover);
-        Picasso.with(getActivity()).load(R.mipmap.video_sample_2_pic).into(mVideoCover2);
-        return root;
+        return rootView;
     }
 
     @Override
-    public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.video_cover_1:
-                mVideoPlayerManager.playNewVideo(null, mVideoPlayer_1, mVideoFileDescriptor_sample_1);
-                break;
-            case R.id.video_cover_2:
-                mVideoPlayerManager.playNewVideo(null, mVideoPlayer_2, mVideoFileDescriptor_sample_2);
-                break;
+    public void onResume() {
+        super.onResume();
+        if(!mList.isEmpty()){
+            // need to call this method from list view handler in order to have filled list
+
+            mRecyclerView.post(new Runnable() {
+                @Override
+                public void run() {
+
+                    mVideoVisibilityCalculator.onScrollStateIdle(
+                            mItemsPositionGetter,
+                            mLayoutManager.findFirstVisibleItemPosition(),
+                            mLayoutManager.findLastVisibleItemPosition());
+
+                }
+            });
         }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        // in case we exited screen in playback
-        mVideoCover.setVisibility(View.VISIBLE);
-        mVideoCover2.setVisibility(View.VISIBLE);
-
-        mVideoPlayerManager.stopAnyPlayback();
+        // we have to stop any playback in onStop
+        mVideoPlayerManager.resetMediaPlayer();
     }
 }

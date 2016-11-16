@@ -9,10 +9,12 @@ import android.view.ViewGroup;
 import tripster.tripster.R;
 import tripster.tripster.newsFeed.list_visibility_utils.items.ListItem;
 import tripster.tripster.newsFeed.video_list_demo.adapter.holders.VideoViewHolder;
+import tripster.tripster.newsFeed.video_player_manager.manager.VideoItem;
+import tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager;
+import tripster.tripster.newsFeed.video_player_manager.meta.MetaData;
 import tripster.tripster.newsFeed.video_player_manager.utils.Logger;
 
-public abstract class BaseVideoItem implements tripster.tripster.newsFeed.video_player_manager.manager.VideoItem,
-                                                                                            ListItem {
+public abstract class BaseVideoItem implements VideoItem, ListItem {
 
     private static final boolean SHOW_LOGS = false;
     private static final String TAG = BaseVideoItem.class.getSimpleName();
@@ -26,9 +28,7 @@ public abstract class BaseVideoItem implements tripster.tripster.newsFeed.video_
     private final tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager<
                 tripster.tripster.newsFeed.video_player_manager.meta.MetaData> mVideoPlayerManager;
 
-    protected BaseVideoItem(tripster.tripster.newsFeed.video_player_manager.manager.
-                                    VideoPlayerManager<tripster.tripster.newsFeed.
-                                    video_player_manager.meta.MetaData> videoPlayerManager) {
+    protected BaseVideoItem(VideoPlayerManager<MetaData> videoPlayerManager) {
         mVideoPlayerManager = videoPlayerManager;
     }
 

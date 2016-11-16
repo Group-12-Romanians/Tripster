@@ -27,7 +27,8 @@ import tripster.tripster.newsFeed.video_player_manager.utils.Logger;
  * If new video should start playback this implementation previously stops currently playing video
  * and then starts new playback.
  */
-public class SingleVideoPlayerManager implements VideoPlayerManager<MetaData>, VideoPlayerManagerCallback, MediaPlayerWrapper.MainThreadMediaPlayerListener {
+public class SingleVideoPlayerManager implements VideoPlayerManager<MetaData>,
+                    VideoPlayerManagerCallback, MediaPlayerWrapper.MainThreadMediaPlayerListener {
 
     private static final String TAG = SingleVideoPlayerManager.class.getSimpleName();
     private static final boolean SHOW_LOGS = Config.SHOW_LOGS;
@@ -67,7 +68,9 @@ public class SingleVideoPlayerManager implements VideoPlayerManager<MetaData>, V
      * @param videoUrl - the link to the video source
      */
     @Override
-    public void playNewVideo(MetaData currentItemMetaData, VideoPlayerView videoPlayerView, String videoUrl) {
+    public void playNewVideo(MetaData currentItemMetaData,
+                             VideoPlayerView videoPlayerView,
+                             String videoUrl) {
         if(SHOW_LOGS) Logger.v(TAG, ">> playNewVideo, videoPlayer " + videoPlayerView + ", mCurrentPlayer " + mCurrentPlayer + ", videoPlayerView " + videoPlayerView);
 
         /** 1. */
@@ -75,8 +78,7 @@ public class SingleVideoPlayerManager implements VideoPlayerManager<MetaData>, V
 
         boolean currentPlayerIsActive = mCurrentPlayer == videoPlayerView;
         boolean isAlreadyPlayingTheFile =
-                mCurrentPlayer != null &&
-                        videoUrl.equals(mCurrentPlayer.getVideoUrlDataSource());
+                mCurrentPlayer != null &&  videoUrl.equals(mCurrentPlayer.getVideoUrlDataSource());
 
         if (SHOW_LOGS) Logger.v(TAG, "playNewVideo, isAlreadyPlayingTheFile " + isAlreadyPlayingTheFile);
         if (SHOW_LOGS) Logger.v(TAG, "playNewVideo, currentPlayerIsActive " + currentPlayerIsActive);
@@ -100,57 +102,57 @@ public class SingleVideoPlayerManager implements VideoPlayerManager<MetaData>, V
         if(SHOW_LOGS) Logger.v(TAG, "<< playNewVideo, videoPlayer " + videoPlayerView + ", videoUrl " + videoUrl);
     }
 
-    /**
-     * Call it if you have direct url or path to video source
-     *
-     * The logic is following:
-     * 1. Stop queue processing to have consistent state of queue when posting new messages
-     * 2. Check if current player is active.
-     * 3. If it is active and already playing current video we do nothing
-     * 4. If not active then start new playback
-     * 5. Resume stopped queue
-     *
-     * This method is basically a copy-paste of {@link #playNewVideo(MetaData, VideoPlayerView, String)}
-     * TODO: define a better interface to divide these two methods
-     *
-     * @param currentItemMetaData
-     * @param videoPlayerView - the actual video player
-     * @param assetFileDescriptor - the asset descriptor for source file
-     */
-    @Override
-    public void playNewVideo(MetaData currentItemMetaData, VideoPlayerView videoPlayerView, AssetFileDescriptor assetFileDescriptor) {
-        if(SHOW_LOGS) Logger.v(TAG, ">> playNewVideo, videoPlayer " + videoPlayerView + ", mCurrentPlayer " + mCurrentPlayer + ", assetFileDescriptor " + assetFileDescriptor);
-        if(SHOW_LOGS) Logger.v(TAG, "playNewVideo, currentItemMetaData " + currentItemMetaData);
-
-        /** 1. */
-        mPlayerHandler.pauseQueueProcessing(TAG);
-
-        boolean currentPlayerIsActive = mCurrentPlayer == videoPlayerView;
-        boolean isAlreadyPlayingTheFile =
-                mCurrentPlayer != null &&
-                mCurrentPlayer.getAssetFileDescriptorDataSource() == assetFileDescriptor;
-
-        if (SHOW_LOGS) Logger.v(TAG, "playNewVideo, isAlreadyPlayingTheFile " + isAlreadyPlayingTheFile);
-        if (SHOW_LOGS) Logger.v(TAG, "playNewVideo, currentPlayerIsActive " + currentPlayerIsActive);
-        /** 2. */
-        if(currentPlayerIsActive){
-            if(isInPlaybackState() && isAlreadyPlayingTheFile){
-                if(SHOW_LOGS) Logger.v(TAG, "playNewVideo, videoPlayer " + videoPlayerView + " is already in state " + mCurrentPlayerState);
-                /** 3. */
-            } else {
-                /** 4. */
-                startNewPlayback(currentItemMetaData, videoPlayerView, assetFileDescriptor);
-            }
-        } else {
-            /** 4. */
-            startNewPlayback(currentItemMetaData, videoPlayerView, assetFileDescriptor);
-        }
-
-        /** 5. */
-        mPlayerHandler.resumeQueueProcessing(TAG);
-
-        if(SHOW_LOGS) Logger.v(TAG, "<< playNewVideo, videoPlayer " + videoPlayerView + ", assetFileDescriptor " + assetFileDescriptor);
-    }
+//    /**
+//     * Call it if you have direct url or path to video source
+//     *
+//     * The logic is following:
+//     * 1. Stop queue processing to have consistent state of queue when posting new messages
+//     * 2. Check if current player is active.
+//     * 3. If it is active and already playing current video we do nothing
+//     * 4. If not active then start new playback
+//     * 5. Resume stopped queue
+//     *
+//     * This method is basically a copy-paste of {@link #playNewVideo(MetaData, VideoPlayerView, String)}
+//     * TODO: define a better interface to divide these two methods
+//     *
+//     * @param currentItemMetaData
+//     * @param videoPlayerView - the actual video player
+//     * @param assetFileDescriptor - the asset descriptor for source file
+//     */
+//    @Override
+//    public void playNewVideo(MetaData currentItemMetaData, VideoPlayerView videoPlayerView, AssetFileDescriptor assetFileDescriptor) {
+//        if(SHOW_LOGS) Logger.v(TAG, ">> playNewVideo, videoPlayer " + videoPlayerView + ", mCurrentPlayer " + mCurrentPlayer + ", assetFileDescriptor " + assetFileDescriptor);
+//        if(SHOW_LOGS) Logger.v(TAG, "playNewVideo, currentItemMetaData " + currentItemMetaData);
+//
+//        /** 1. */
+//        mPlayerHandler.pauseQueueProcessing(TAG);
+//
+//        boolean currentPlayerIsActive = mCurrentPlayer == videoPlayerView;
+//        boolean isAlreadyPlayingTheFile =
+//                mCurrentPlayer != null &&
+//                mCurrentPlayer.getAssetFileDescriptorDataSource() == assetFileDescriptor;
+//
+//        if (SHOW_LOGS) Logger.v(TAG, "playNewVideo, isAlreadyPlayingTheFile " + isAlreadyPlayingTheFile);
+//        if (SHOW_LOGS) Logger.v(TAG, "playNewVideo, currentPlayerIsActive " + currentPlayerIsActive);
+//        /** 2. */
+//        if(currentPlayerIsActive){
+//            if(isInPlaybackState() && isAlreadyPlayingTheFile){
+//                if(SHOW_LOGS) Logger.v(TAG, "playNewVideo, videoPlayer " + videoPlayerView + " is already in state " + mCurrentPlayerState);
+//                /** 3. */
+//            } else {
+//                /** 4. */
+//                startNewPlayback(currentItemMetaData, videoPlayerView, assetFileDescriptor);
+//            }
+//        } else {
+//            /** 4. */
+//            startNewPlayback(currentItemMetaData, videoPlayerView, assetFileDescriptor);
+//        }
+//
+//        /** 5. */
+//        mPlayerHandler.resumeQueueProcessing(TAG);
+//
+//        if(SHOW_LOGS) Logger.v(TAG, "<< playNewVideo, videoPlayer " + videoPlayerView + ", assetFileDescriptor " + assetFileDescriptor);
+//    }
 
     private boolean isInPlaybackState() {
         boolean isPlaying = mCurrentPlayerState == PlayerMessageState.STARTED || mCurrentPlayerState == PlayerMessageState.STARTING;

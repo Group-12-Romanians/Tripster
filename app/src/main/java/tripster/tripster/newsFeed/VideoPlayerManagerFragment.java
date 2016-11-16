@@ -1,6 +1,5 @@
 package tripster.tripster.newsFeed;
 
-import android.content.res.AssetFileDescriptor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -11,9 +10,9 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
-
 import tripster.tripster.R;
+import tripster.tripster.newsFeed.video_player_manager.ui.SimpleMainThreadMediaPlayerListener;
+import tripster.tripster.newsFeed.video_player_manager.ui.VideoPlayerView;
 
 public class VideoPlayerManagerFragment extends Fragment implements View.OnClickListener {
 
@@ -26,8 +25,8 @@ public class VideoPlayerManagerFragment extends Fragment implements View.OnClick
 
         }
     });
-    private AssetFileDescriptor mVideoFileDecriptor_sample_1;
-    private AssetFileDescriptor mVideoFileDecriptor_sample_2;
+//    private AssetFileDescriptor mVideoFileDecriptor_sample_1;
+//    private AssetFileDescriptor mVideoFileDecriptor_sample_2;
 
     private ImageView mVideoCover;
     private ImageView mVideoCover2;
@@ -38,17 +37,17 @@ public class VideoPlayerManagerFragment extends Fragment implements View.OnClick
 
         View root = inflater.inflate(R.layout.video_player_manager_fragment, container, false);
 
-        try {
+//        try {
+//
+//            mVideoFileDecriptor_sample_1 = getActivity().getAssets().openFd("video_sample_1.mp4");
+//            mVideoFileDecriptor_sample_2 = getActivity().getAssets().openFd("video_sample_2.mp4");
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
-            mVideoFileDecriptor_sample_1 = getActivity().getAssets().openFd("video_sample_1.mp4");
-            mVideoFileDecriptor_sample_2 = getActivity().getAssets().openFd("video_sample_2.mp4");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        mVideoPlayer_1 = (tripster.tripster.newsFeed.video_player_manager.ui.VideoPlayerView)root.findViewById(R.id.video_player_1);
-        mVideoPlayer_1.addMediaPlayerListener(new tripster.tripster.newsFeed.video_player_manager.ui.SimpleMainThreadMediaPlayerListener(){
+        mVideoPlayer_1 = (VideoPlayerView)root.findViewById(R.id.video_player_1);
+        mVideoPlayer_1.addMediaPlayerListener(new SimpleMainThreadMediaPlayerListener(){
             @Override
             public void onVideoPreparedMainThread() {
                 // We hide the cover when video is prepared. Playback is about to start
@@ -70,8 +69,8 @@ public class VideoPlayerManagerFragment extends Fragment implements View.OnClick
         mVideoCover = (ImageView)root.findViewById(R.id.video_cover_1);
         mVideoCover.setOnClickListener(this);
 
-        mVideoPlayer_2 = (tripster.tripster.newsFeed.video_player_manager.ui.VideoPlayerView)root.findViewById(R.id.video_player_2);
-        mVideoPlayer_2.addMediaPlayerListener(new tripster.tripster.newsFeed.video_player_manager.ui.SimpleMainThreadMediaPlayerListener(){
+        mVideoPlayer_2 = (VideoPlayerView)root.findViewById(R.id.video_player_2);
+        mVideoPlayer_2.addMediaPlayerListener(new SimpleMainThreadMediaPlayerListener(){
             @Override
             public void onVideoPreparedMainThread() {
                 // We hide the cover when video is prepared. Playback is about to start
@@ -102,10 +101,10 @@ public class VideoPlayerManagerFragment extends Fragment implements View.OnClick
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.video_cover_1:
-                mVideoPlayerManager.playNewVideo(null, mVideoPlayer_1, mVideoFileDecriptor_sample_1);
+                mVideoPlayerManager.playNewVideo(null, mVideoPlayer_1, "https://www.youtube.com/watch?v=GzKFEx-wsJo&ab_channel=Izabela%C5%9Awirkowska");
                 break;
             case R.id.video_cover_2:
-                mVideoPlayerManager.playNewVideo(null, mVideoPlayer_2, mVideoFileDecriptor_sample_2);
+                mVideoPlayerManager.playNewVideo(null, mVideoPlayer_2, "https://www.youtube.com/watch?v=wqRuvmFfyag&ab_channel=RotonMusicTV");
                 break;
         }
     }

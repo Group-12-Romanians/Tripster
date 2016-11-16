@@ -5,6 +5,9 @@ import android.view.View;
 import com.squareup.picasso.Picasso;
 
 import tripster.tripster.newsFeed.video_list_demo.adapter.holders.VideoViewHolder;
+import tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager;
+import tripster.tripster.newsFeed.video_player_manager.meta.MetaData;
+import tripster.tripster.newsFeed.video_player_manager.ui.VideoPlayerView;
 
 /**
  * Use this class if you have direct path to the video source
@@ -17,7 +20,8 @@ public class DirectLinkVideoItem extends BaseVideoItem {
     private final Picasso mImageLoader;
     private final int mImageResource;
 
-    public DirectLinkVideoItem(String title, String directUr, tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager videoPlayerManager, Picasso imageLoader, int imageResource) {
+    public DirectLinkVideoItem(String title, String directUr, VideoPlayerManager videoPlayerManager,
+                                                        Picasso imageLoader, int imageResource) {
         super(videoPlayerManager);
         mDirectUrl = directUr;
         mTitle = title;
@@ -34,12 +38,13 @@ public class DirectLinkVideoItem extends BaseVideoItem {
     }
 
     @Override
-    public void playNewVideo(tripster.tripster.newsFeed.video_player_manager.meta.MetaData currentItemMetaData, tripster.tripster.newsFeed.video_player_manager.ui.VideoPlayerView player, tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager<tripster.tripster.newsFeed.video_player_manager.meta.MetaData> videoPlayerManager) {
+    public void playNewVideo(MetaData currentItemMetaData, VideoPlayerView player,
+                                                VideoPlayerManager<MetaData> videoPlayerManager) {
         videoPlayerManager.playNewVideo(currentItemMetaData, player, mDirectUrl);
     }
 
     @Override
-    public void stopPlayback(tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager videoPlayerManager) {
+    public void stopPlayback(VideoPlayerManager videoPlayerManager) {
         videoPlayerManager.stopAnyPlayback();
     }
 }

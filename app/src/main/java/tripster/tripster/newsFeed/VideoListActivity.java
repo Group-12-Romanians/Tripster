@@ -7,13 +7,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import tripster.tripster.R;
-import tripster.tripster.newsFeed.video_list_demo.fragments.VideoListFragment;
-import tripster.tripster.newsFeed.video_list_demo.fragments.VideoRecyclerViewFragment;
+import tripster.tripster.fragments.NewsFeedFragment;
 
 /**
  * This activity contains a fragment and gives the switch option between two fragments.
- * 1. {@link VideoRecyclerViewFragment}
- * 2. {@link VideoListFragment}
+ * 1. {@link NewsFeedFragment}
  */
 public class VideoListActivity extends AppCompatActivity implements VisibilityUtilsFragment.VisibilityUtilsCallback {
 
@@ -32,7 +30,7 @@ public class VideoListActivity extends AppCompatActivity implements VisibilityUt
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fragment_container, new VideoRecyclerViewFragment())
+                    .add(R.id.fragment_container, new NewsFeedFragment())
                     .commit();
         }
     }
@@ -68,11 +66,9 @@ public class VideoListActivity extends AppCompatActivity implements VisibilityUt
 //                }
 //                break;
 //        }
-
         if(!item.isChecked()){
-            addRecyclerView();
+                    addRecyclerView();
         }
-
         item.setChecked(!item.isChecked());
 
         return true;
@@ -94,17 +90,17 @@ public class VideoListActivity extends AppCompatActivity implements VisibilityUt
 
     private void addRecyclerView() {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new VideoRecyclerViewFragment())
+                .replace(R.id.fragment_container, new NewsFeedFragment())
                 .commit();
         mToolbar.setTitle("Recycler View");
     }
 
-    private void addListView() {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new VideoListFragment())
-                .commit();
-        mToolbar.setTitle("List View");
-    }
+//    private void addListView() {
+//        getSupportFragmentManager().beginTransaction()
+//                .replace(R.id.fragment_container, new VideoListFragment())
+//                .commit();
+//        mToolbar.setTitle("List View");
+//    }
 
     @Override
     public void setTitle(String title) {

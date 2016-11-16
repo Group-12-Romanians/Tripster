@@ -9,14 +9,16 @@ import java.util.List;
 
 import tripster.tripster.newsFeed.video_list_demo.adapter.holders.VideoViewHolder;
 import tripster.tripster.newsFeed.video_list_demo.adapter.items.BaseVideoItem;
+import tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager;
 
 public class VideoListViewAdapter extends BaseAdapter {
 
-    private final tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager mVideoPlayerManager;
+    private final VideoPlayerManager mVideoPlayerManager;
     private final List<BaseVideoItem> mList;
     private final Context mContext;
 
-    public VideoListViewAdapter(tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager videoPlayerManager, Context context, List<BaseVideoItem> list){
+    public VideoListViewAdapter(VideoPlayerManager videoPlayerManager, Context context,
+                                                                        List<BaseVideoItem> list){
         mVideoPlayerManager = videoPlayerManager;
         mContext = context;
         mList = list;

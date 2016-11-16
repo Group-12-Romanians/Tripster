@@ -9,6 +9,7 @@ import java.util.List;
 
 import tripster.tripster.newsFeed.video_list_demo.adapter.holders.VideoViewHolder;
 import tripster.tripster.newsFeed.video_list_demo.adapter.items.BaseVideoItem;
+import tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager;
 
 public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoViewHolder> {
 
@@ -16,7 +17,8 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoViewHold
     private final List<BaseVideoItem> mList;
     private final Context mContext;
 
-    public VideoRecyclerViewAdapter(tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager videoPlayerManager, Context context, List<BaseVideoItem> list){
+    public VideoRecyclerViewAdapter(VideoPlayerManager videoPlayerManager,
+                                                        Context context, List<BaseVideoItem> list){
         mVideoPlayerManager = videoPlayerManager;
         mContext = context;
         mList = list;

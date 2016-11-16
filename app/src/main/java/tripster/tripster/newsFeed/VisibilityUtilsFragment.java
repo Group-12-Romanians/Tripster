@@ -36,15 +36,7 @@ public class VisibilityUtilsFragment extends Fragment implements VisibilityItem.
 
     private List<VisibilityItem> mList = new ArrayList<>(Arrays.asList(
             new VisibilityItem("1", this),
-            new VisibilityItem("2", this),
-            new VisibilityItem("3", this),
-            new VisibilityItem("4", this),
-            new VisibilityItem("5", this),
-            new VisibilityItem("6", this),
-            new VisibilityItem("7", this),
-            new VisibilityItem("8", this),
-            new VisibilityItem("9", this),
-            new VisibilityItem("10", this)));
+            new VisibilityItem("2", this)));
 
     private final ListItemsVisibilityCalculator mListItemVisibilityCalculator =
             new SingleListViewItemActiveCalculator(new DefaultSingleItemCalculatorCallback(), mList);
