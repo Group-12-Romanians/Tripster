@@ -3,11 +3,9 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
-    <TextView
-        android:id="@+id/friend_name"
+    <ListView
+        android:id="@+id/my_friends_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:paddingTop="5dp"/>
+        android:layout_height="match_parent" />
 
 </LinearLayout>

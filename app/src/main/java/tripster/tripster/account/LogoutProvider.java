@@ -4,7 +4,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 public interface LogoutProvider {
-    void logOut();
+  void logOut();
 
-    void setUserAccountFields(final TextView name, final TextView email, final ImageView avatar);
+  void setUserAccountFields(final TextView name, final TextView email, final ImageView avatar);
+
+  String getUserId();
 }

@@ -1,7 +1,7 @@
-package tripster.tripster.pictures;
+package tripster.tripster.trips.tabs;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,31 +9,36 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import tripster.tripster.R;
+import java.util.List;
 
-public class PhotosListAdapter extends ArrayAdapter<String> {
+import tripster.tripster.R;
+import tripster.tripster.trips.pictures.Photo;
+
+public class PhotosListAdapter extends ArrayAdapter<Photo> {
 
   private final Activity activity;
-  private final String[] photosDescriptions;
-  private final Bitmap[] photos;
+  private final List<Photo> photos;
 
-  public PhotosListAdapter(Activity activity, String[] photosDescriptions, Bitmap[] photos) {
-    super(activity, R.layout.photos_list, photosDescriptions);
+  public PhotosListAdapter(Activity activity, List<Photo> photos) {
+    super(activity, R.layout.photos_list, photos);
 
     this.activity = activity;
-    this.photosDescriptions = photosDescriptions;
     this.photos=photos;
   }
 
-  public View getView(int position, View view, ViewGroup parent) {
+  @NonNull
+  @Override
+  public View getView(int position, View convertView, ViewGroup parent) {
     LayoutInflater inflater = activity.getLayoutInflater();
     View rowView = inflater.inflate(R.layout.photos_list, null,true);
+
     TextView txtTitle = (TextView) rowView.findViewById(R.id.photo_info);
     ImageView imageView = (ImageView) rowView.findViewById(R.id.photo);
 
-    txtTitle.setText(photosDescriptions[position]);
-    imageView.setImageBitmap(photos[position]);
+    txtTitle.setText(photos.get(position).getDescription());
+
+    photos.get(position).displayIn(imageView);
     return rowView;
-  };
+  }
 
 }

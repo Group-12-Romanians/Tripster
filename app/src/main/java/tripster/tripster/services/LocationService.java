@@ -35,28 +35,26 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
+
+import static tripster.tripster.TripsterActivity.LOCATIONS_FILE_PATH;
+import static tripster.tripster.TripsterActivity.SERVER_URL;
 
 public class LocationService extends Service
-    implements GoogleApiClient.ConnectionCallbacks,
-               GoogleApiClient.OnConnectionFailedListener {
+    implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-  private static final String LOCATIONS_FILE_PATH = "locations.txt";
-  private static final String SERVER_URL = "https://tripster-serverside.herokuapp.com/sync_locations";
+  private static final String TRIP_NAME = "Unnamed";
   private static final int TRACKING_FREQUENCY = 1000;
-  private static final int SYNC_FREQUENCY = 5000;
-  private static final float MIN_DIST = 200;
-  private String TAG = LocationService.class.getName();
+  private static final float MIN_DIST = 50;
+  private static final String TAG = LocationService.class.getName();
 
   private GoogleApiClient googleClient;
-  private TimerTask locationTimerTask;
   private Location previousLocation;
-  private RequestQueue reqQ;
   private Timer timer;
 
   public LocationService() {
     super();
     googleClient = null;
-    reqQ = null;
     Log.i(TAG, "LocationService created");
   }
 
@@ -65,58 +63,144 @@ public class LocationService extends Service
     super.onStartCommand(intent, flags, startId);
     if (intent != null) {
       Log.d(TAG, "Initial intent exists");
-      if (intent.getStringExtra("flag").equals("start")) {
-        startRecording();
-      } else if (intent.getStringExtra("flag").equals("stop")) {
-        stopRecording();
-      } else {
-        Log.d(TAG, "Flag not recognised");
+      if (intent.getStringExtra("flag").equals("stop")) {
+        String userId = intent.getStringExtra("user_id");
+        return stopRecording(userId);
+      } else if (intent.getStringExtra("flag").equals("pause")) {
+        return pauseRecording();
       }
-    } else {
-      startRecording();
     }
+    return startRecording();
+  }
+
+  private int pauseRecording() {
+    getTimer().cancel();
+    Log.d(TAG, dumpLocationsFile());
+    stopSelf();
+    Log.d(TAG, "Paused by app");
+    return START_NOT_STICKY;
+  }
+
+  private int startRecording() {
+    checkAndInitFile();
+    connectGoogleClient();
+    Log.d(TAG, "Started by app");
     return START_STICKY;
   }
 
-  private void startRecording() {
-    startSyncLocations();
-    startLocationTracking();
-    Log.d(TAG, "Started by app");
+  private int stopRecording(String userId) {
+    sendLocationsToServerAndExit(userId);
+    return START_NOT_STICKY;
   }
 
-  private void startSyncLocations() {
+  private void exit() {
+    getTimer().cancel();
+    Log.d(TAG, dumpLocationsFile());
+    emptyFile();
+    stopSelf();
+    Log.d(TAG, "Stopped by app");
+  }
+
+  private synchronized void connectGoogleClient() {
+    if (googleClient == null) {
+      googleClient = new GoogleApiClient.Builder(this)
+          .addApi(LocationServices.API)
+          .addConnectionCallbacks(this)
+          .addOnConnectionFailedListener(this)
+          .build();
+    }
+    if (!googleClient.isConnected()) {
+      googleClient.connect();
+    }
+  }
+
+  @Override
+  public void onConnected(Bundle bundle) {
+    Log.d("On connected", "Entered");
+    TimerTask locationTimerTask = new TimerTask() {
+      @Override
+      public void run() {
+        Log.d(TAG, "LocationTask is running");
+        Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleClient);
+        addLocation(currentLocation);
+      }
+    };
+
+    //schedule the timer, to wake up every 10 seconds
+    getTimer().schedule(locationTimerTask, 0, TRACKING_FREQUENCY);
+  }
+
+  private void checkAndInitFile() {
+    File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
+    if (file.exists()) {
+      initPreviousLocation();
+    } else {
+      initFile(file);
+    }
+  }
+
+  private void initFile(File file) {
+    try {
+      Log.d(TAG, "Create file");
+      FileOutputStream locationsFileStream = new FileOutputStream(file);
+      OutputStreamWriter out = new OutputStreamWriter(locationsFileStream);
+      try {
+        String line = UUID.randomUUID().toString() + "," + TRIP_NAME;
+        Log.d(TAG, "Line is:" + line);
+        out.append(line);
+        out.flush();
+        out.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    } catch (FileNotFoundException e) {
+      Log.d(TAG, "Cannot create file" + e.toString());
+    }
+    Log.d(TAG, "Location file initialised.");
+  }
+
+  private void initPreviousLocation() {
+    String fileStr = dumpLocationsFile();
+    String[] lines = fileStr.split("\n");
+    String[] lastLine = lines[lines.length - 1].split(",");
+    previousLocation = new Location("");
+    previousLocation.setLatitude(Double.parseDouble(lastLine[1]));
+    previousLocation.setLongitude(Double.parseDouble(lastLine[2]));
+    Log.d(TAG, "Previous location initialised.");
+  }
+
+  private void sendLocationsToServerAndExit(String userId) {
+    final String file = dumpLocationsFile();
+
     Log.d(TAG, "creating request queue");
     Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
     Network network = new BasicNetwork(new HurlStack());
-    reqQ = new RequestQueue(cache, network);
+    RequestQueue reqQ = new RequestQueue(cache, network);
     reqQ.start();
-    TimerTask task = new TimerTask() {
+
+    Log.d(TAG, "sending locations to server");
+    String url =  SERVER_URL + "/new_trip?user_id=" + userId;
+    StringRequest strReq = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
       @Override
-      public void run() {
-        Log.d(TAG, "syncing");
-        StringRequest strReq = new StringRequest(Request.Method.POST, SERVER_URL, new Response.Listener<String>() {
-          @Override
-          public void onResponse(String response) {
-            Log.d("onResponse", "mamamama");
-            //emptyFile();
-          }
-        }, new Response.ErrorListener() {
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            Log.d("onErrorResponse", "tatatatat");
-          }
-        }) {
-          @Override
-          protected Map<String, String> getParams() throws AuthFailureError {
-            Map<String, String> map = new HashMap<>();
-            map.put("locations", dumpLocationsFile());
-            return map;
-          }
-        };
-        reqQ.add(strReq);
+      public void onResponse(String response) {
+        Log.d(TAG, response);
+        exit();
+      }
+    }, new Response.ErrorListener() {
+      @Override
+      public void onErrorResponse(VolleyError error) {
+        Log.e(TAG, "Failed to send locations to server.");
+        exit();
+      }
+    }) {
+      @Override
+      protected Map<String, String> getParams() throws AuthFailureError {
+        Map<String, String> map = new HashMap<>();
+        map.put("locations", file);
+        return map;
       }
     };
-    getTimer().schedule(task, SYNC_FREQUENCY, SYNC_FREQUENCY);
+    reqQ.add(strReq);
   }
 
   private String dumpLocationsFile() {
@@ -138,38 +222,11 @@ public class LocationService extends Service
     return result.toString();
   }
 
-  private void stopRecording() {
-    timer.cancel();
-    logLocations();
-    emptyFile();
-    stopSelf();
-    Log.d(TAG, "Stopped by app");
-  }
-
-  @Override
-  public void onConnected(Bundle bundle) {
-    Log.d("On connected", "Entered");
-    initializeLocationTrackingTask();
-    //schedule the timer, to wake up every 10 seconds
-    getTimer().schedule(locationTimerTask, 0, TRACKING_FREQUENCY);
-  }
-
   private Timer getTimer() {
     if (timer == null) {
       timer = new Timer();
     }
     return timer;
-  }
-
-  private void initializeLocationTrackingTask() {
-    locationTimerTask = new TimerTask() {
-      public void run() {
-        Log.d(TAG, "LocationTask is running");
-        Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleClient);
-        addLocation(currentLocation);
-        logLocations();
-      }
-    };
   }
 
   private void addLocation(Location location) {
@@ -179,36 +236,18 @@ public class LocationService extends Service
           return;
         }
       }
-      previousLocation = location;
       writeLocation(location);
     }
   }
 
-  private synchronized void startLocationTracking() {
-    if (googleClient == null) {
-      googleClient = new GoogleApiClient.Builder(this)
-              .addApi(LocationServices.API)
-              .addConnectionCallbacks(this)
-              .addOnConnectionFailedListener(this)
-              .build();
-    }
-    if (!googleClient.isConnected()) {
-      googleClient.connect();
-    }
-  }
-
   private void writeLocation(Location location) {
-    FileOutputStream locationsFileStream = null;
+    previousLocation = location;
+    FileOutputStream locationsFileStream;
     try {
       locationsFileStream = openFileOutput(LOCATIONS_FILE_PATH, MODE_APPEND);
     } catch (FileNotFoundException e) {
-      File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
-      try {
-        Log.d(TAG, "Create file");
-        locationsFileStream = new FileOutputStream(file);
-      } catch (FileNotFoundException e1) {
-        Log.d(TAG, "FileNotFound");
-      }
+      Log.e(TAG, "File has not been initialised");
+      return;
     }
     OutputStreamWriter out = new OutputStreamWriter(locationsFileStream);
     try {
@@ -218,38 +257,16 @@ public class LocationService extends Service
     } catch (IOException e) {
       e.printStackTrace();
     }
+    Log.d(TAG, dumpLocationsFile());
   }
 
   private String getDetailsStr(Location location) {
-    StringBuilder result = new StringBuilder();
-    result.append(location.getTime());
-    result.append(',');
-    result.append(location.getLatitude());
-    result.append(',');
-    result.append(location.getLongitude());
-    result.append('\n');
-    return result.toString();
+    return "\n" + location.getTime() + ',' + location.getLatitude() + ',' + location.getLongitude();
   }
 
   private void emptyFile() {
     File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
     file.delete();
-  }
-
-  private void logLocations() {
-    try {
-      File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
-      FileInputStream locationStream = new FileInputStream(file);
-      BufferedReader reader = new BufferedReader(new InputStreamReader(locationStream));
-      String line;
-      while ((line = reader.readLine()) != null) {
-        Log.d(TAG, "Read line: " + line);
-      }
-    } catch (FileNotFoundException e) {
-      Log.d(TAG, "No file to read from");
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
   }
 
   @Override
