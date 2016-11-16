@@ -10,6 +10,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -28,26 +30,15 @@ public class TimeLineViewHolder extends RecyclerView.ViewHolder {
         name = (TextView) itemView.findViewById(R.id.tx_name);
         mTimelineView = (TimelineView) itemView.findViewById(R.id.time_marker);
         mTimelineView.initLine(viewType);
-        AsyncTask asyncTask = new AsyncTask() {
-            @Override
-            protected Object doInBackground(Object[] objects) {
-                try {
-                    imagebm = BitmapFactory
-                            .decodeStream((InputStream) new URL("https://pbs.twimg.com/profile_images/616542814319415296/McCTpH_E.jpg").getContent());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        };
-        asyncTask.execute();
 
         LinearLayout layout = (LinearLayout) itemView.findViewById(R.id.linear);
-        ImageView imageView = new ImageView(itemView.getContext());
-        imageView.setImageBitmap(imagebm);
-        imageView.setPadding(2, 2, 2, 2);
-        imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        imageView.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        layout.addView(imageView);
+        for (int i = 0; i < 20; i++) {
+            ImageView imageView = new ImageView(itemView.getContext());
+            imageView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            Picasso.with(itemView.getContext()).load("https://pbs.twimg.com/profile_images/447374371917922304/P4BzupWu.jpeg")
+                    .resize(300, 300).centerInside().into(imageView);
+            layout.addView(imageView);
+        }
+
     }
 }
