@@ -1,10 +1,12 @@
-package tripster.tripster;
+package tripster.tripster.timeline;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.List;
+
+import tripster.tripster.R;
 
 public class TimeLineAdapter extends RecyclerView.Adapter<TimeLineViewHolder> {
 

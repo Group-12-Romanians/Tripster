@@ -1,4 +1,4 @@
-package tripster.tripster;
+package tripster.tripster.timeline;
 
 /**
  * Created by HP-HP on 05-12-2015.

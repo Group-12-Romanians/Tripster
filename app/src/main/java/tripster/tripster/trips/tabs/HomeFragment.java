@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import tripster.tripster.R;
 import tripster.tripster.TripsterActivity;
+import tripster.tripster.timeline.TimelineFragment;
 
 import static android.content.Context.MODE_PRIVATE;
 import static tripster.tripster.TripsterActivity.LOCATIONS_FILE_PATH;
@@ -141,6 +142,6 @@ public class HomeFragment extends Fragment {
     tripInfoBundle.putParcelableArrayList("events", events);
 
     mTabHost.addTab(mTabHost.newTabSpec("map").setIndicator("Map"), MapTabFragment.class, tripInfoBundle);
-    mTabHost.addTab(mTabHost.newTabSpec("photos").setIndicator("Photos"), PhotoTimelineTabFragment.class, tripInfoBundle);
+    mTabHost.addTab(mTabHost.newTabSpec("photos").setIndicator("Photos"), TimelineFragment.class, tripInfoBundle);
   }
 }

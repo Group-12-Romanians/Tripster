@@ -1,4 +1,4 @@
-package tripster.tripster;
+package tripster.tripster.timeline;
 
 import java.io.Serializable;
 

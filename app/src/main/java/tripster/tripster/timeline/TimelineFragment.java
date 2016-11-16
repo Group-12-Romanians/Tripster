@@ -1,4 +1,4 @@
-package tripster.tripster.fragments;
+package tripster.tripster.timeline;
 
 
 import android.os.Bundle;
@@ -14,8 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tripster.tripster.R;
-import tripster.tripster.TimeLineAdapter;
-import tripster.tripster.TimeLineModel;
 
 
 public class TimelineFragment extends Fragment {

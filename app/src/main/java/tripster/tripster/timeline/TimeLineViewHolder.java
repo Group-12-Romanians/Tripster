@@ -1,8 +1,6 @@
-package tripster.tripster;
+package tripster.tripster.timeline;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,10 +10,7 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
+import tripster.tripster.R;
 
 /**
  * Created by HP-HP on 05-12-2015.

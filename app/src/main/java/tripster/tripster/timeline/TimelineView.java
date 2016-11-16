@@ -1,4 +1,4 @@
-package tripster.tripster;
+package tripster.tripster.timeline;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -7,6 +7,8 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.View;
+
+import tripster.tripster.R;
 
 /**
  * Created by HP-HP on 05-12-2015.
@@ -32,7 +34,7 @@ public class TimelineView extends View {
     }
 
     private void init(AttributeSet attrs) {
-        TypedArray typedArray = getContext().obtainStyledAttributes(attrs,R.styleable.timeline_style);
+        TypedArray typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.timeline_style);
         mMarker = typedArray.getDrawable(R.styleable.timeline_style_marker);
         mStartLine = typedArray.getDrawable(R.styleable.timeline_style_line);
         mEndLine = typedArray.getDrawable(R.styleable.timeline_style_line);
