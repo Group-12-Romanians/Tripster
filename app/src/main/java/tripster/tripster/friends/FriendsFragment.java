@@ -12,11 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tripster.tripster.R;
+import tripster.tripster.User;
 
 public class FriendsFragment extends Fragment {
 
   private FragmentTabHost mTabHost;
-  public static List<Pair<String, String>> friends;
+  public static List<User> friends;
   public static List<Pair<String, String>> friendRequests;
 
   public void onCreate(Bundle savedInstanceState) {

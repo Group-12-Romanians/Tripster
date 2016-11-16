@@ -2,7 +2,6 @@ package tripster.tripster.friends;
 
 import android.content.Context;
 import android.util.Log;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,18 +23,19 @@ import java.util.Map;
 
 import tripster.tripster.R;
 import tripster.tripster.TripsterActivity;
+import tripster.tripster.User;
 
 public class SearchableAdapter extends BaseAdapter implements Filterable {
 
   private static final String TAG = SearchableAdapter.class.getName();
   private static final String FRIEND_REQUEST_URL
       = TripsterActivity.SERVER_URL + "/friend_request";
-  private final List<Pair<String, String>> originalData;
-  private List<Pair<String, String>> filteredData;
+  private final List<User> originalData;
+  private List<User> filteredData;
   private LayoutInflater inflater;
   private Filter itemFilter;
 
-  public SearchableAdapter(Context context, List<Pair<String, String>> data) {
+  public SearchableAdapter(Context context, List<User> data) {
     this.filteredData = data;
     this.originalData = data;
     inflater = LayoutInflater.from(context);
@@ -84,12 +84,12 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
       holder = (ViewHolder) convertView.getTag();
     }
 
-    String userName = filteredData.get(position).second;
+    String userName = filteredData.get(position).getName();
     holder.text.setText(userName);
 
     if (!isFriend(filteredData.get(position))) {
       holder.addFriendButton.setVisibility(View.VISIBLE);
-      String friendId = filteredData.get(position).first;
+      String friendId = filteredData.get(position).getId();
       holder
           .addFriendButton
           .setOnClickListener(getFriendRequestListener(friendId,
@@ -112,9 +112,9 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
     @Override
     protected FilterResults performFiltering(CharSequence constraint) {
       String filterString = constraint.toString().toLowerCase();
-      List<Pair<String, String>> results = new ArrayList<>();
-      for (Pair<String, String> candidateData : originalData) {
-        String candidate = candidateData.second;
+      List<User> results = new ArrayList<>();
+      for (User candidateData : originalData) {
+        String candidate = candidateData.getName();
         if (candidate.toLowerCase().contains(filterString)) {
           results.add(candidateData);
         }
@@ -128,12 +128,12 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
     @SuppressWarnings("unchecked")
     @Override
     protected void publishResults(CharSequence constraint, FilterResults results) {
-      filteredData = (List<Pair<String, String>>) results.values;
+      filteredData = (List<User>) results.values;
       notifyDataSetChanged();
     }
   }
 
-  private boolean isFriend(Pair<String, String> user) {
+  private boolean isFriend(User user) {
     return FriendsFragment.friends.contains(user);
   }
 

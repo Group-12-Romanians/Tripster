@@ -3,19 +3,15 @@ package tripster.tripster.friends;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
-import java.util.List;
-
 import tripster.tripster.R;
 
 public class MyFriendsFragment extends Fragment {
 
-  List<Pair<String, String>> friends;
   ListView friendsListView;
 
   @Nullable

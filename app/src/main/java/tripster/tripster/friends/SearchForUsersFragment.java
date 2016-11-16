@@ -27,6 +27,7 @@ import java.util.List;
 
 import tripster.tripster.R;
 import tripster.tripster.TripsterActivity;
+import tripster.tripster.User;
 
 public class SearchForUsersFragment extends Fragment {
 
@@ -37,7 +38,7 @@ public class SearchForUsersFragment extends Fragment {
   private SearchableAdapter searchableAdapter;
   private ListView friendsList;
 
-  private List<Pair<String, String>> allUsersInfo;
+  private List<User> allUsersInfo;
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -98,7 +99,7 @@ public class SearchForUsersFragment extends Fragment {
                 String userId = user.getString("_id");
                 String userName = user.getString("name");
                 if (!userId.equals(TripsterActivity.USER_ID)) {
-                  allUsersInfo.add(new Pair<>(userId, userName));
+                  allUsersInfo.add(new User(userId, userName));
                 }
               }
               setFriendsNames();
@@ -132,7 +133,7 @@ public class SearchForUsersFragment extends Fragment {
               for(int i= 0; i < friends.length(); i++) {
                 String friendId = friends.getString(i);
                 String friendName = getUserName(friendId);
-                FriendsFragment.friends.add(new Pair<>(friendId, friendName));
+                FriendsFragment.friends.add(new User(friendId, friendName));
               }
               setFriendRequests();
             } catch (JSONException e) {
@@ -189,9 +190,9 @@ public class SearchForUsersFragment extends Fragment {
   }
 
   private String getUserName(String userId) {
-    for (Pair<String, String> user : allUsersInfo) {
-      if (user.first.equals(userId)) {
-        return user.second;
+    for (User user : allUsersInfo) {
+      if (user.getId().equals(userId)) {
+        return user.getName();
       }
     }
     return null;

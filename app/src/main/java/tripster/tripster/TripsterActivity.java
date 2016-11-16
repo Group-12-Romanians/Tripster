@@ -29,7 +29,7 @@ import java.util.Map;
 
 import tripster.tripster.account.LogoutProvider;
 import tripster.tripster.friends.FriendsFragment;
-import tripster.tripster.fragments.NewsFeedFragment;
+import tripster.tripster.newsFeed.NewsFeedFragment;
 import tripster.tripster.services.LocationService;
 import tripster.tripster.trips.MyTripsFragment;
 
