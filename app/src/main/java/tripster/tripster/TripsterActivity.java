@@ -29,6 +29,7 @@ import java.util.Map;
 
 import tripster.tripster.account.LogoutProvider;
 import tripster.tripster.friends.FriendsFragment;
+import tripster.tripster.fragments.NewsFeedFragment;
 import tripster.tripster.services.LocationService;
 import tripster.tripster.trips.MyTripsFragment;
 
@@ -88,6 +89,9 @@ public class TripsterActivity extends AppCompatActivity
 
       fragments.put("myTrips", new MyTripsFragment());
       Log.d(TAG, "Initialise MyTripsFragment");
+
+      fragments.put("newsFeed", new NewsFeedFragment());
+      Log.d(TAG, "Initialise news feed");
 
       // Add the fragment to the 'main_container' FrameLayout
       getSupportFragmentManager().beginTransaction().add(R.id.main_content, fragments.get("myTrips")).commit();
@@ -256,13 +260,14 @@ public class TripsterActivity extends AppCompatActivity
     int id = item.getItemId();
 
     Fragment frag = fragments.get("myTrips");
-
     if (id == R.id.nav_camera) {
       Log.d(TAG, "I want to switch to myTrips fragment");
     } else if (id == R.id.nav_slideshow) {
       frag = fragments.get("friends");
       Log.d(TAG, "I want to switch to friends fragment");
-    } else if (id == R.id.nav_share) {
+    } else if (id == R.id.news_feed) {
+      frag = fragments.get("newsFeed");
+      Log.d(TAG, "I want to switch to newsFeed fragment");
 
     } else if (id == R.id.nav_send) {
 
