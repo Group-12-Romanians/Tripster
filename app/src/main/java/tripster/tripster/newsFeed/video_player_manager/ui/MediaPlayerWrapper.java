@@ -99,7 +99,7 @@ public abstract class MediaPlayerWrapper
                 case STOPPED:
                 case INITIALIZED:
                     try {
-                        mMediaPlayer.prepare();
+                        mMediaPlayer.prepareAsync();
                         mState.set(State.PREPARED);
 
                         if (mListener != null) {
@@ -110,8 +110,6 @@ public abstract class MediaPlayerWrapper
                         /** we should not call {@link MediaPlayerWrapper#prepare()} in wrong state so we fall here*/
                         throw new RuntimeException(ex);
 
-                    } catch (IOException ex){
-                        onPrepareError(ex);
                     }
                     break;
                 case IDLE:

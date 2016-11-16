@@ -15,7 +15,7 @@ public class ItemFactory {
 //                                    videoPlayerManager, Picasso.with(activity), imageResource);
 //    }
 
-    public static BaseVideoItem createItemFomDirectLink(
+    public static DirectLinkVideoItem createItemFomDirectLink(
             String title, String url, int imageResource, Activity activity,
             VideoPlayerManager<MetaData> videoPlayerManager) {
         return new DirectLinkVideoItem(title, url, videoPlayerManager, Picasso.with(activity), imageResource);
