@@ -34,13 +34,12 @@ public class NewsFeedFragment extends Fragment {
   private static final boolean SHOW_LOGS = Config.SHOW_LOGS;
   private static final String TAG = NewsFeedFragment.class.getSimpleName();
 
-  private final ArrayList<DirectLinkVideoItem> mList = new ArrayList<>();
+  private ArrayList<DirectLinkVideoItem> mList;
   /**
    * Only the one (most visible) view should be active (and playing).
    * To calculate visibility of views we use {@link SingleListViewItemActiveCalculator}
    */
-  private final ListItemsVisibilityCalculator mListItemVisibilityCalculator =
-      new SingleListViewItemActiveCalculator(new DefaultSingleItemCalculatorCallback(), mList);
+  private ListItemsVisibilityCalculator mListItemVisibilityCalculator;
 
   /**
    * ItemsPositionGetter is used by {@link ListItemsVisibilityCalculator} for getting information about
@@ -51,14 +50,7 @@ public class NewsFeedFragment extends Fragment {
   /**
    * Here we use {@link tripster.tripster.newsFeed.video_player_manager.manager.SingleVideoPlayerManager}, which means that only one video playback is possible.
    */
-  private final VideoPlayerManager<MetaData> mVideoPlayerManager
-      = new SingleVideoPlayerManager(new PlayerItemChangeListener() {
-    @Override
-    public void onPlayerItemChanged(MetaData metaData) {
-      if (SHOW_LOGS) Logger.v(TAG, "onPlayerItemChanged " + metaData);
-
-    }
-  });
+  private VideoPlayerManager<MetaData> mVideoPlayerManager;
 
   private int mScrollState = AbsListView.OnScrollListener.SCROLL_STATE_IDLE;
 
@@ -67,20 +59,26 @@ public class NewsFeedFragment extends Fragment {
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState) {
+    mList = new ArrayList<>();
+    mListItemVisibilityCalculator
+        = new SingleListViewItemActiveCalculator(new DefaultSingleItemCalculatorCallback(), mList);
+    mVideoPlayerManager = new SingleVideoPlayerManager(new PlayerItemChangeListener() {
+      @Override
+      public void onPlayerItemChanged(MetaData metaData) {
+        if (SHOW_LOGS) Logger.v(TAG, "onPlayerItemChanged " + metaData);
+
+      }
+    });
 
     // if your files are in "assets" directory you can pass AssetFileDescriptor to the VideoPlayerView
     // if they are url's or path values you can pass the String path to the VideoPlayerView
     mList.add(ItemFactory.createItemFomDirectLink("Trip Italy 1",
-        "https://ia800201.us.archive.org/22/items/ksnn_compilation_master_the_internet/ksnn_compilation_master_the_internet_512kb.mp4",
+        "http://146.169.46.220:8081/v.mp4",
         R.mipmap.video_sample_1_pic, getActivity(), mVideoPlayerManager));
 
     mList.add(ItemFactory.createItemFomDirectLink("Trip Italy 2",
-        "https://ia800201.us.archive.org/22/items/ksnn_compilation_master_the_internet/ksnn_compilation_master_the_internet_512kb.mp4",
+        "http://146.169.46.220:8081/v.mp4",
         R.mipmap.video_sample_1_pic, getActivity(), mVideoPlayerManager));
-
-//        mList.add(ItemFactory.createItemFomDirectLink("Trip Italy 2",
-//                "https://www.youtube.com/watch?v=ezSD8F5zQqk&list=PL-ZNkGMYczu566sSLNooxhcaEsIuX_ntk&index=14&ab_channel=mithosDC",
-//                R.mipmap.video_sample_2_pic, getActivity(), mVideoPlayerManager));
 
     View rootView = inflater.inflate(R.layout.fragment_video_list_view, container, false);
 
