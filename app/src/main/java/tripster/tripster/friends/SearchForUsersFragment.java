@@ -6,7 +6,6 @@ import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -171,7 +170,7 @@ public class SearchForUsersFragment extends Fragment {
                 if (potentialFriendName != null) {
                   FriendsFragment
                       .friendRequests
-                      .add(new Pair<>(potentialFriendId, potentialFriendName));
+                      .add(new User(potentialFriendId, potentialFriendName));
                 }
               }
               searchableAdapter = new SearchableAdapter(getActivity(), allUsersInfo);

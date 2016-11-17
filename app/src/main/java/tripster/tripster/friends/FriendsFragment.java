@@ -3,7 +3,6 @@ package tripster.tripster.friends;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTabHost;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +17,7 @@ public class FriendsFragment extends Fragment {
 
   private FragmentTabHost mTabHost;
   public static List<User> friends;
-  public static List<Pair<String, String>> friendRequests;
+  public static List<User> friendRequests;
 
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);

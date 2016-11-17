@@ -2,7 +2,6 @@ package tripster.tripster.friends;
 
 import android.app.Activity;
 import android.util.Log;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,18 +20,19 @@ import java.util.Map;
 
 import tripster.tripster.R;
 import tripster.tripster.TripsterActivity;
+import tripster.tripster.User;
 
-public class NotificationsListAdapter extends ArrayAdapter<Pair<String, String>> {
+public class NotificationsListAdapter extends ArrayAdapter<User> {
 
   private static final String TAG = NotificationsListAdapter.class.getName();
   private static final String FRIEND_RESPONSE_URL = TripsterActivity.SERVER_URL + "/friend_response";
   private final Activity activity;
-  private final List<Pair<String, String>> requestsInfo;
+  private final List<User> requestsInfo;
 
-  public NotificationsListAdapter(Activity activity, List<Pair<String, String>> requestsInfo) {
+  public NotificationsListAdapter(Activity activity, List<User> requestsInfo) {
     super(activity, R.layout.notifications_list_item, requestsInfo);
-    for (Pair<String, String> request : requestsInfo) {
-      Log.d(TAG, "Request from: " + request.second);
+    for (User request : requestsInfo) {
+      Log.d(TAG, "Request from: " + request.getName());
     }
     this.activity = activity;
     this.requestsInfo = requestsInfo;
@@ -45,8 +45,8 @@ public class NotificationsListAdapter extends ArrayAdapter<Pair<String, String>>
     Button acceptButton = (Button) rowView.findViewById(R.id.accept_button);
     Button declineButton = (Button) rowView.findViewById(R.id.decline_button);
 
-    String requesterId = requestsInfo.get(position).first;
-    String requesterName = requestsInfo.get(position).second;
+    String requesterId = requestsInfo.get(position).getId();
+    String requesterName = requestsInfo.get(position).getName();
 
     txtTitle.setText(requesterName + "has sent you a friend request");
     setAcceptClickListener(acceptButton, requesterId);
