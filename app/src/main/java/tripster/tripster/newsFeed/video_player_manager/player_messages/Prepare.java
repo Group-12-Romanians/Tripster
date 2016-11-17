@@ -15,7 +15,7 @@ import tripster.tripster.newsFeed.video_player_manager.utils.Logger;
 public class Prepare extends PlayerMessage{
 
     private static final boolean SHOW_LOGS = Config.SHOW_LOGS;
-    private static final String TAG = Prepare.class.getSimpleName();
+    private static final String TAG        = Prepare.class.getSimpleName();
 
     private PlayerMessageState mResultPlayerMessageState;
 

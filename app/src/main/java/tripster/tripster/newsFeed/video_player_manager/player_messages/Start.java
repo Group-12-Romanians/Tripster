@@ -49,6 +49,7 @@ public class Start extends PlayerMessage{
                 throw new RuntimeException("unhandled current state " + currentState);
 
             case STARTING:
+
                 currentPlayer.start();
                 mResultPlayerMessageState = PlayerMessageState.STARTED;
                 break;

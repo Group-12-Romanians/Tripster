@@ -90,11 +90,13 @@ public class NewsFeedFragment extends Fragment {
     // if they are url's or path values you can pass the String path to the VideoPlayerView
     mList.add(ItemFactory.createItemFomDirectLink("Trip Italy 1",
         "http://146.169.46.220:8081/v.mp4",
-        R.mipmap.video_sample_1_pic, getActivity(), mVideoPlayerManager));
+        R.mipmap.video_sample_1_pic, getActivity(), mVideoPlayerManager,
+            "Gicu Faimosu", "http://146.169.46.220:8081/1234.jpg"));
 
     mList.add(ItemFactory.createItemFomDirectLink("Trip Italy 2",
         "http://146.169.46.220:8081/v.mp4",
-        R.mipmap.video_sample_1_pic, getActivity(), mVideoPlayerManager));
+        R.mipmap.video_sample_1_pic, getActivity(), mVideoPlayerManager,
+            "Marian Fatalu", "http://146.169.46.220:8081/1234.jpg"));
 
     View rootView = inflater.inflate(R.layout.fragment_video_list_view, container, false);
 

@@ -5,6 +5,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import tripster.tripster.newsFeed.video_list_demo.adapter.holders.VideoViewHolder;
@@ -18,11 +20,12 @@ public class VideoListViewAdapter extends BaseAdapter {
     private final List<DirectLinkVideoItem> mList;
     private final Context mContext;
 
-    public VideoListViewAdapter(VideoPlayerManager videoPlayerManager, Context context,
-                                                                        List<DirectLinkVideoItem> list){
+    public VideoListViewAdapter(VideoPlayerManager videoPlayerManager,
+                                Context context,
+                                List<DirectLinkVideoItem> list){
         mVideoPlayerManager = videoPlayerManager;
-        mContext = context;
-        mList = list;
+        mContext            = context;
+        mList               = list;
     }
 
     @Override
@@ -42,20 +45,21 @@ public class VideoListViewAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-
         BaseVideoItem videoItem = mList.get(position);
 
         View resultView;
         if(convertView == null){
-
             resultView = videoItem.createView(parent, mContext.getResources().getDisplayMetrics().widthPixels);
         } else {
             resultView = convertView;
         }
 
-        videoItem.update(position, (VideoViewHolder) resultView.getTag(), mVideoPlayerManager);
+        try {
+            videoItem.update(position, (VideoViewHolder) resultView.getTag(), mVideoPlayerManager);
+        } catch (MalformedURLException | URISyntaxException e) {
+            e.printStackTrace();
+        }
         return resultView;
     }
-
 }
 

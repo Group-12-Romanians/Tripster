@@ -16,25 +16,34 @@ public class DirectLinkVideoItem extends BaseVideoItem {
 
     private final String mDirectUrl;
     private final String mTitle;
-
+    private final String mFriendsName;
     private final Picasso mImageLoader;
     private final int mImageResource;
+    private final String mProfilePictureUrl;
 
     public DirectLinkVideoItem(String title, String directUr, VideoPlayerManager videoPlayerManager,
-                                                        Picasso imageLoader, int imageResource) {
+                               Picasso imageLoader, int imageResource, String friendsName,
+                               String profilePictureUrl) {
         super(videoPlayerManager);
-        mDirectUrl = directUr;
-        mTitle = title;
-        mImageLoader = imageLoader;
-        mImageResource = imageResource;
-
+        mDirectUrl         = directUr;
+        mTitle             = title;
+        mImageLoader       = imageLoader;
+        mImageResource     = imageResource;
+        mFriendsName       = friendsName;
+        mProfilePictureUrl = profilePictureUrl;
     }
 
     @Override
-    public void update(int position, VideoViewHolder viewHolder, tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager videoPlayerManager) {
+    public void update(int position,
+                       VideoViewHolder viewHolder,
+                       VideoPlayerManager videoPlayerManager){
         viewHolder.mTitle.setText(mTitle);
         viewHolder.mCover.setVisibility(View.VISIBLE);
         mImageLoader.load(mImageResource).into(viewHolder.mCover);
+//        viewHolder.mFriendsName.setText(mFriendsName);
+//        viewHolder.mProfilePicture.setVisibility(View.VISIBLE);
+//        Uri uri = Uri.parse(mProfilePictureUrl);
+//        viewHolder.mProfilePicture.setImageURI(uri);
     }
 
     @Override

@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card_view"
     android:layout_width="match_parent"
-    android:layout_height="0dp"
-    android:layout_marginTop="2.5dp"
-    android:layout_marginBottom="2.5dp"
+    android:layout_height="match_parent"
     style="@style/card_style">
 
         <RelativeLayout
@@ -15,21 +14,37 @@
 
             <tripster.tripster.newsFeed.video_player_manager.ui.VideoPlayerView
                 android:id="@+id/player"
-                android:layout_above="@id/title"
+                android:layout_below="@id/title"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
             <ImageView
-                android:id="@+id/cover"
-                android:layout_above="@id/title"
+                android:id="@+id/profile_picture"
+                android:layout_alignParentTop="true"
                 android:background="@android:color/white"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription=""
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/friend_name"
+                android:layout_alignRight="@+id/profile_picture"
+                style="@style/BaseText"
+                tools:ignore="RtlHardcoded" />
 
             <TextView
                 android:id="@+id/title"
-                android:layout_alignParentBottom="true"
+                android:layout_below="@+id/friend_name"
                 style="@style/BaseText"/>
+
+            <ImageView
+                android:id="@+id/cover"
+                android:layout_below="@id/title"
+                android:background="@android:color/white"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:ignore="ContentDescription" />
 
             <TextView
                 android:id="@+id/visibility_percents"
