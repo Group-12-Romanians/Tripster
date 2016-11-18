@@ -5,22 +5,18 @@ import android.content.res.Resources;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import tripster.tripster.R;
-import tripster.tripster.trips.pictures.Photo;
 import tripster.tripster.trips.tabs.Event;
 
 class TimeLineViewHolder extends RecyclerView.ViewHolder {
@@ -63,11 +59,11 @@ class TimeLineViewHolder extends RecyclerView.ViewHolder {
                             public void onClick(DialogInterface dialog, int which) {
                                 switch (which){
                                     case DialogInterface.BUTTON_POSITIVE:
-                                        //Yes button clicked
+                                        // Yes button clicked
                                         break;
 
                                     case DialogInterface.BUTTON_NEGATIVE:
-                                        //No button clicked
+                                        // No button clicked
                                         break;
                                 }
                             }

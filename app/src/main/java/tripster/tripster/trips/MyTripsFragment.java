@@ -72,7 +72,7 @@ public class MyTripsFragment extends Fragment {
             JSONObject tripJSON = tripsJSON.getJSONObject(i);
             String tripName = tripJSON.getString("name");
             String tripId = tripJSON.getString("trip_id");
-            String tripPreview = SERVER_URL + "/" + tripJSON.getString("preview") + ".jpg";
+            String tripPreview = tripJSON.getString("preview_img");
             trips.add(new TripPreview(tripId, tripName, tripPreview));
           }
         } catch (JSONException e) {

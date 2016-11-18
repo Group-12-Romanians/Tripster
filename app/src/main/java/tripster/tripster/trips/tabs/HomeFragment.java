@@ -99,6 +99,7 @@ public class HomeFragment extends Fragment {
         new Response.Listener<String>() {
           @Override
           public void onResponse(String tripStr) {
+            Log.d(TAG, tripStr);
             ArrayList<Event> events = parseJSONTrip(tripStr);
             initTabs(events);
           }

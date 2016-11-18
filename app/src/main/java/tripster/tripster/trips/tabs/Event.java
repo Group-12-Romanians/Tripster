@@ -9,7 +9,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -99,7 +98,7 @@ public class Event implements Parcelable {
                             if (!respJSON.getString("status").equals("ZERO_RESULTS")) {
                                 // The first result in the JSON is the street name. The second is the
                                 // actual place name.
-                                int position = respJSON.length() > 1 ? 1 : 0;
+                                int position = resultsJSON.length() > 1 ? 1 : 0;
                                 place = resultsJSON.getJSONObject(position).getString("name");
                                 listener.onResponse(place);
                             }

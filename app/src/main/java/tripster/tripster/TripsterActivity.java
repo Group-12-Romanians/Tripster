@@ -17,7 +17,11 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.github.clans.fab.FloatingActionButton;
 
@@ -39,6 +43,7 @@ public class TripsterActivity extends AppCompatActivity
   public static final String MAPS_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch";
   public static final String MAPS_OPT = "&radius=50&key=AIzaSyBEcADKicF0ZeIooOSbh12Vu7BVyDOIjik";
   public static final String SERVER_URL = "http://146.169.46.220:8081";
+  private static final String NEWS_FEED_URL = SERVER_URL + "/trips";
   public static final String LOCATIONS_FILE_PATH = "locations.txt";
   public static final String SHARED_PREF_PHOTOS = "TripsterPhotosIds";
   public static final String SHARED_PREF_ID = "TripsterID";
@@ -268,9 +273,9 @@ public class TripsterActivity extends AppCompatActivity
       frag = fragments.get("friends");
       Log.d(TAG, "I want to switch to friends fragment");
     } else if (id == R.id.news_feed) {
-      frag = fragments.get("newsFeed");
       Log.d(TAG, "I want to switch to newsFeed fragment");
-
+      accessNewsFeed();
+      return true;
     } else if (id == R.id.nav_send) {
 
     } else if (id == R.id.nav_logout) {
@@ -283,5 +288,31 @@ public class TripsterActivity extends AppCompatActivity
     DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
     drawer.closeDrawer(GravityCompat.START);
     return true;
+  }
+
+  private void accessNewsFeed() {
+    StringRequest newsFeedRequest = new StringRequest(
+        Request.Method.GET,
+        NEWS_FEED_URL,
+        new Response.Listener<String>() {
+          @Override
+          public void onResponse(String response) {
+            Log.d(TAG, response);
+            Fragment frag = fragments.get("newsFeed");
+            Bundle b = new Bundle();
+            b.putString("trips", response);
+            frag.setArguments(b);
+            getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag).commit();
+            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+            drawer.closeDrawer(GravityCompat.START);
+          }
+        },
+        new Response.ErrorListener() {
+          @Override
+          public void onErrorResponse(VolleyError error) {
+            Log.d(TAG, "Unable to get newsfeed.");
+          }
+        });
+    TripsterActivity.reqQ.add(newsFeedRequest);
   }
 }

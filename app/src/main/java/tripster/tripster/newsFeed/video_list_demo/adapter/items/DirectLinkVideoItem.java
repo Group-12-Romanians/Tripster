@@ -48,10 +48,8 @@ public class DirectLinkVideoItem extends BaseVideoItem {
                        VideoViewHolder viewHolder,
                        VideoPlayerManager videoPlayerManager){
         viewHolder.mTitle.setText(mTitle);
-        viewHolder.mCover.setVisibility(View.VISIBLE);
-        viewHolder.mCover.setTag(mTripId);
-        mImageLoader.load(mImageResource).into(viewHolder.mCover);
-        viewHolder.mCover.setOnClickListener(new View.OnClickListener() {
+        viewHolder.mTitle.setTag(mTripId);
+        View.OnClickListener clickListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String tripID = v.getTag().toString();
@@ -59,7 +57,10 @@ public class DirectLinkVideoItem extends BaseVideoItem {
                     accessTrip(v.getTag().toString());
                 }
             }
-        });
+        };
+        viewHolder.mTitle.setOnClickListener(clickListener);
+        viewHolder.mCover.setVisibility(View.VISIBLE);
+        mImageLoader.load(mImageResource).into(viewHolder.mCover);
         viewHolder.mFriendsName.setText(mFriendsName);
         viewHolder.mProfilePicture.setVisibility(View.VISIBLE);
         mImageLoader.load(mProfilePictureUrl).fit().centerCrop().into(viewHolder.mProfilePicture);

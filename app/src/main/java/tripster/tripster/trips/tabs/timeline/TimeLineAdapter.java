@@ -30,6 +30,8 @@ public class TimeLineAdapter extends RecyclerView.Adapter<TimeLineViewHolder> {
         return new TimeLineViewHolder(view, viewType);
     }
 
+
+
     @Override
     public void onBindViewHolder(final TimeLineViewHolder holder, int position) {
         Event timeLineEvent = mEvents.get(position);
