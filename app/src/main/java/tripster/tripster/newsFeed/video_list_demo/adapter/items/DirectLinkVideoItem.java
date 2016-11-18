@@ -40,10 +40,9 @@ public class DirectLinkVideoItem extends BaseVideoItem {
         viewHolder.mTitle.setText(mTitle);
         viewHolder.mCover.setVisibility(View.VISIBLE);
         mImageLoader.load(mImageResource).into(viewHolder.mCover);
-//        viewHolder.mFriendsName.setText(mFriendsName);
-//        viewHolder.mProfilePicture.setVisibility(View.VISIBLE);
-//        Uri uri = Uri.parse(mProfilePictureUrl);
-//        viewHolder.mProfilePicture.setImageURI(uri);
+        viewHolder.mFriendsName.setText(mFriendsName);
+        viewHolder.mProfilePicture.setVisibility(View.VISIBLE);
+        mImageLoader.load(mProfilePictureUrl).fit().centerCrop().into(viewHolder.mProfilePicture);
     }
 
     @Override
