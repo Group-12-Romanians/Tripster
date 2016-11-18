@@ -6,6 +6,7 @@ import java.io.Serializable;
  * Created by HP-HP on 05-12-2015.
  */
 public class TimeLineModel implements Serializable {
+    //TODO: Don't need this. Use Event instead.
     private String name;
     private int age;
 

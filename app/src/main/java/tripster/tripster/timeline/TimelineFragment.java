@@ -14,59 +14,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tripster.tripster.R;
+import tripster.tripster.trips.tabs.Event;
 
 
 public class TimelineFragment extends Fragment {
 
     private RecyclerView mRecyclerView;
-    private List<TimeLineModel> mDataList = new ArrayList<>();
-
-//    @Override
-//    public void onActivityCreated(Bundle savedInstanceState) {
-//
-//        super.onActivityCreated(savedInstanceState);
-//
-//        mRecyclerView = (RecyclerView) getActivity().findViewById(R.id.recyclerView);
-//        mRecyclerView.setLayoutManager(getLinearLayoutManager());
-//        mRecyclerView.setHasFixedSize(true);
-//
-//        initView();
-//
-//    }
+    private List<Event> events = new ArrayList<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         final View view = inflater.inflate(R.layout.activity_timeline, container, false);
 
-
         mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
         mRecyclerView.setLayoutManager(getLinearLayoutManager());
         mRecyclerView.setHasFixedSize(true);
 
+        events = this.getArguments().getParcelableArrayList("events");
         initView();
 
         return view;
     }
 
     private void initView() {
-
-        for(int i = 0;i <20;i++) {
-            TimeLineModel model = new TimeLineModel();
-            model.setName("Random"+i);
-            model.setAge(i);
-            mDataList.add(model);
-        }
-
-        TimeLineAdapter mTimeLineAdapter = new TimeLineAdapter(mDataList);
+        TimeLineAdapter mTimeLineAdapter = new TimeLineAdapter(events);
         mRecyclerView.setAdapter(mTimeLineAdapter);
-
     }
 
     private LinearLayoutManager getLinearLayoutManager() {
-
         return new LinearLayoutManager(getContext());
-
     }
 
 

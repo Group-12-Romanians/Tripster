@@ -35,6 +35,8 @@ import tripster.tripster.trips.MyTripsFragment;
 public class TripsterActivity extends AppCompatActivity
     implements NavigationView.OnNavigationItemSelectedListener {
 
+  public static final String MAPS_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch";
+  public static final String MAPS_OPT = "&radius=50&key=AIzaSyBEcADKicF0ZeIooOSbh12Vu7BVyDOIjik";
   public static final String SERVER_URL = "http://146.169.46.220:8081";
   public static final String LOCATIONS_FILE_PATH = "locations.txt";
   public static final String SHARED_PREF_PHOTOS = "TripsterPhotosIds";

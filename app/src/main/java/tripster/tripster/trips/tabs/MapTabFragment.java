@@ -34,10 +34,11 @@ import java.util.ArrayList;
 import tripster.tripster.R;
 import tripster.tripster.TripsterActivity;
 
+import static tripster.tripster.TripsterActivity.MAPS_OPT;
+import static tripster.tripster.TripsterActivity.MAPS_URL;
+
 public class MapTabFragment extends Fragment implements OnMapReadyCallback {
   private static final String TAG = MapTabFragment.class.getName();
-  private static final String MAPS_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch";
-  private static final String MAPS_OPT = "&radius=50&key=AIzaSyBEcADKicF0ZeIooOSbh12Vu7BVyDOIjik";
 
   private GoogleMap mMap;
 
@@ -116,37 +117,15 @@ public class MapTabFragment extends Fragment implements OnMapReadyCallback {
   }
 
   private void markPlaceName(final Event e) {
-    final LatLng location = e.getLocation();
-    String url = MAPS_URL + "/json?location=" + location.latitude + "," + location.longitude + MAPS_OPT;
-    StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-      new Response.Listener<String>() {
-        @Override
-        public void onResponse(String response) {
-          try {
-            MarkerOptions options = new MarkerOptions().position(location);
-
-            Log.d(TAG, "Place name response is: " + response);
-
-            JSONObject respJSON = new JSONObject(response);
-            JSONArray resultsJSON = respJSON.getJSONArray("results");
-            if (resultsJSON.length() > 0) {
-              String placeName = resultsJSON.getJSONObject(0).getString("name");
-              options.title(placeName);
-            }
-
-            mMap.addMarker(options);
-          } catch (JSONException e) {
-            Log.e(TAG, e.toString());
-          }
+    e.onPlaceFound(new Response.Listener<String>() {
+      @Override
+      public void onResponse(String response) {
+        MarkerOptions options = new MarkerOptions().position(e.getLocation());
+        if (!response.isEmpty()) {
+          options.title(response);
         }
-      },
-      new Response.ErrorListener() {
-        @Override
-        public void onErrorResponse(VolleyError error) {
-          Log.d("Utils", "Didn't work request queue");
-        }
+        mMap.addMarker(options);
       }
-    );
-    TripsterActivity.reqQ.add(stringRequest);
+    });
   }
 }
