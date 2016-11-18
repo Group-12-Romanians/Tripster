@@ -91,7 +91,8 @@ public class NewsFeedFragment extends Fragment {
         getActivity(),
         mVideoPlayerManager,
         "Tripster Team",
-        SERVER_URL + "/1234.jpg"));
+        SERVER_URL + "/1234.jpg",
+        ""));
 
     View rootView = inflater.inflate(R.layout.fragment_video_list_view, container, false);
 
@@ -137,7 +138,8 @@ public class NewsFeedFragment extends Fragment {
               getActivity(),
               mVideoPlayerManager,
               t.getOwner(),
-              t.getOwnerAvatar()));
+              t.getOwnerAvatar(),
+              t.getId()));
         }
         if (!mList.isEmpty()) {
           // need to call this method from list view handler in order to have list filled previously
