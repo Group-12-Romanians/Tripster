@@ -61,7 +61,7 @@
         <ImageView
             android:id="@+id/cover"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_below="@id/post_description"
             android:background="@android:color/white"
             tools:ignore="ContentDescription"/>

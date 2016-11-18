@@ -2,6 +2,9 @@ package tripster.tripster.services;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -64,8 +67,9 @@ public class ImageUploader extends AsyncTask<String, Void, String> {
       FileInputStream fis = new FileInputStream(imageFile);
 
       Bitmap bm = BitmapFactory.decodeStream(fis);
+      Bitmap resizedBitmap = bitmapResize(bm, 640, 440);
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      bm.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+      resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
       byte[] bytes = baos.toByteArray();
       request.write(bytes);
 
@@ -100,5 +104,25 @@ public class ImageUploader extends AsyncTask<String, Void, String> {
       e.printStackTrace();
     }
     return response;
+  }
+
+
+  private Bitmap bitmapResize(Bitmap bitmap,int newWidth,int newHeight) {
+    Bitmap scaledBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
+
+    float ratioX = newWidth / (float) bitmap.getWidth();
+    float ratioY = newHeight / (float) bitmap.getHeight();
+    float middleX = newWidth / 2.0f;
+    float middleY = newHeight / 2.0f;
+
+    Matrix scaleMatrix = new Matrix();
+    scaleMatrix.setScale(ratioX, ratioY, middleX, middleY);
+
+    Canvas canvas = new Canvas(scaledBitmap);
+    canvas.setMatrix(scaleMatrix);
+    canvas.drawBitmap(bitmap, middleX - bitmap.getWidth() / 2, middleY - bitmap.getHeight() / 2, new Paint(Paint.FILTER_BITMAP_FLAG));
+
+    return scaledBitmap;
+
   }
 }
