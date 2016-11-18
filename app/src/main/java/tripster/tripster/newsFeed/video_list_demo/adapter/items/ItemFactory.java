@@ -6,9 +6,10 @@ import tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManage
 import tripster.tripster.newsFeed.video_player_manager.meta.MetaData;
 
 public class ItemFactory {
+
     public static DirectLinkVideoItem createItemFomDirectLink(String title,
                                                               String url,
-                                                              int imageResource,
+                                                              String imageResource,
                                                               Activity activity,
                                                               VideoPlayerManager<MetaData> videoPlayerManager,
                                                               String friendsName,

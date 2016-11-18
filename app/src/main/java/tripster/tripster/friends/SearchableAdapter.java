@@ -94,10 +94,12 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
           .addFriendButton
           .setOnClickListener(getFriendRequestListener(friendId,
                                                        holder.addFriendButton));
-    } else if (isFriendRequestSent(userName)) {
+    } else if (isFriendRequestSent(filteredData.get(position))) {
       holder.addFriendButton.setVisibility(View.VISIBLE);
       holder.addFriendButton.setText("Request Sent");
       holder.addFriendButton.setClickable(false);
+    } else if (isFriend(filteredData.get(position))) {
+      holder.addFriendButton.setVisibility(View.INVISIBLE);
     }
 
     return convertView;
@@ -137,8 +139,8 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
     return FriendsFragment.friends.contains(user);
   }
 
-  private boolean isFriendRequestSent(String userName) {
-    return FriendsFragment.friendRequests.contains(userName);
+  private boolean isFriendRequestSent(User user) {
+    return FriendsFragment.friendRequests.contains(user);
   }
 
   private View.OnClickListener getFriendRequestListener(final String friendId,
@@ -168,7 +170,7 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
       new Response.ErrorListener() {
         @Override
         public void onErrorResponse(VolleyError error) {
-          Log.d(TAG, "Unable to send friend request. " + error.networkResponse.data);
+          Log.d(TAG, "Unable to send friend request.");
         }
       }) {
         @Override

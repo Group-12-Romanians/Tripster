@@ -48,7 +48,7 @@ public class NotificationsListAdapter extends ArrayAdapter<User> {
     String requesterId = requestsInfo.get(position).getId();
     String requesterName = requestsInfo.get(position).getName();
 
-    txtTitle.setText(requesterName + "has sent you a friend request");
+    txtTitle.setText(requesterName + " has sent you a friend request");
     setAcceptClickListener(acceptButton, requesterId);
     setDeclineClickListener(declineButton, requesterId);
     return rowView;

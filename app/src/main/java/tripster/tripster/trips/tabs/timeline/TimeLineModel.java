@@ -1,11 +1,6 @@
-package tripster.tripster.timeline;
+package tripster.tripster.trips.tabs.timeline;
 
-import java.io.Serializable;
-
-/**
- * Created by HP-HP on 05-12-2015.
- */
-public class TimeLineModel implements Serializable {
+public class TimeLineModel {
     private String name;
     private int age;
 

@@ -87,7 +87,7 @@ public class GoogleProvider extends AccountProvider {
       Log.d(TAG, "Google login successful");
       String email = result.getSignInAccount().getEmail();
       String name = result.getSignInAccount().getDisplayName();
-      saveUser(email, name, TAG);
+      saveUser(email, name, result.getSignInAccount().getPhotoUrl().toString(), TAG);
     } else {
       Toast.makeText(parentActivity, "Login canceled", Toast.LENGTH_LONG).show();
     }

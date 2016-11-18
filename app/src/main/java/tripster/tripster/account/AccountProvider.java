@@ -36,10 +36,10 @@ abstract class AccountProvider implements LoginProvider, LogoutProvider {
 
   AppCompatActivity parentActivity;
 
-  boolean saveUser(String id, String name, String tag) {
+  boolean saveUser(String id, String name, String photoUrl, String tag) {
     RequestQueue requestQueue = Volley.newRequestQueue(parentActivity);
     if (internetConnection(parentActivity)) {
-      StringRequest userRequest = createUserRequest(id, name, tag);
+      StringRequest userRequest = createUserRequest(id, name, photoUrl, tag);
       requestQueue.add(userRequest);
       Log.d(TAG, "Here is my user id: " + id);
       return true;
@@ -48,7 +48,7 @@ abstract class AccountProvider implements LoginProvider, LogoutProvider {
     return false;
   }
 
-  private StringRequest createUserRequest(final String id, final String name, final String tag) {
+  private StringRequest createUserRequest(final String id, final String name, final String photoUrl, final String tag) {
     String userURL = "http://146.169.46.220:8081/new_user";
     return new StringRequest(Request.Method.POST, userURL, new Response.Listener<String>() {
       @Override
@@ -83,6 +83,7 @@ abstract class AccountProvider implements LoginProvider, LogoutProvider {
         Log.d(TAG, "Parameter is: " + id);
         params.put("id", id);
         params.put("name", name);
+        params.put("avatar", photoUrl);
 
         return params;
       }

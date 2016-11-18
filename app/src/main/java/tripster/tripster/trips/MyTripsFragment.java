@@ -83,7 +83,7 @@ public class MyTripsFragment extends Fragment {
     }, new Response.ErrorListener() {
       @Override
       public void onErrorResponse(VolleyError error) {
-        Log.d(TAG, "Unable to get the list of trips: " + error.networkResponse.data);
+        Log.d(TAG, "Unable to get the list of trips");
       }
     });
     TripsterActivity.reqQ.add(tripsRequest);

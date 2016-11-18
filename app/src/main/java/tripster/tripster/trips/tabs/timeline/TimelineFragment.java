@@ -1,4 +1,4 @@
-package tripster.tripster.timeline;
+package tripster.tripster.trips.tabs.timeline;
 
 
 import android.os.Bundle;

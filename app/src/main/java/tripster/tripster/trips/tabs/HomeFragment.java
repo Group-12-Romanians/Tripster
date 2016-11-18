@@ -28,7 +28,7 @@ import java.util.ArrayList;
 
 import tripster.tripster.R;
 import tripster.tripster.TripsterActivity;
-import tripster.tripster.timeline.TimelineFragment;
+import tripster.tripster.trips.tabs.timeline.TimelineFragment;
 
 import static android.content.Context.MODE_PRIVATE;
 import static tripster.tripster.TripsterActivity.LOCATIONS_FILE_PATH;

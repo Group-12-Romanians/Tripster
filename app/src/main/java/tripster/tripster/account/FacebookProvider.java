@@ -80,9 +80,9 @@ public class FacebookProvider extends AccountProvider {
                     mail = "facebook@stupid.com";
                   }
                   Log.d(TAG, "username is: " + username + ", email is: " + mail + ", id is:" + id);
-
+                  String avatarUrl = "https://graph.facebook.com/" + id + "/picture?type=large";
                   cacheData(username, mail);
-                  saveUser(id, username, TAG);
+                  saveUser(id, username, avatarUrl, TAG);
                 }
               }
             }).executeAsync();
