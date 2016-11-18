@@ -1,8 +1,5 @@
 package tripster.tripster.newsFeed.video_player_manager.manager;
 
-import android.content.res.AssetFileDescriptor;
-import android.view.View;
-
 import tripster.tripster.newsFeed.video_player_manager.meta.MetaData;
 import tripster.tripster.newsFeed.video_player_manager.ui.VideoPlayerView;
 
@@ -12,7 +9,6 @@ import tripster.tripster.newsFeed.video_player_manager.ui.VideoPlayerView;
  * It supports :
  * 1. Start playback of new video by calling:
  *  a) {@link #playNewVideo(MetaData, VideoPlayerView, String)} if you have direct url or path to video source
- *  b) {@link #playNewVideo(MetaData, VideoPlayerView, AssetFileDescriptor)} is your video file is in assets directory
  * 2. Stop existing playback. {@link #stopAnyPlayback()}
  * 3. Reset Media Player if it's no longer needed. {@link #resetMediaPlayer()}
  */

@@ -1,27 +1,25 @@
 package tripster.tripster.newsFeed.video_player_manager.ui;
 
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
-import android.os.Build;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.view.TextureView;
 import android.view.View;
 
-import tripster.tripster.newsFeed.video_player_manager.Config;
-import tripster.tripster.newsFeed.video_player_manager.utils.HandlerThreadExtension;
-import tripster.tripster.newsFeed.video_player_manager.utils.Logger;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import tripster.tripster.newsFeed.video_player_manager.Config;
+import tripster.tripster.newsFeed.video_player_manager.utils.HandlerThreadExtension;
+import tripster.tripster.newsFeed.video_player_manager.utils.Logger;
 
 /**
  * This is player implementation based on {@link TextureView}
@@ -34,8 +32,8 @@ import java.util.Set;
  */
 public class VideoPlayerView extends ScalableTextureView
         implements TextureView.SurfaceTextureListener,
-        MediaPlayerWrapper.MainThreadMediaPlayerListener,
-        MediaPlayerWrapper.VideoStateListener {
+                   MediaPlayerWrapper.MainThreadMediaPlayerListener,
+                   MediaPlayerWrapper.VideoStateListener {
 
     private static final boolean SHOW_LOGS = Config.SHOW_LOGS;
     private String TAG;
@@ -44,7 +42,8 @@ public class VideoPlayerView extends ScalableTextureView
 
     /**
      * MediaPlayerWrapper instance.
-     * If you need to use it you should synchronize in on {@link VideoPlayerView#mReadyForPlaybackIndicator} in order to have a consistent state.
+     * If you need to use it you should synchronize in on
+     * {@link VideoPlayerView#mReadyForPlaybackIndicator} in order to have a consistent state.
      * Also you should call it from background thread to avoid ANR
      */
     private MediaPlayerWrapper mMediaPlayer;
@@ -105,7 +104,6 @@ public class VideoPlayerView extends ScalableTextureView
         initView();
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public VideoPlayerView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         initView();
@@ -265,30 +263,30 @@ public class VideoPlayerView extends ScalableTextureView
         }
     }
 
-    public void setDataSource(AssetFileDescriptor assetFileDescriptor) {
-        checkThread();
-        synchronized (mReadyForPlaybackIndicator) {
-
-            if (SHOW_LOGS)
-                Logger.v(TAG, "setDataSource, assetFileDescriptor " + assetFileDescriptor + ", this " + this);
-
-            try {
-                mMediaPlayer.setDataSource(assetFileDescriptor);
-            } catch (IOException e) {
-                Logger.d(TAG, e.getMessage());
-                throw new RuntimeException(e);
-            }
-            mAssetFileDescriptor = assetFileDescriptor;
-        }
-    }
-
-    public void setOnVideoStateChangedListener(MediaPlayerWrapper.VideoStateListener listener) {
-        mVideoStateListener = listener;
-        checkThread();
-        synchronized (mReadyForPlaybackIndicator){
-            mMediaPlayer.setVideoStateListener(listener);
-        }
-    }
+//    public void setDataSource(AssetFileDescriptor assetFileDescriptor) {
+//        checkThread();
+//        synchronized (mReadyForPlaybackIndicator) {
+//
+//            if (SHOW_LOGS)
+//                Logger.v(TAG, "setDataSource, assetFileDescriptor " + assetFileDescriptor + ", this " + this);
+//
+//            try {
+//                mMediaPlayer.setDataSource(assetFileDescriptor);
+//            } catch (IOException e) {
+//                Logger.d(TAG, e.getMessage());
+//                throw new RuntimeException(e);
+//            }
+//            mAssetFileDescriptor = assetFileDescriptor;
+//        }
+//    }
+//
+//    public void setOnVideoStateChangedListener(MediaPlayerWrapper.VideoStateListener listener) {
+//        mVideoStateListener = listener;
+//        checkThread();
+//        synchronized (mReadyForPlaybackIndicator){
+//            mMediaPlayer.setVideoStateListener(listener);
+//        }
+//    }
 
     public void addMediaPlayerListener(MediaPlayerWrapper.MainThreadMediaPlayerListener listener) {
         synchronized (mMediaPlayerMainThreadListeners){

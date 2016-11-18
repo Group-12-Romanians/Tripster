@@ -4,13 +4,13 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
+import tripster.tripster.newsFeed.list_visibility_utils.calculator.ListItemsVisibilityCalculator;
 import tripster.tripster.newsFeed.video_player_manager.Config;
 import tripster.tripster.newsFeed.video_player_manager.utils.Logger;
 
 /**
- * This class is an API for {@link tripster.tripster.newsFeed.list_visibility_utils.calculator.ListItemsVisibilityCalculator}
+ * This class is an API for {@link ListItemsVisibilityCalculator}
  * Using this class is can access all the data from RecyclerView
- * Created by danylo.volokh on 06.01.2016.
  */
 public class RecyclerViewItemPositionGetter implements ItemsPositionGetter {
 
@@ -36,7 +36,8 @@ public class RecyclerViewItemPositionGetter implements ItemsPositionGetter {
 
         if(SHOW_LOGS) {
             Logger.v(TAG, "mRecyclerView getChildAt, position " + position + ", view " + view);
-            Logger.v(TAG, "mLayoutManager getChildAt, position " + position + ", view " + mLayoutManager.getChildAt(position));
+            Logger.v(TAG, "mLayoutManager getChildAt, position " + position + ", view " +
+                          mLayoutManager.getChildAt(position));
         }
 
         return view;
@@ -66,7 +67,8 @@ public class RecyclerViewItemPositionGetter implements ItemsPositionGetter {
 
     @Override
     public int getFirstVisiblePosition() {
-        if(SHOW_LOGS) Logger.v(TAG, "getFirstVisiblePosition, findFirstVisibleItemPosition " + mLayoutManager.findFirstVisibleItemPosition());
+        if(SHOW_LOGS) Logger.v(TAG, "getFirstVisiblePosition, findFirstVisibleItemPosition " +
+                                    mLayoutManager.findFirstVisibleItemPosition());
         return mLayoutManager.findFirstVisibleItemPosition();
     }
 }

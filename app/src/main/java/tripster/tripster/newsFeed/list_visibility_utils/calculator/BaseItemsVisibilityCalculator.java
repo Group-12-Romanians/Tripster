@@ -11,7 +11,7 @@ import tripster.tripster.newsFeed.video_player_manager.utils.Logger;
 /**
  * This class encapsulates some basic logic of Visibility calculator.
  * In onScroll event it calculates Scroll direction using
- * {@link tripster.tripster.newsFeed.list_visibility_utils.scroll_utils.ScrollDirectionDetector}
+ * {@link ScrollDirectionDetector}
  * and then calls appropriate methods
  */
 public abstract class BaseItemsVisibilityCalculator implements ListItemsVisibilityCalculator, ScrollDirectionDetector.OnDetectScrollListener{

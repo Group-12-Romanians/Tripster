@@ -71,7 +71,8 @@ public class SingleVideoPlayerManager implements VideoPlayerManager<MetaData>,
     public void playNewVideo(MetaData currentItemMetaData,
                              VideoPlayerView videoPlayerView,
                              String videoUrl) {
-        if(SHOW_LOGS) Logger.v(TAG, ">> playNewVideo, videoPlayer " + videoPlayerView + ", mCurrentPlayer " + mCurrentPlayer + ", videoPlayerView " + videoPlayerView);
+        if(SHOW_LOGS) Logger.v(TAG, ">> playNewVideo, videoPlayer " + videoPlayerView +
+                    ", mCurrentPlayer " + mCurrentPlayer + ", videoPlayerView " + videoPlayerView);
 
         /** 1. */
         mPlayerHandler.pauseQueueProcessing(TAG);
@@ -85,7 +86,8 @@ public class SingleVideoPlayerManager implements VideoPlayerManager<MetaData>,
         /** 2. */
         if(currentPlayerIsActive){
             if(isInPlaybackState() && isAlreadyPlayingTheFile){
-                if(SHOW_LOGS) Logger.v(TAG, "playNewVideo, videoPlayer " + videoPlayerView + " is already in state " + mCurrentPlayerState);
+                if(SHOW_LOGS) Logger.v(TAG, "playNewVideo, videoPlayer " + videoPlayerView +
+                                                    " is already in state " + mCurrentPlayerState);
                 /** 3. */
             } else {
                 /** 4. */
@@ -155,7 +157,8 @@ public class SingleVideoPlayerManager implements VideoPlayerManager<MetaData>,
 //    }
 
     private boolean isInPlaybackState() {
-        boolean isPlaying = mCurrentPlayerState == PlayerMessageState.STARTED || mCurrentPlayerState == PlayerMessageState.STARTING;
+        boolean isPlaying = mCurrentPlayerState == PlayerMessageState.STARTED ||
+                                                mCurrentPlayerState == PlayerMessageState.STARTING;
         if(SHOW_LOGS) Logger.v(TAG, "isInPlaybackState, " + isPlaying);
         return isPlaying;
     }

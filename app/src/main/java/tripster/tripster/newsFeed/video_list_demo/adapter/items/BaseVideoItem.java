@@ -6,18 +6,23 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+
 import tripster.tripster.R;
 import tripster.tripster.newsFeed.list_visibility_utils.items.ListItem;
 import tripster.tripster.newsFeed.video_list_demo.adapter.holders.VideoViewHolder;
 import tripster.tripster.newsFeed.video_player_manager.manager.VideoItem;
 import tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager;
+import tripster.tripster.newsFeed.video_player_manager.meta.CurrentItemMetaData;
 import tripster.tripster.newsFeed.video_player_manager.meta.MetaData;
+import tripster.tripster.newsFeed.video_player_manager.ui.MediaPlayerWrapper;
 import tripster.tripster.newsFeed.video_player_manager.utils.Logger;
 
 public abstract class BaseVideoItem implements VideoItem, ListItem {
 
     private static final boolean SHOW_LOGS = false;
-    private static final String TAG = BaseVideoItem.class.getSimpleName();
+    private static final String TAG        = BaseVideoItem.class.getSimpleName();
 
     /**
      * An object that is filled with values when {@link #getVisibilityPercents} method is called.
@@ -25,8 +30,7 @@ public abstract class BaseVideoItem implements VideoItem, ListItem {
      */
 
     private final Rect mCurrentViewRect = new Rect();
-    private final tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager<
-                tripster.tripster.newsFeed.video_player_manager.meta.MetaData> mVideoPlayerManager;
+    private final VideoPlayerManager<MetaData> mVideoPlayerManager;
 
     protected BaseVideoItem(VideoPlayerManager<MetaData> videoPlayerManager) {
         mVideoPlayerManager = videoPlayerManager;
@@ -38,7 +42,7 @@ public abstract class BaseVideoItem implements VideoItem, ListItem {
      * 1. {@link android.widget.ListAdapter#getView(int, View, ViewGroup)}
      * 2. {@link android.support.v7.widget.RecyclerView.Adapter#onBindViewHolder(RecyclerView.ViewHolder, int)}
      */
-    public abstract void update(int position, VideoViewHolder view, tripster.tripster.newsFeed.video_player_manager.manager.VideoPlayerManager videoPlayerManager);
+    public abstract void update(int position, VideoViewHolder view, VideoPlayerManager videoPlayerManager) throws MalformedURLException, URISyntaxException;
 
     /**
      * When this item becomes active we start playback on the video in this item
@@ -46,8 +50,8 @@ public abstract class BaseVideoItem implements VideoItem, ListItem {
     @Override
     public void setActive(View newActiveView, int newActiveViewPosition) {
         VideoViewHolder viewHolder = (VideoViewHolder) newActiveView.getTag();
-        playNewVideo(new tripster.tripster.newsFeed.video_player_manager.meta.
-                CurrentItemMetaData(newActiveViewPosition, newActiveView), viewHolder.mPlayer, mVideoPlayerManager);
+        playNewVideo(new CurrentItemMetaData(newActiveViewPosition, newActiveView),
+                     viewHolder.mPlayer, mVideoPlayerManager);
     }
 
     /**
@@ -60,13 +64,14 @@ public abstract class BaseVideoItem implements VideoItem, ListItem {
 
     public View createView(ViewGroup parent, int screenWidth) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.video_item, parent, false);
+
         ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
-        layoutParams.height = screenWidth;
+        layoutParams.height                 = screenWidth;
 
         final VideoViewHolder videoViewHolder = new VideoViewHolder(view);
         view.setTag(videoViewHolder);
 
-        videoViewHolder.mPlayer.addMediaPlayerListener(new tripster.tripster.newsFeed.video_player_manager.ui.MediaPlayerWrapper.MainThreadMediaPlayerListener() {
+        videoViewHolder.mPlayer.addMediaPlayerListener(new MediaPlayerWrapper.MainThreadMediaPlayerListener() {
             @Override
             public void onVideoSizeChangedMainThread(int width, int height) {
             }
@@ -75,6 +80,7 @@ public abstract class BaseVideoItem implements VideoItem, ListItem {
             public void onVideoPreparedMainThread() {
                 // When video is prepared it's about to start playback. So we hide the cover
                 videoViewHolder.mCover.setVisibility(View.INVISIBLE);
+                if(SHOW_LOGS) Logger.d(TAG, "Cover invisible!!!!!!!!!!!!!!!!!");
             }
 
             @Override

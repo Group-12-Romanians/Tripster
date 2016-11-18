@@ -84,38 +84,14 @@ public class NewsFeedFragment extends Fragment {
         if (SHOW_LOGS) Logger.v(TAG, "onPlayerItemChanged " + metaData);
       }
     });
-
     mList.add(ItemFactory.createItemFomDirectLink(
-        "HAHA",
+        "Get Started",
         SERVER_URL + "/v.mp4",
         SERVER_URL + "/1234.jpg",
         getActivity(),
-        mVideoPlayerManager));
-
-//    mList.add(ItemFactory.createItemFomDirectLink(
-//        "HAHA",
-//        SERVER_URL + "/v.mp4",
-//        SERVER_URL + "/1234.jpg",
-//        getActivity(),
-//        mVideoPlayerManager));
-//    mList.add(ItemFactory.createItemFomDirectLink(
-//        "HAHA",
-//        SERVER_URL + "/v.mp4",
-//        SERVER_URL + "/1234.jpg",
-//        getActivity(),
-//        mVideoPlayerManager));
-//    mList.add(ItemFactory.createItemFomDirectLink(
-//        "HAHA",
-//        SERVER_URL + "/v.mp4",
-//        SERVER_URL + "/1234.jpg",
-//        getActivity(),
-//        mVideoPlayerManager));
-//    mList.add(ItemFactory.createItemFomDirectLink(
-//        "HAHA",
-//        SERVER_URL + "/v.mp4",
-//        SERVER_URL + "/1234.jpg",
-//        getActivity(),
-//        mVideoPlayerManager));
+        mVideoPlayerManager,
+        "Tripster Team",
+        ""));
 
     View rootView = inflater.inflate(R.layout.fragment_video_list_view, container, false);
 
@@ -125,11 +101,7 @@ public class NewsFeedFragment extends Fragment {
 
     Log.d(TAG, "Here");
     mItemsPositionGetter = new ListViewItemPositionGetter(mListView);
-    /**
-     * We need to set onScrollListener after we create {@link #mItemsPositionGetter}
-     * because {@link android.widget.AbsListView.OnScrollListener#onScroll(AbsListView, int, int, int)}
-     * is called immediately and we will get {@link NullPointerException}
-     */
+    
     mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
       @Override
       public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -163,7 +135,9 @@ public class NewsFeedFragment extends Fragment {
               t.getPreviewVideo(),
               t.getPreviewURI(),
               getActivity(),
-              mVideoPlayerManager));
+              mVideoPlayerManager,
+              t.getOwner(),
+              SERVER_URL + "/1234.jpg"));
         }
         if (!mList.isEmpty()) {
           // need to call this method from list view handler in order to have list filled previously

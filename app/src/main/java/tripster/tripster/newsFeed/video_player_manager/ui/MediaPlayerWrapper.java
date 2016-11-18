@@ -91,6 +91,10 @@ public abstract class MediaPlayerWrapper
         }
     };
 
+    public void onPrepared(MediaPlayer player) {
+        player.start();
+    }
+
     public void prepare() {
         if (SHOW_LOGS) Logger.v(TAG, ">> prepare, mState " + mState);
 
