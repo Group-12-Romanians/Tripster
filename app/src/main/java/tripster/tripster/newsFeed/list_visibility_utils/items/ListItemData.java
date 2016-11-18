@@ -3,7 +3,6 @@ package tripster.tripster.newsFeed.list_visibility_utils.items;
 import android.app.LauncherActivity;
 import android.view.View;
 
-
 import java.util.List;
 
 import tripster.tripster.newsFeed.video_player_manager.Config;

@@ -18,10 +18,10 @@ public class DirectLinkVideoItem extends BaseVideoItem {
     private final String mTitle;
 
     private final Picasso mImageLoader;
-    private final int mImageResource;
+    private final String mImageResource;
 
     public DirectLinkVideoItem(String title, String directUr, VideoPlayerManager videoPlayerManager,
-                                                        Picasso imageLoader, int imageResource) {
+                                                        Picasso imageLoader, String imageResource) {
         super(videoPlayerManager);
         mDirectUrl = directUr;
         mTitle = title;

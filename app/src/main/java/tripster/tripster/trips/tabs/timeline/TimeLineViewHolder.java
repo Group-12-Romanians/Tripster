@@ -1,6 +1,5 @@
-package tripster.tripster.timeline;
+package tripster.tripster.trips.tabs.timeline;
 
-import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +17,6 @@ import tripster.tripster.R;
 public class TimeLineViewHolder extends RecyclerView.ViewHolder {
     public TextView name;
     public TimelineView mTimelineView;
-    private Bitmap imagebm;
 
     public TimeLineViewHolder(View itemView, int viewType) {
         super(itemView);
