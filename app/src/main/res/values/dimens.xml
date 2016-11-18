@@ -7,4 +7,6 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="single_item_height">48dp</dimen>
+    <dimen name="timeline_cardview_width">300dp</dimen>
+    <dimen name="timeline_cardview_height_no_photos">20dp</dimen>
 </resources>
