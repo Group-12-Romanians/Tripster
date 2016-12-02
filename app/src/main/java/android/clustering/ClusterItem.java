@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package tripster.tripster.UILayer.trip.timeline.map.model;
+package android.clustering;
 
 import com.google.android.gms.maps.model.LatLng;
-import android.clustering.ClusterItem;
 
-public class MyItem implements ClusterItem {
-    private final LatLng mPosition;
+/**
+ * ClusterItem represents a marker on the map.
+ */
+public interface ClusterItem {
 
-    public MyItem(double lat, double lng) {
-        mPosition = new LatLng(lat, lng);
-    }
-
-    @Override
-    public LatLng getPosition() {
-        return mPosition;
-    }
+    /**
+     * The position of this marker. This must always return the same value.
+     */
+    LatLng getPosition();
 }

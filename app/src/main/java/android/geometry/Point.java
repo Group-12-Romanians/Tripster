@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package tripster.tripster.UILayer.trip.timeline.map.model;
+package android.geometry;
 
-import com.google.android.gms.maps.model.LatLng;
-import android.clustering.ClusterItem;
+public class Point {
+    public final double x;
+    public final double y;
 
-public class MyItem implements ClusterItem {
-    private final LatLng mPosition;
-
-    public MyItem(double lat, double lng) {
-        mPosition = new LatLng(lat, lng);
+    public Point(double x, double y) {
+        this.x = x;
+        this.y = y;
     }
 
     @Override
-    public LatLng getPosition() {
-        return mPosition;
+    public String toString() {
+        return "Point{" +
+                "x=" + x +
+                ", y=" + y +
+                '}';
     }
 }

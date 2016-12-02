@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Google Inc.
+ * Copyright 2016 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package android.kml;
 
-package tripster.tripster.UILayer.trip.timeline.map.model;
-
-import com.google.android.gms.maps.model.LatLng;
-import android.clustering.ClusterItem;
-
-public class MyItem implements ClusterItem {
-    private final LatLng mPosition;
-
-    public MyItem(double lat, double lng) {
-        mPosition = new LatLng(lat, lng);
-    }
-
-    @Override
-    public LatLng getPosition() {
-        return mPosition;
+/**
+ * Utility class to help parse Kml boolean entities.
+ */
+public class KmlBoolean {
+    public static boolean parseBoolean(String text) {
+        if ("1".equals(text) || "true".equals(text)) {
+            return true;
+        }
+        return false;
     }
 }

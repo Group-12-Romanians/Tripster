@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package tripster.tripster.UILayer.trip.timeline.map.model;
+package android.clustering;
 
 import com.google.android.gms.maps.model.LatLng;
 import android.clustering.ClusterItem;
 
-public class MyItem implements ClusterItem {
-    private final LatLng mPosition;
+import java.util.Collection;
 
-    public MyItem(double lat, double lng) {
-        mPosition = new LatLng(lat, lng);
-    }
+/**
+ * A collection of ClusterItems that are nearby each other.
+ */
+public interface Cluster<T extends ClusterItem> {
+    public LatLng getPosition();
 
-    @Override
-    public LatLng getPosition() {
-        return mPosition;
-    }
+    Collection<T> getItems();
+
+    int getSize();
 }

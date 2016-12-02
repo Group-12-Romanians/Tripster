@@ -17,7 +17,7 @@
 package tripster.tripster.UILayer.trip.timeline.map.model;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.google.maps.android.clustering.ClusterItem;
+import android.clustering.ClusterItem;
 
 public class Person implements ClusterItem {
     public final String name;

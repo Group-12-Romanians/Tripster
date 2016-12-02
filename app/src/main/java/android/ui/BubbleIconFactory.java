@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package tripster.tripster.UILayer.trip.timeline.map.model;
+package android.ui;
 
-import com.google.android.gms.maps.model.LatLng;
-import android.clustering.ClusterItem;
+import android.ui.IconGenerator;
 
-public class MyItem implements ClusterItem {
-    private final LatLng mPosition;
-
-    public MyItem(double lat, double lng) {
-        mPosition = new LatLng(lat, lng);
-    }
-
-    @Override
-    public LatLng getPosition() {
-        return mPosition;
-    }
+/**
+ * Use {@link IconGenerator} instead.
+ */
+@Deprecated
+public class BubbleIconFactory {
 }

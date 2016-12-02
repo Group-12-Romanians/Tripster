@@ -14,15 +14,16 @@ import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.maps.android.clustering.Cluster;
-import com.google.maps.android.clustering.ClusterItem;
-import com.google.maps.android.clustering.ClusterManager;
-import com.google.maps.android.clustering.view.DefaultClusterRenderer;
-import com.google.maps.android.ui.IconGenerator;
+import android.clustering.Cluster;
+import android.clustering.ClusterItem;
+import android.clustering.ClusterManager;
+import android.clustering.view.DefaultClusterRenderer;
+import android.ui.IconGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,11 @@ import java.util.Random;
 import tripster.tripster.R;
 import tripster.tripster.UILayer.trip.timeline.map.model.Person;
 
-public class MapActivity extends BaseDemoActivity implements ClusterManager.OnClusterClickListener<Person>, ClusterManager.OnClusterInfoWindowClickListener<Person>, ClusterManager.OnClusterItemClickListener<Person>, ClusterManager.OnClusterItemInfoWindowClickListener<Person> {
+public class MapActivity extends BaseDemoActivity implements
+        ClusterManager.OnClusterClickListener<Person>,
+        ClusterManager.OnClusterInfoWindowClickListener<Person>,
+        ClusterManager.OnClusterItemClickListener<Person>,
+        ClusterManager.OnClusterItemInfoWindowClickListener<Person> {
     private ClusterManager<Person> mClusterManager;
     private Random mRandom = new Random(1984);
     /**
@@ -199,7 +204,7 @@ public class MapActivity extends BaseDemoActivity implements ClusterManager.OnCl
 
         mClusterManager = new ClusterManager<Person>(this, getMap());
         mClusterManager.setRenderer(new PersonRenderer());
-        //getMap().setOnCameraIdleListener(mClusterManager);
+        getMap().setOnCameraIdleListener((GoogleMap.OnCameraIdleListener) mClusterManager);
         getMap().setOnMarkerClickListener(mClusterManager);
         getMap().setOnInfoWindowClickListener(mClusterManager);
         mClusterManager.setOnClusterClickListener(this);
