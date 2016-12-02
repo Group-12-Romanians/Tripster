@@ -216,7 +216,9 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
       public void run() {
         Log.d(TAG, "LocationTask is running");
         Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleClient);
-        addLocation(currentLocation);
+        if (currentLocation != null) {
+          addLocation(currentLocation);
+        }
       }
     };
 

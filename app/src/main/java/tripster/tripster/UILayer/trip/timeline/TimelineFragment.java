@@ -14,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.couchbase.lite.Document;
@@ -51,10 +50,8 @@ public class TimelineFragment extends Fragment {
 
   private static final String TAG = TimelineFragment.class.getName();
   private String tripId;
-  private String userId;
   private Button editButton;
   private Button locationButton;
-  private ListView timeline;
   private RecyclerView mRecyclerView;
 
 
@@ -75,7 +72,6 @@ public class TimelineFragment extends Fragment {
     View view = inflater.inflate(R.layout.fragment_timeline, container, false);
     // Get userId from bundle.
     tripId = this.getArguments().getString("tripId");
-    userId = this.getArguments().getString("userId");
     tripName = (TextView) view.findViewById(R.id.tripName);
     tripDescription = (TextView) view.findViewById(R.id.tripDesc);
     mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
@@ -91,15 +87,6 @@ public class TimelineFragment extends Fragment {
         getActivity().startActivity(intent);
       }
     });
-    if (userId.equals(TripsterActivity.USER_ID)) {
-      editButton.setVisibility(View.VISIBLE);
-      editButton.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          changeToEditMode(tripId, events);
-        }
-      });
-    }
     return view;
   }
 
@@ -221,6 +208,15 @@ public class TimelineFragment extends Fragment {
       QueryRow row = changes.getRow(i);
       Document tripDoc = row.getDocument();
       if (tripId.equals(tripDoc.getId())) {
+        if (tripDoc.getProperty("ownerId").equals(TripsterActivity.USER_ID)) {
+          editButton.setVisibility(View.VISIBLE);
+          editButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+              changeToEditMode(tripId, events);
+            }
+          });
+        }
         new Image((String) tripDoc.getProperty("preview"), "Description").displayIn(preview);
         tripName.setText((String) tripDoc.getProperty("name"));
         if (tripDoc.getProperty("description") != null) {

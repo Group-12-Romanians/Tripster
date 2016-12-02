@@ -159,7 +159,7 @@ public class NewsfeedAdapter extends ArrayAdapter {
     // Change to the corresponding TripFragment.
     TimelineFragment frag = new TimelineFragment();
     Bundle arguments = new Bundle();
-    arguments.putString("trip_id", tripDoc.getId());
+    arguments.putString("tripId", tripDoc.getId());
     frag.setArguments(arguments);
     if (getContext() instanceof AppCompatActivity) {
       AppCompatActivity activity = (AppCompatActivity) getContext();

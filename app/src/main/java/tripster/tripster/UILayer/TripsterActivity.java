@@ -70,6 +70,8 @@ public class TripsterActivity extends AppCompatActivity
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_tripster);
+    Fragment frag = new NewsfeedFragment();
+    getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag).commit();
 
     askForPermissions();
     initializeDrawer();
