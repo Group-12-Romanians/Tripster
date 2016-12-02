@@ -78,7 +78,7 @@ public class TimelineFragment extends Fragment {
     mRecyclerView.setHasFixedSize(true);
     preview = (ImageView) view.findViewById(R.id.preview);
     editButton = (Button) view.findViewById(R.id.editButton);
-    if (!userId.equals(TripsterActivity.USER_ID)) {
+    if (userId.equals(TripsterActivity.USER_ID)) {
       editButton.setVisibility(View.VISIBLE);
       editButton.setOnClickListener(new View.OnClickListener() {
         @Override
