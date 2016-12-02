@@ -83,20 +83,20 @@ public class TimelineFragment extends Fragment {
     mRecyclerView.setHasFixedSize(true);
     preview = (ImageView) view.findViewById(R.id.preview);
     editButton = (Button) view.findViewById(R.id.editButton);
+    locationButton = (Button) view.findViewById(R.id.noOfLocations);
+    locationButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        Intent intent = new Intent(getActivity(), MapActivity.class);
+        getActivity().startActivity(intent);
+      }
+    });
     if (userId.equals(TripsterActivity.USER_ID)) {
       editButton.setVisibility(View.VISIBLE);
       editButton.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
           changeToEditMode(tripId, events);
-        }
-      });
-      locationButton = (Button) view.findViewById(R.id.noOfLocations);
-      locationButton.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-          Intent intent = new Intent(getActivity(), MapActivity.class);
-          getActivity().startActivity(intent);
         }
       });
     }
