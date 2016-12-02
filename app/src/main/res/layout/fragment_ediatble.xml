@@ -1,0 +1,66 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@color/white"
+              android:orientation="vertical"
+              android:padding="5dp">
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:layout_width="match_parent"
+                  android:layout_height="0dp"
+                  android:layout_weight="10"
+                  android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/tripName"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="Enter trip name"
+            android:layout_alignParentLeft="true"
+            android:textColor="@color/black"
+            android:textSize="16sp"/>
+
+            <Button
+                android:id="@+id/saveButton"
+                android:layout_width="150dp"
+                android:layout_height="match_parent"
+                android:layout_alignParentRight="true"
+                android:background="@color/white"
+                android:minHeight="1dp"
+                android:shadowColor="@color/cardview_light_background"
+                android:text="Save"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textSize="15sp" />
+        </RelativeLayout>
+
+    <EditText
+        android:id="@+id/tripDescription"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="15"
+        android:hint="What happened in this trip?"
+        android:textColor="@color/black"
+        android:textSize="16sp"/>
+
+    <ListView
+        android:id="@+id/locations"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="30"
+        android:padding="5dp"/>
+
+    <GridView xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/images"
+              android:layout_width="match_parent"
+              android:layout_height="0dp"
+              android:layout_gravity="center_horizontal"
+              android:layout_weight="50"
+              android:background="@color/cardview_shadow_end_color"
+              android:horizontalSpacing="5dp"
+              android:numColumns="auto_fit"
+              android:padding="5dp"
+              android:stretchMode="columnWidth"
+              android:verticalSpacing="5dp" />
+</LinearLayout>

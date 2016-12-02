@@ -20,9 +20,9 @@ import com.couchbase.lite.Document;
 
 import java.util.List;
 
-import tripster.tripster.Photo;
+import tripster.tripster.Image;
 import tripster.tripster.R;
-import tripster.tripster.UILayer.trip.TimelineFragment;
+import tripster.tripster.UILayer.trip.timeline.TimelineFragment;
 import tripster.tripster.UILayer.users.UserProfileFragment;
 
 public class NewsfeedAdapter extends ArrayAdapter {
@@ -103,7 +103,7 @@ public class NewsfeedAdapter extends ArrayAdapter {
       userNameView.setText(userName);
       // Set avatar
       String userAvatar = (String) userDoc.getProperty("avatarUrl");
-      Photo avatar = new Photo(userAvatar, userName);
+      Image avatar = new Image(userAvatar, userName);
       ImageView userAvatarView = ((ViewHolderNewsfeedPreview) convertView.getTag()).userAvatar;
       avatar.displayIn(userAvatarView);
       // Set trip name
@@ -128,8 +128,8 @@ public class NewsfeedAdapter extends ArrayAdapter {
       // Set trip preview
       String tripPreviewUri = (String) tripDoc.getProperty("preview");
       ImageView tripPreview = ((ViewHolderNewsfeedPreview) convertView.getTag()).tripPreview;
-      Photo photo = new Photo(tripPreviewUri, "");
-      photo.displayIn(tripPreview);
+      Image image = new Image(tripPreviewUri, "");
+      image.displayIn(tripPreview);
       // Add play button image view
       ImageView playbtnView = ((ViewHolderNewsfeedPreview) convertView.getTag()).playBtnImg;
       playbtnView.setImageAlpha(TRANSPARENCY);

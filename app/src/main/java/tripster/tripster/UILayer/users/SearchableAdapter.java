@@ -14,7 +14,7 @@ import com.couchbase.lite.Document;
 import java.util.ArrayList;
 import java.util.List;
 
-import tripster.tripster.Photo;
+import tripster.tripster.Image;
 import tripster.tripster.R;
 
 public class SearchableAdapter extends BaseAdapter implements Filterable {
@@ -76,7 +76,7 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
 
     String userName = (String) filteredData.get(position).getProperty("name");
     holder.text.setText(userName);
-    new Photo((String) filteredData.get(position).getProperty("avatarUrl"), "").displayIn(holder.image);
+    new Image((String) filteredData.get(position).getProperty("avatarUrl"), "").displayIn(holder.image);
     return convertView;
   }
 

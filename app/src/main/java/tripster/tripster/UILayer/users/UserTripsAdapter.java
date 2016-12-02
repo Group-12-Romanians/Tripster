@@ -14,7 +14,7 @@ import com.couchbase.lite.Document;
 
 import java.util.List;
 
-import tripster.tripster.Photo;
+import tripster.tripster.Image;
 import tripster.tripster.R;
 
 public class UserTripsAdapter extends ArrayAdapter {
@@ -74,8 +74,8 @@ public class UserTripsAdapter extends ArrayAdapter {
       tripName.setText(tripNameString);
 
       ImageView tripPreview = ((ViewHolderTripPreview)convertView.getTag()).tripPreview;
-      Photo photo = new Photo(tripPreviewPhotoURI, tripNameString);
-      photo.displayIn(tripPreview);
+      Image image = new Image(tripPreviewPhotoURI, tripNameString);
+      image.displayIn(tripPreview);
 
     } catch (Exception e) {
       Log.d(TAG, "Cannot display trip");

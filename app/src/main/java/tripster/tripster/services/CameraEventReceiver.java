@@ -41,7 +41,7 @@ public class CameraEventReceiver extends BroadcastReceiver {
       String imagePath = cursor.getString(cursor.getColumnIndex("_data")); // _data = path to photo
       cursor.close();
 
-      // Generate Photo Id
+      // Generate Image Id
       String photoId = UUID.randomUUID().toString();
       status = "running";
 

@@ -206,6 +206,10 @@ public class TripsterDb {
     placesView.startLiveQuery();
   }
 
+  public void startImagesLiveQuery() {
+    imagesView.startLiveQuery();
+  }
+
   public void startTripsLiveQuery() {
     tripsView.startLiveQuery();
   }

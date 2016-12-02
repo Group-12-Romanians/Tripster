@@ -34,7 +34,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-import tripster.tripster.Photo;
+import tripster.tripster.Image;
 import tripster.tripster.R;
 import tripster.tripster.UILayer.newsfeed.NewsfeedFragment;
 import tripster.tripster.UILayer.notifications.NotificationsFragment;
@@ -70,6 +70,7 @@ public class TripsterActivity extends AppCompatActivity
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_tripster);
+
     askForPermissions();
     initializeDrawer();
     reqQ = Volley.newRequestQueue(this);
@@ -91,6 +92,7 @@ public class TripsterActivity extends AppCompatActivity
     TripsterDb.getInstance().startPlacesLiveQuery();
     TripsterDb.getInstance().startTripsLiveQuery();
     TripsterDb.getInstance().startFriendsLiveQuery();
+    TripsterDb.getInstance().startImagesLiveQuery();
 
     //Update or Create the current User
     Map<String, Object> props = new HashMap<>();
@@ -319,7 +321,7 @@ public class TripsterActivity extends AppCompatActivity
         Document me = row.getDocument();
         ((TextView) header.findViewById(R.id.username)).setText((String) me.getProperty("name"));
         Log.d(TAG, "MEMMEME" + (String) ((TextView) header.findViewById(R.id.username)).getText());
-        new Photo((String) me.getProperty("avatarUrl"), "").displayIn(((ImageView) header.findViewById(R.id.avatar)));
+        new Image((String) me.getProperty("avatarUrl"), "").displayIn(((ImageView) header.findViewById(R.id.avatar)));
         ((TextView) header.findViewById(R.id.email)).setText((String) me.getProperty("email"));
         return;
       }

@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import tripster.tripster.Photo;
+import tripster.tripster.Image;
 import tripster.tripster.R;
 import tripster.tripster.UILayer.TripsterActivity;
 import tripster.tripster.dataLayer.TripsterDb;
@@ -87,8 +87,8 @@ public class NotificationsAdapter extends ArrayAdapter {
 
       // Set user picture.
       ImageView requesterPhoto = ((ViewHolderRequestPreview)convertView.getTag()).requesterPhoto;
-      Photo photo = new Photo(requesterPhotoUri, requesterNameString);
-      photo.displayIn(requesterPhoto);
+      Image image = new Image(requesterPhotoUri, requesterNameString);
+      image.displayIn(requesterPhoto);
 
       // Set buttons.
       Button accept = ((ViewHolderRequestPreview)convertView.getTag()).accept;

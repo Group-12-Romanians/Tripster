@@ -32,9 +32,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import tripster.tripster.Photo;
+import tripster.tripster.Image;
 import tripster.tripster.R;
-import tripster.tripster.UILayer.trip.TimelineFragment;
+import tripster.tripster.UILayer.trip.timeline.TimelineFragment;
 import tripster.tripster.dataLayer.TripsterDb;
 import tripster.tripster.dataLayer.events.FriendsChangedEvent;
 import tripster.tripster.dataLayer.events.TripsChangedEvent;
@@ -181,6 +181,7 @@ public class UserProfileFragment extends Fragment {
     TimelineFragment frag = new TimelineFragment();
     Bundle arguments = new Bundle();
     arguments.putString("tripId", tripDoc.getId());
+    arguments.putString("userId", userId);
     frag.setArguments(arguments);
     FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag);
     trans.addToBackStack("");
@@ -211,7 +212,7 @@ public class UserProfileFragment extends Fragment {
         } else if (userId.equals(USER_ID)){
           ((TextView) view.findViewById(R.id.userAbout)).setText("Long touch to add something about you.");
         }
-        new Photo(avatarUrl, "").displayIn(((ImageView) view.findViewById(R.id.avatar)));
+        new Image(avatarUrl, "").displayIn(((ImageView) view.findViewById(R.id.avatar)));
         break;
       }
     }

@@ -5,13 +5,13 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
-public class Photo {
-  private static final String TAG = Photo.class.getName();
+public class Image {
+  private static final String TAG = Image.class.getName();
 
   private String photoUri;
   private String description;
 
-  public Photo(String photoUri, String description) {
+  public Image(String photoUri, String description) {
     this.photoUri = photoUri;
     this.description = description;
   }
@@ -37,7 +37,7 @@ public class Photo {
           .centerInside()
           .into(imageView);
     } else {
-      Log.e(TAG, "no Photo URI");
+      Log.e(TAG, "no Image URI");
     }
   }
 }
