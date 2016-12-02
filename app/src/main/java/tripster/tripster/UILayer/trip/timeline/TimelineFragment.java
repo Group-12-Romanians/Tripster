@@ -1,5 +1,6 @@
 package tripster.tripster.UILayer.trip.timeline;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -36,6 +37,7 @@ import tripster.tripster.UILayer.TripsterActivity;
 import tripster.tripster.UILayer.trip.timeline.events.ImageFromDoc;
 import tripster.tripster.UILayer.trip.timeline.events.Place;
 import tripster.tripster.UILayer.trip.timeline.events.Trip;
+import tripster.tripster.UILayer.trip.timeline.map.MapActivity;
 import tripster.tripster.dataLayer.TripsterDb;
 import tripster.tripster.dataLayer.events.EditableTripEvent;
 import tripster.tripster.dataLayer.events.ImagesChangedEvent;
@@ -48,6 +50,7 @@ public class TimelineFragment extends Fragment {
   private String tripId;
   private String userId;
   private Button editButton;
+  private Button locationButton;
   private ListView timeline;
 
   private ImageView preview;
@@ -65,11 +68,22 @@ public class TimelineFragment extends Fragment {
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_timeline, container, false);
     // Get userId from bundle.
-    tripId = this.getArguments().getString("tripId");
-    userId = this.getArguments().getString("userId");
-    timeline = (ListView) view.findViewById(R.id.events);
-    preview = (ImageView) view.findViewById(R.id.preview);
-    editButton = (Button) view.findViewById(R.id.editButton);
+    tripId         = this.getArguments().getString("tripId");
+    userId         = this.getArguments().getString("userId");
+    timeline       = (ListView) view.findViewById(R.id.events);
+    preview        = (ImageView) view.findViewById(R.id.preview);
+    editButton     = (Button) view.findViewById(R.id.editButton);
+    Log.d(TAG, " BEFORE HEREEEEEEEEEEEEEEEEEEEEEEEEE");
+    locationButton = (Button) view.findViewById(R.id.noOfLocations);
+    locationButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        Log.d(TAG, "HEREEEEEEEEEEEEEEEEEEEEEEEEE");
+        Intent intent = new Intent(getActivity(), MapActivity.class);
+        getActivity().startActivity(intent);
+      }
+    });
+
     if (!userId.equals(TripsterActivity.USER_ID)) {
       editButton.setVisibility(View.VISIBLE);
       editButton.setOnClickListener(new View.OnClickListener() {
