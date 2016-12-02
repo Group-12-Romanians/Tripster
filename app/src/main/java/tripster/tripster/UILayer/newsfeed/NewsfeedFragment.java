@@ -38,7 +38,7 @@ public class NewsfeedFragment extends Fragment {
   private NewsfeedAdapter newsfeedAdapter;
   private Map<String, Document> allUsers;
   private Set<String> friendsIds;
-  private Map<String,Set<Document>> trips;
+  private Map<String,Map<String, Document>> trips;
   private ListView newsfeed;
 
   @Nullable
@@ -71,7 +71,7 @@ public class NewsfeedFragment extends Fragment {
 
     for (String friendId : friendsIds) {
       if (trips.containsKey(friendId)) {
-        for (Document tripDoc : trips.get(friendId)) {
+        for (Document tripDoc : trips.get(friendId).values()) {
           userStories.add(new Pair<>(allUsers.get(friendId), tripDoc));
         }
       }
@@ -111,12 +111,13 @@ public class NewsfeedFragment extends Fragment {
       String ownerId = (String) tripDoc.getProperty("ownerId");
       if (tripDoc.getProperty("status").equals("stopped")) {
         if (!trips.containsKey(ownerId)) {
-          Set<Document> docs = new HashSet<>();
-          docs.add(tripDoc);
+          Map<String, Document> docs = new HashMap<>();
+          docs.put(tripDoc.getId(), tripDoc);
           trips.put(ownerId, docs);
           changed = true;
         } else {
-          if (trips.get(ownerId).add(tripDoc)) {
+          if (!trips.get(ownerId).containsKey(tripDoc.getId())) {
+            trips.get(ownerId).put(tripDoc.getId(), tripDoc);
             changed = true;
           }
         }
