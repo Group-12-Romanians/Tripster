@@ -21,7 +21,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static tripster.tripster.TripsterActivity.SERVER_URL;
+import static tripster.tripster.UILayer.TripsterActivity.SERVER_URL;
 
 public class ImageUploader extends AsyncTask<String, Void, String> {
   private static final String CRLF = "\r\n";
@@ -34,7 +34,7 @@ public class ImageUploader extends AsyncTask<String, Void, String> {
   }
 
   @Override
-  protected String doInBackground(String... params ) {
+  protected String doInBackground(String... params) {
     String response = "NO RESPONSE";
 
     HttpURLConnection httpUrlConnection = null;
@@ -107,7 +107,7 @@ public class ImageUploader extends AsyncTask<String, Void, String> {
   }
 
 
-  private Bitmap bitmapResize(Bitmap bitmap,int newWidth,int newHeight) {
+  private Bitmap bitmapResize(Bitmap bitmap, int newWidth, int newHeight) {
     Bitmap scaledBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
 
     float ratioX = newWidth / (float) bitmap.getWidth();

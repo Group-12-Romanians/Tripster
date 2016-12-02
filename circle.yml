@@ -1,7 +1,0 @@
-machine:
-  java:
-    version: openjdk8
-
-dependencies:
-  pre:
-    - cp -r ${HOME}/${CIRCLE_PROJECT_REPONAME}/licenses $ANDROID_HOME

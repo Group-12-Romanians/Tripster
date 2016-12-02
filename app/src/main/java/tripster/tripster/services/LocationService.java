@@ -8,52 +8,42 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Cache;
-import com.android.volley.Network;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.BasicNetwork;
-import com.android.volley.toolbox.DiskBasedCache;
-import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.couchbase.lite.Document;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
-import static tripster.tripster.TripsterActivity.LOCATIONS_FILE_PATH;
-import static tripster.tripster.TripsterActivity.SERVER_URL;
+import tripster.tripster.dataLayer.TripsterDb;
+import tripster.tripster.dataLayer.exceptions.AlreadyRunningTripException;
+import tripster.tripster.dataLayer.exceptions.NoRunningTripsException;
 
-public class LocationService extends Service
-    implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
-
-  private static final String TRIP_NAME = "Unnamed";
-  private static final int TRACKING_FREQUENCY = 1000;
-  private static final float MIN_DIST = 50;
+public class LocationService extends Service implements GoogleApiClient.ConnectionCallbacks {
   private static final String TAG = LocationService.class.getName();
 
+  private static final int TRACKING_FREQUENCY = 1000; //ms
+  private static final int MIN_DIST = 50; //meters
+  private static final String DEFAULT_PREVIEW = "https://cdn1.tekrevue.com/wp-content/uploads/2015/04/map-location-pin.jpg";
+  private static final String DEFAULT_NAME = "Unnamed";
+
   private GoogleApiClient googleClient;
-  private Location previousLocation;
   private Timer timer;
+  private Document currTrip;
 
   public LocationService() {
     super();
+    currTrip = null;
     googleClient = null;
     Log.i(TAG, "LocationService created");
   }
@@ -61,44 +51,143 @@ public class LocationService extends Service
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     super.onStartCommand(intent, flags, startId);
+    String userId = getSharedPreferences("UUID", MODE_PRIVATE).getString("UUID", "");
+    TripsterDb.getInstance(getApplicationContext()).startSync(); // start replication and init db
+    currTrip = TripsterDb.getInstance().getCurrentlyRunningTrip(userId);
     if (intent != null) {
-      Log.d(TAG, "Initial intent exists");
-      if (intent.getStringExtra("flag").equals("stop")) {
-        String userId = intent.getStringExtra("user_id");
-        return stopRecording(userId);
-      } else if (intent.getStringExtra("flag").equals("pause")) {
-        return pauseRecording();
+      switch (intent.getStringExtra("flag")) {
+        case "resume":
+          resumeTrip(userId);
+          return START_STICKY;
+        case "start":
+          startTrip(userId);
+          return START_STICKY;
+        case "pause":
+          pauseTrip(userId);
+          return START_NOT_STICKY;
+        case "stop":
+          stopTrip(userId);
+          return START_NOT_STICKY;
+        default:
+          return START_NOT_STICKY;
       }
+    } else {
+      Log.d(TAG, "noIntent");
+      resumeTrip(userId);
+      return START_STICKY;
     }
-    return startRecording();
   }
 
-  private int pauseRecording() {
-    getTimer().cancel();
-    Log.d(TAG, dumpLocationsFile());
-    stopSelf();
-    Log.d(TAG, "Paused by app");
-    return START_NOT_STICKY;
-  }
+  private void resumeTrip(String userId) {
+    if (currTrip != null) {
+      Map<String, Object> props = new HashMap<>();
+      props.put("status", "running");
+      TripsterDb.getInstance().upsertNewDocById(currTrip.getId(), props);
+    } else {
+      throw new NoRunningTripsException("Trying to resume inexistent trip");
+    }
 
-  private int startRecording() {
-    checkAndInitFile();
     connectGoogleClient();
     Log.d(TAG, "Started by app");
-    return START_STICKY;
   }
 
-  private int stopRecording(String userId) {
-    sendLocationsToServerAndExit(userId);
-    return START_NOT_STICKY;
+  private void startTrip(String userId) {
+    if (currTrip == null) {
+      String newId = UUID.randomUUID().toString();
+      Map<String, Object> props = new HashMap<>();
+      props.put("status", "running");
+      props.put("name", DEFAULT_NAME);
+      props.put("preview", DEFAULT_PREVIEW);
+      props.put("ownerId", userId);
+      TripsterDb.getInstance().upsertNewDocById(newId, props);
+      currTrip = TripsterDb.getInstance().getHandle().getDocument(newId);
+    } else {
+      throw new AlreadyRunningTripException("Trying to start a trip when the previous trip is not stopped.");
+    }
+
+    connectGoogleClient();
+    Log.d(TAG, "Started by app");
   }
+
+  private void pauseTrip(String userId) {
+    if (currTrip != null) {
+      Map<String, Object> props = new HashMap<>();
+      props.put("status", "paused");
+      TripsterDb.getInstance().upsertNewDocById(currTrip.getId(), props);
+    } else {
+      throw new NoRunningTripsException("Trying to pause inexistent trip");
+    }
+    getTimer().cancel();
+    timer = null;
+    if (googleClient != null) {
+      googleClient.disconnect();
+    }
+    Log.d(TAG, "Paused by app");
+  }
+
+  private void stopTrip(String userId) {
+    if (currTrip != null) {
+      Map<String, Object> props = new HashMap<>();
+      props.put("status", "stopped");
+      TripsterDb.getInstance().upsertNewDocById(currTrip.getId(), props);
+      assert TripsterDb.getInstance().getCurrentlyRunningTrip(userId) == null;
+    } else {
+      throw new NoRunningTripsException("Trying to stop inexistent trip");
+    }
+    RequestQueue queue = Volley.newRequestQueue(this);
+    String url ="http://146.169.46.220:8081/places?tripId=" + currTrip.getId();
+    StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+        new Response.Listener<String>() {
+          @Override
+          public void onResponse(String response) {
+            Log.d(TAG, "Created tripPreview at:" + response);
+          }
+        }, new Response.ErrorListener() {
+      @Override
+      public void onErrorResponse(VolleyError error) {
+        Log.e(TAG, "Could not create preview");
+      }
+    });
+    queue.add(stringRequest);
+    dumpCurrentTrip();
+    exit();
+    Log.d(TAG, "Stopped by app");
+  }
+
+  private void dumpCurrentTrip() {
+    String s =
+        "Trip " + currTrip.getProperty("name")
+        + " with preview: " + currTrip.getProperty("preview")
+        + " " + currTrip.getProperty("status") + " by: " + currTrip.getProperty("ownerId");
+    Log.d(TAG, "We just ended the following trip: " + s);
+  }
+
+  private String status = "initial";
 
   private void exit() {
     getTimer().cancel();
-    Log.d(TAG, dumpLocationsFile());
-    emptyFile();
+    timer = null;
+    if (googleClient != null) {
+      googleClient.disconnect();
+    }
+    status = "running";
+    TripsterDb.getInstance().pushChanges(new Response.Listener<String>() {
+      @Override
+      public void onResponse(String response) {
+        status = response;
+      }
+    });
+    while(status.equals("running"));
+    Log.d(TAG, "closing service");
+    TripsterDb.close();
     stopSelf();
-    Log.d(TAG, "Stopped by app");
+  }
+
+  private Timer getTimer() {
+    if (timer == null) {
+      timer = new Timer();
+    }
+    return timer;
   }
 
   private synchronized void connectGoogleClient() {
@@ -106,7 +195,12 @@ public class LocationService extends Service
       googleClient = new GoogleApiClient.Builder(this)
           .addApi(LocationServices.API)
           .addConnectionCallbacks(this)
-          .addOnConnectionFailedListener(this)
+          .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
+            @Override
+            public void onConnectionFailed(ConnectionResult connectionResult) {
+              Log.e(TAG, "Connection Failed");
+            }
+          })
           .build();
     }
     if (!googleClient.isConnected()) {
@@ -126,157 +220,38 @@ public class LocationService extends Service
       }
     };
 
-    //schedule the timer, to wake up every 10 seconds
+    //schedule the timer, to wake up every TRACKING_FREQUENCY seconds
     getTimer().schedule(locationTimerTask, 0, TRACKING_FREQUENCY);
   }
 
-  private void checkAndInitFile() {
-    File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
-    if (file.exists()) {
-      initPreviousLocation();
+  private void addLocation(Location currentLocation) {
+    Document previousLocation = TripsterDb.getInstance().getLastLocationOfTrip(currTrip.getId());
+    if (previousLocation != null) {
+      Location prevLoc = new Location("");
+      prevLoc.setLatitude((double) previousLocation.getProperty("lat"));
+      prevLoc.setLongitude((double) previousLocation.getProperty("lng"));
+      if (prevLoc.distanceTo(currentLocation) > MIN_DIST) {
+        saveLocation(currentLocation);
+      }
     } else {
-      initFile(file);
+      Log.d(TAG, "Saving Trip");
+      saveLocation(currentLocation);
     }
   }
 
-  private void initFile(File file) {
-    try {
-      Log.d(TAG, "Create file");
-      FileOutputStream locationsFileStream = new FileOutputStream(file);
-      OutputStreamWriter out = new OutputStreamWriter(locationsFileStream);
-      try {
-        String line = UUID.randomUUID().toString() + "," + TRIP_NAME;
-        Log.d(TAG, "Line is:" + line);
-        out.append(line);
-        out.flush();
-        out.close();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    } catch (FileNotFoundException e) {
-      Log.d(TAG, "Cannot create file" + e.toString());
-    }
-    Log.d(TAG, "Location file initialised.");
-  }
-
-  private void initPreviousLocation() {
-    String fileStr = dumpLocationsFile();
-    String[] lines = fileStr.split("\n");
-    String[] lastLine = lines[lines.length - 1].split(",");
-    previousLocation = new Location("");
-    previousLocation.setLatitude(Double.parseDouble(lastLine[1]));
-    previousLocation.setLongitude(Double.parseDouble(lastLine[2]));
-    Log.d(TAG, "Previous location initialised.");
-  }
-
-  private void sendLocationsToServerAndExit(String userId) {
-    final String file = dumpLocationsFile();
-
-    Log.d(TAG, "creating request queue");
-    Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
-    Network network = new BasicNetwork(new HurlStack());
-    RequestQueue reqQ = new RequestQueue(cache, network);
-    reqQ.start();
-
-    Log.d(TAG, "sending locations to server");
-    String url =  SERVER_URL + "/new_trip?user_id=" + userId;
-    StringRequest strReq = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
-      @Override
-      public void onResponse(String response) {
-        Log.d(TAG, response);
-        exit();
-      }
-    }, new Response.ErrorListener() {
-      @Override
-      public void onErrorResponse(VolleyError error) {
-        Log.e(TAG, "Failed to send locations to server.");
-        exit();
-      }
-    }) {
-      @Override
-      protected Map<String, String> getParams() throws AuthFailureError {
-        Map<String, String> map = new HashMap<>();
-        map.put("locations", file);
-        return map;
-      }
-    };
-    reqQ.add(strReq);
-  }
-
-  private String dumpLocationsFile() {
-    StringBuilder result = new StringBuilder();
-    try {
-      File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
-      FileInputStream locationStream = new FileInputStream(file);
-      BufferedReader reader = new BufferedReader(new InputStreamReader(locationStream));
-      String line;
-      while ((line = reader.readLine()) != null) {
-        result.append(line);
-        result.append('\n');
-      }
-    } catch (FileNotFoundException e) {
-      Log.d(TAG, "No file to read from");
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return result.toString();
-  }
-
-  private Timer getTimer() {
-    if (timer == null) {
-      timer = new Timer();
-    }
-    return timer;
-  }
-
-  private void addLocation(Location location) {
-    if (location != null) {
-      if (previousLocation != null) {
-        if (previousLocation.distanceTo(location) < MIN_DIST) {
-          return;
-        }
-      }
-      writeLocation(location);
-    }
-  }
-
-  private void writeLocation(Location location) {
-    previousLocation = location;
-    FileOutputStream locationsFileStream;
-    try {
-      locationsFileStream = openFileOutput(LOCATIONS_FILE_PATH, MODE_APPEND);
-    } catch (FileNotFoundException e) {
-      Log.e(TAG, "File has not been initialised");
-      return;
-    }
-    OutputStreamWriter out = new OutputStreamWriter(locationsFileStream);
-    try {
-      out.append(getDetailsStr(location));
-      out.flush();
-      out.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    Log.d(TAG, dumpLocationsFile());
-  }
-
-  private String getDetailsStr(Location location) {
-    return "\n" + location.getTime() + ',' + location.getLatitude() + ',' + location.getLongitude();
-  }
-
-  private void emptyFile() {
-    File file = new File(getFilesDir(), LOCATIONS_FILE_PATH);
-    file.delete();
+  private void saveLocation(Location currentLocation) {
+    String newId = UUID.randomUUID().toString();
+    Map<String, Object> props = new HashMap<>();
+    props.put("lat", currentLocation.getLatitude());
+    props.put("lng", currentLocation.getLongitude());
+    props.put("time", currentLocation.getTime());
+    props.put("tripId", currTrip.getId());
+    TripsterDb.getInstance().upsertNewDocById(newId, props);
   }
 
   @Override
   public void onConnectionSuspended(int i) {
-    Log.d(TAG, "Connection Suspended " + i);
-  }
-
-  @Override
-  public void onConnectionFailed(ConnectionResult connectionResult) {
-    Log.d(TAG, "Connection Failed");
+    Log.e(TAG, "Connection Suspended " + i);
   }
 
   @Nullable

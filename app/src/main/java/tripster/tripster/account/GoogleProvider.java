@@ -1,12 +1,9 @@
 package tripster.tripster.account;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
@@ -19,7 +16,7 @@ import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 
-import tripster.tripster.LoginActivity;
+import tripster.tripster.UILayer.LoginActivity;
 import tripster.tripster.R;
 
 public class GoogleProvider extends AccountProvider {
@@ -31,43 +28,34 @@ public class GoogleProvider extends AccountProvider {
 
   public GoogleProvider(AppCompatActivity activity) {
     parentActivity = activity;
-    GoogleSignInOptions gso = new GoogleSignInOptions
-        .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+    GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestEmail()
         .build();
     googleApiClient = new GoogleApiClient.Builder(parentActivity)
-        .enableAutoManage(parentActivity,
-                          new GoogleApiClient.OnConnectionFailedListener() {
+        .enableAutoManage(parentActivity, new GoogleApiClient.OnConnectionFailedListener() {
           @Override
           public void onConnectionFailed(ConnectionResult connectionResult) {
             Toast.makeText(parentActivity, "Login canceled", Toast.LENGTH_LONG).show();
           }
-        })
-        .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-        .build();
+        }).addApi(Auth.GOOGLE_SIGN_IN_API, gso).build();
   }
 
   @Override
-  public boolean isLoggedIn() {
+  public void silentSignIn() {
     OptionalPendingResult<GoogleSignInResult> opr = Auth.GoogleSignInApi.silentSignIn(googleApiClient);
     if (opr.isDone()) {
-      Log.d(TAG, "Google cached sign-in");
+      Log.d(TAG, "Google slient sign-in");
       GoogleSignInResult result = opr.get();
-      handleSignInResult(result);
-      return true;
+      handleSignIn(result);
     }
-    return false;
   }
 
   @Override
   public void setupLoginButton() {
-    parentActivity
-        .findViewById(R.id.sign_in_button)
-        .setOnClickListener(new View.OnClickListener() {
+    parentActivity.findViewById(R.id.sign_in_button).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        Intent signInIntent =
-            Auth.GoogleSignInApi.getSignInIntent(googleApiClient);
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(googleApiClient);
         parentActivity.startActivityForResult(signInIntent, RC_GOOGLE_SIGN_IN);
       }
     });
@@ -77,60 +65,28 @@ public class GoogleProvider extends AccountProvider {
   public void handleActivityResult(int requestCode, int resultCode, Intent data) {
     if (requestCode == RC_GOOGLE_SIGN_IN) {
       GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-      handleSignInResult(result);
-    }
-  }
-
-  private void handleSignInResult(GoogleSignInResult result) {
-    Log.d(TAG, "Google handleSignInResult:" + result.isSuccess());
-    if (result.isSuccess() && parentActivity instanceof LoginActivity) {
-      Log.d(TAG, "Google login successful");
-      String email = result.getSignInAccount().getEmail();
-      String name = result.getSignInAccount().getDisplayName();
-      saveUser(email, name, result.getSignInAccount().getPhotoUrl().toString(), TAG);
-    } else {
-      Toast.makeText(parentActivity, "Login canceled", Toast.LENGTH_LONG).show();
-    }
-  }
-
-  @Override
-  public void setUserAccountFields(final TextView name,
-                                   final TextView email,
-                                   final ImageView avatar) {
-    OptionalPendingResult<GoogleSignInResult> opr = Auth.GoogleSignInApi.silentSignIn(googleApiClient);
-    if (opr.isDone()) {
-      GoogleSignInResult result = opr.get();
-      GoogleSignInAccount account = result.getSignInAccount();
-
-      String username = account.getDisplayName();
-      name.setText(username);
-      Log.d(TAG, "username set:" + username);
-
-      email.setText(account.getEmail());
-
-      Uri avatarUrl = account.getPhotoUrl();
-      if (internetConnection(parentActivity)) {
-        if (avatarUrl != null) {
-          Log.d(TAG, "avatar:" + avatarUrl.toString());
-          setAvatarFromUrl(avatarUrl.toString(), avatar);
-        }
-      } else {
-        setAvatarFromCache(avatar);
-      }
+      handleSignIn(result);
     }
   }
 
   @Override
   public void logOut() {
-    removeAvatar();
-    clearCacheData();
-    Auth.GoogleSignInApi
-        .signOut(googleApiClient)
-        .setResultCallback(new ResultCallback<Status>() {
+    Auth.GoogleSignInApi.signOut(googleApiClient).setResultCallback(new ResultCallback<Status>() {
       @Override
       public void onResult(Status status) {
-        switchToLogin();
+        GoogleProvider.super.logOut();
       }
     });
+  }
+
+  private void handleSignIn(GoogleSignInResult result) {
+    Log.d(TAG, "Google signed in: " + result.isSuccess());
+    if (result.isSuccess() && parentActivity instanceof LoginActivity) {
+      Log.d(TAG, "Google login successful");
+      GoogleSignInAccount a = result.getSignInAccount();
+      login(TAG, a.getId(), a.getDisplayName(), a.getPhotoUrl().toString(), a.getEmail());
+    } else {
+      Toast.makeText(parentActivity, "Login canceled", Toast.LENGTH_LONG).show();
+    }
   }
 }
