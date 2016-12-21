@@ -1,24 +1,24 @@
 package tripster.tripster.services;
 
+import android.Manifest;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+import android.util.Pair;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.couchbase.lite.Document;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -26,8 +26,17 @@ import java.util.TimerTask;
 import java.util.UUID;
 
 import tripster.tripster.dataLayer.TripsterDb;
-import tripster.tripster.dataLayer.exceptions.AlreadyRunningTripException;
-import tripster.tripster.dataLayer.exceptions.NoRunningTripsException;
+
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static tripster.tripster.Constants.APP_NAME;
+import static tripster.tripster.Constants.CURR_TRIP;
+import static tripster.tripster.Constants.MY_ID;
+import static tripster.tripster.Constants.TRIP_NAME_K;
+import static tripster.tripster.Constants.TRIP_OWNER_K;
+import static tripster.tripster.Constants.TRIP_PREVIEW_K;
+import static tripster.tripster.Constants.TRIP_STOPPED_AT;
 
 public class LocationService extends Service implements GoogleApiClient.ConnectionCallbacks {
   private static final String TAG = LocationService.class.getName();
@@ -35,152 +44,167 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
   private static final int TRACKING_FREQUENCY = 1000; //ms
   private static final int MIN_DIST = 50; //meters
   private static final String DEFAULT_PREVIEW = "https://cdn1.tekrevue.com/wp-content/uploads/2015/04/map-location-pin.jpg";
-  private static final String DEFAULT_NAME = "Unnamed";
+  private static final String DEFAULT_NAME = "Current Trip";
 
   private GoogleApiClient googleClient;
   private Timer timer;
-  private Document currTrip;
+  private Pair<String, String> currentTripDetails = new Pair<>("", "");
+  private String userId = "";
+  private TripsterDb tDb;
 
   public LocationService() {
     super();
-    currTrip = null;
     googleClient = null;
+    tDb = new TripsterDb(getApplicationContext());
     Log.i(TAG, "LocationService created");
   }
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     super.onStartCommand(intent, flags, startId);
-    String userId = getSharedPreferences("UUID", MODE_PRIVATE).getString("UUID", "");
-    TripsterDb.getInstance(getApplicationContext()).startSync(); // start replication and init db
-    currTrip = TripsterDb.getInstance().getCurrentlyRunningTrip(userId);
+    userId = getSharedPreferences(APP_NAME, MODE_PRIVATE).getString(MY_ID, "");
+    currentTripDetails = getCurrentTripDetails();
+
+    tDb.startPushSync(); // start push replication
     if (intent != null) {
       switch (intent.getStringExtra("flag")) {
         case "resume":
-          resumeTrip(userId);
+          resumeTrip();
           return START_STICKY;
         case "start":
-          startTrip(userId);
+          startTrip();
           return START_STICKY;
         case "pause":
-          pauseTrip(userId);
+          pauseTrip();
           return START_NOT_STICKY;
         case "stop":
-          stopTrip(userId);
+          stopTrip();
           return START_NOT_STICKY;
         default:
           return START_NOT_STICKY;
       }
     } else {
-      Log.d(TAG, "noIntent");
-      resumeTrip(userId);
+      Log.d(TAG, "No intent got; this must be a restart after app force closed me, so resume.");
+      resumeTrip();
       return START_STICKY;
     }
   }
 
-  private void resumeTrip(String userId) {
-    if (currTrip != null) {
-      Map<String, Object> props = new HashMap<>();
-      props.put("status", "running");
-      TripsterDb.getInstance().upsertNewDocById(currTrip.getId(), props);
-    } else {
-      throw new NoRunningTripsException("Trying to resume inexistent trip");
-    }
-
-    connectGoogleClient();
-    Log.d(TAG, "Started by app");
+  private void setCurrentTripDetails(String running, String tripId) {
+    currentTripDetails = new Pair<>(running, tripId);
+    getSharedPreferences(APP_NAME, MODE_PRIVATE).edit().putString(CURR_TRIP,
+        currentTripDetails.first + ":" + currentTripDetails.second).apply();
   }
 
-  private void startTrip(String userId) {
-    if (currTrip == null) {
+  private Pair<String, String> getCurrentTripDetails() {
+    String prefDetails = getSharedPreferences(APP_NAME, MODE_PRIVATE).getString(CURR_TRIP, "");
+    String[] parts = prefDetails.split(":");
+    if (parts.length == 2) {
+      return new Pair<>(parts[0], parts[1]);
+    } else {
+      throw new RuntimeException("Inconsistent current trip details:" + prefDetails);
+    }
+  }
+
+  private String getStatus() {
+    return currentTripDetails.first;
+  }
+
+  private String getTripId() {
+    return currentTripDetails.second;
+  }
+
+  private void startTrip() {
+    if (getStatus().isEmpty()) {
       String newId = UUID.randomUUID().toString();
       Map<String, Object> props = new HashMap<>();
-      props.put("status", "running");
-      props.put("name", DEFAULT_NAME);
-      props.put("preview", DEFAULT_PREVIEW);
-      props.put("ownerId", userId);
-      TripsterDb.getInstance().upsertNewDocById(newId, props);
-      currTrip = TripsterDb.getInstance().getHandle().getDocument(newId);
-    } else {
-      throw new AlreadyRunningTripException("Trying to start a trip when the previous trip is not stopped.");
-    }
+      props.put(TRIP_NAME_K, DEFAULT_NAME);
+      props.put(TRIP_PREVIEW_K, DEFAULT_PREVIEW);
+      props.put(TRIP_OWNER_K, userId);
+      tDb.upsertNewDocById(newId, props);
+      if (tDb.getDocumentById(newId) != null) {
+        setCurrentTripDetails("running", getTripId());
 
-    connectGoogleClient();
-    Log.d(TAG, "Started by app");
-  }
-
-  private void pauseTrip(String userId) {
-    if (currTrip != null) {
-      Map<String, Object> props = new HashMap<>();
-      props.put("status", "paused");
-      TripsterDb.getInstance().upsertNewDocById(currTrip.getId(), props);
-    } else {
-      throw new NoRunningTripsException("Trying to pause inexistent trip");
-    }
-    getTimer().cancel();
-    timer = null;
-    if (googleClient != null) {
-      googleClient.disconnect();
-    }
-    Log.d(TAG, "Paused by app");
-  }
-
-  private void stopTrip(String userId) {
-    if (currTrip != null) {
-      Map<String, Object> props = new HashMap<>();
-      props.put("status", "stopped");
-      TripsterDb.getInstance().upsertNewDocById(currTrip.getId(), props);
-      assert TripsterDb.getInstance().getCurrentlyRunningTrip(userId) == null;
-    } else {
-      throw new NoRunningTripsException("Trying to stop inexistent trip");
-    }
-    RequestQueue queue = Volley.newRequestQueue(this);
-    String url ="http://146.169.46.220:8081/places?tripId=" + currTrip.getId();
-    StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-        new Response.Listener<String>() {
-          @Override
-          public void onResponse(String response) {
-            Log.d(TAG, "Created tripPreview at:" + response);
-          }
-        }, new Response.ErrorListener() {
-      @Override
-      public void onErrorResponse(VolleyError error) {
-        Log.e(TAG, "Could not create preview");
+        connectGoogleClient();
+        Log.d(TAG, "Successfully started by app");
+        return;
       }
-    });
-    queue.add(stringRequest);
-    dumpCurrentTrip();
-    exit();
-    Log.d(TAG, "Stopped by app");
+    }
+    Log.e(TAG, "Unsuccessfully started by app");
   }
 
-  private void dumpCurrentTrip() {
-    String s =
-        "Trip " + currTrip.getProperty("name")
-        + " with preview: " + currTrip.getProperty("preview")
-        + " " + currTrip.getProperty("status") + " by: " + currTrip.getProperty("ownerId");
+  private void resumeTrip() {
+    if (!getTripId().isEmpty() && tDb.getDocumentById(getTripId()) != null) {
+      if (getStatus().equals("paused")) {
+        setCurrentTripDetails("running", getTripId());
+      }
+
+      connectGoogleClient();
+      Log.d(TAG, "Resumed by app");
+      return;
+    }
+    Log.e(TAG, "Unsuccessfully resumed by app");
+  }
+
+  private void pauseTrip() {
+    if (!getTripId().isEmpty() && getStatus().equals("running") && tDb.getDocumentById(getTripId()) != null) {
+      setCurrentTripDetails("paused", getTripId());
+
+      stopMonitor();
+      Log.d(TAG, "Paused by app");
+      return;
+    }
+    Log.e(TAG, "Unsuccessfully paused by app");
+  }
+
+  private void stopTrip() {
+    if (!getTripId().isEmpty()) {
+      Map<String, Object> props = new HashMap<>();
+      props.put(TRIP_STOPPED_AT, System.currentTimeMillis());
+      tDb.upsertNewDocById(getTripId(), props);
+      Document currTrip = tDb.getDocumentById(getTripId());
+
+      dumpTrip(currTrip);
+      //sanity check only
+      if (currTrip != null && currTrip.getProperty(TRIP_STOPPED_AT) != null) {
+        setCurrentTripDetails("", "");
+      }
+      Log.d(TAG, "Stopped by app");
+      exit();
+    }
+    Log.e(TAG, "Unsuccessfully stopped by app");
+  }
+
+  private void dumpTrip(Document t) {
+    String s = t.getProperty(TRIP_NAME_K)
+        + " with preview: " + t.getProperty(TRIP_PREVIEW_K)
+        + " by: " + t.getProperty(TRIP_OWNER_K)
+        + " was stopped at:" + new Date((long) t.getProperty(TRIP_STOPPED_AT)).toString();
     Log.d(TAG, "We just ended the following trip: " + s);
   }
 
   private String status = "initial";
 
   private void exit() {
-    getTimer().cancel();
-    timer = null;
-    if (googleClient != null) {
-      googleClient.disconnect();
-    }
+    stopMonitor();
     status = "running";
-    TripsterDb.getInstance().pushChanges(new Response.Listener<String>() {
+    tDb.pushChanges(new Response.Listener<String>() {
       @Override
       public void onResponse(String response) {
         status = response;
       }
     });
-    while(status.equals("running"));
+    while (status.equals("running")) ;
     Log.d(TAG, "closing service");
-    TripsterDb.close();
     stopSelf();
+  }
+
+  private void stopMonitor() {
+    getTimer().cancel();
+    timer = null;
+    if (googleClient != null) {
+      googleClient.disconnect();
+    }
   }
 
   private Timer getTimer() {
@@ -215,6 +239,11 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
       @Override
       public void run() {
         Log.d(TAG, "LocationTask is running");
+        if (ActivityCompat.checkSelfPermission(LocationService.this, ACCESS_FINE_LOCATION) != PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(LocationService.this, ACCESS_COARSE_LOCATION) != PERMISSION_GRANTED) {
+          Log.e(TAG, "NO PERMISSIONS FOR LOCATION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+          return;
+        }
         Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleClient);
         if (currentLocation != null) {
           addLocation(currentLocation);

@@ -72,6 +72,7 @@ public class NewsfeedAdapter extends ArrayAdapter {
       LayoutInflater view
           = (LayoutInflater)parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
       convertView = view.inflate(R.layout.user_story, null);
+      convertView.addOnAttachStateChangeListener();
       ViewHolderNewsfeedPreview holder = new ViewHolderNewsfeedPreview();
       // Set user details
       holder.userName = (TextView) convertView.findViewById(R.id.userName);

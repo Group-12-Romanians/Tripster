@@ -2,7 +2,6 @@ package tripster.tripster.dataLayer.events;
 
 import com.couchbase.lite.LiveQuery;
 
-
 public class FriendsChangedEvent {
   private LiveQuery.ChangeEvent event;
 

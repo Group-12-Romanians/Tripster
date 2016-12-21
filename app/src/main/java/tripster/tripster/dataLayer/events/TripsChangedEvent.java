@@ -4,6 +4,7 @@ import com.couchbase.lite.LiveQuery;
 
 public class TripsChangedEvent {
   private LiveQuery.ChangeEvent event;
+
   public TripsChangedEvent(LiveQuery.ChangeEvent event) {
     this.event = event;
   }

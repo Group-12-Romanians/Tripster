@@ -1,6 +1,7 @@
 package tripster.tripster.UILayer;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -18,16 +19,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.Volley;
 import com.couchbase.lite.Document;
-import com.couchbase.lite.QueryEnumerator;
-import com.couchbase.lite.QueryRow;
 import com.github.clans.fab.FloatingActionButton;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -42,75 +35,42 @@ import tripster.tripster.UILayer.users.SearchForUsersFragment;
 import tripster.tripster.UILayer.users.UserProfileFragment;
 import tripster.tripster.account.LogoutProvider;
 import tripster.tripster.dataLayer.TripsterDb;
-import tripster.tripster.dataLayer.events.FriendsChangedEvent;
-import tripster.tripster.dataLayer.events.PlacesChangedEvent;
-import tripster.tripster.dataLayer.events.TripsChangedEvent;
-import tripster.tripster.dataLayer.events.UsersChangedEvent;
 import tripster.tripster.services.LocationService;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static tripster.tripster.Constants.APP_NAME;
+import static tripster.tripster.Constants.CURR_TRIP;
+import static tripster.tripster.Constants.MY_ID;
+import static tripster.tripster.Constants.USER_AVATAR_K;
+import static tripster.tripster.Constants.USER_EMAIL_K;
+import static tripster.tripster.Constants.USER_ID_K;
+import static tripster.tripster.Constants.USER_NAME_K;
 
-public class TripsterActivity extends AppCompatActivity
-    implements NavigationView.OnNavigationItemSelectedListener {
+public class TripsterActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-  public static final String SERVER_URL = "http://146.169.46.220:8081";
   private static final String TAG = TripsterActivity.class.getName();
   private static final int MY_PERMISSIONS_REQUEST = 47;
 
-  public static RequestQueue reqQ;
-
-  public static String USER_ID = "";
+  public static TripsterDb tDb;
+  public static String currentUserId;
 
   private LogoutProvider accountProvider;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_tripster);
-    Fragment frag = new NewsfeedFragment();
-    getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag).commit();
 
+    tDb = new TripsterDb(getApplicationContext());
+    tDb.initAllViews();
+
+    setContentView(R.layout.activity_tripster);
     askForPermissions();
     initializeDrawer();
-    reqQ = Volley.newRequestQueue(this);
-  }
-
-  @Override
-  protected void onStart() {
-    USER_ID = getIntent().getStringExtra("id");
-    getSharedPreferences("UUID", MODE_PRIVATE).edit().putString("UUID", USER_ID).apply();
-    Log.d(TAG, "MeUser ID is: " + USER_ID);
-    TripsterDb.getInstance(getApplicationContext()).startSync();
-
-    recreateLoginSession();
-
-    initializeFab();
-
-    EventBus.getDefault().register(this);
-    TripsterDb.getInstance().startUsersLiveQuery();
-    TripsterDb.getInstance().startPlacesLiveQuery();
-    TripsterDb.getInstance().startTripsLiveQuery();
-    TripsterDb.getInstance().startFriendsLiveQuery();
-    TripsterDb.getInstance().startImagesLiveQuery();
-
-    //Update or Create the current User
-    Map<String, Object> props = new HashMap<>();
-    props.put("name", getIntent().getStringExtra("name"));
-    props.put("email", getIntent().getStringExtra("email"));
-    props.put("avatarUrl", getIntent().getStringExtra("avatarUrl"));
-    TripsterDb.getInstance().upsertNewDocById(USER_ID, props);
-
-    super.onStart();
-  }
-
-  @Override
-  protected void onStop() {
-    EventBus.getDefault().unregister(this);
-    TripsterDb.close();
-    super.onStop();
+    Fragment frag = new NewsfeedFragment();
+    getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag).commit();
   }
 
   private void askForPermissions() {
@@ -146,104 +106,29 @@ public class TripsterActivity extends AppCompatActivity
     navigationView.setNavigationItemSelectedListener(this);
   }
 
-  private void initializeFab() {
-    final FloatingActionButton startButton = (FloatingActionButton) findViewById(R.id.tracking_start);
-    final FloatingActionButton pauseButton = (FloatingActionButton) findViewById(R.id.tracking_pause);
-    final FloatingActionButton resumeButton = (FloatingActionButton) findViewById(R.id.tracking_resume);
-    final FloatingActionButton endButton = (FloatingActionButton) findViewById(R.id.tracking_stop);
+  @Override
+  protected void onStart() {
+    super.onStart();
 
-    switch (getServiceStatus()) {
-      case "running":
-        // show pause and end
-        startButton.hideButtonInMenu(true);
-        resumeButton.hideButtonInMenu(true);
-        break;
-      case "stopped":
-        // show start
-        pauseButton.hideButtonInMenu(true);
-        resumeButton.hideButtonInMenu(true);
-        endButton.hideButtonInMenu(true);
-        break;
-      case "paused":
-        // show resume and end
-        startButton.hideButtonInMenu(true);
-        pauseButton.hideButtonInMenu(true);
-        break;
-    }
+    String userId = getIntent().getStringExtra(USER_ID_K);
+    String name = getIntent().getStringExtra(USER_NAME_K);
+    String email = getIntent().getStringExtra(USER_EMAIL_K);
+    String avatarUrl = getIntent().getStringExtra(USER_AVATAR_K);
 
-    startButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        Log.d(TAG, "wanna switch to start recording");
-        Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
-        serviceIntent.putExtra("flag", "start");
-        serviceIntent.putExtra("user_id", USER_ID);
-        TripsterActivity.this.startService(serviceIntent);
+    currentUserId = userId;
+    getSharedPreferences(APP_NAME, MODE_PRIVATE).edit().putString(MY_ID, userId).apply();
+    Log.d(TAG, "The current user ID is: " + userId);
 
-        startButton.hideButtonInMenu(true);
-        pauseButton.showButtonInMenu(true);
-        endButton.showButtonInMenu(true);
-      }
-    });
+    recreateLoginSession();
 
-    pauseButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        Log.d(TAG, "wanna switch to pause recording");
-        Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
-        serviceIntent.putExtra("flag", "pause");
-        serviceIntent.putExtra("user_id", USER_ID);
-        TripsterActivity.this.startService(serviceIntent);
+    initializeFab();
 
-        pauseButton.hideButtonInMenu(true);
-        resumeButton.showButtonInMenu(true);
-      }
-    });
-
-    resumeButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        Log.d(TAG, "wanna switch to pause recording");
-        Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
-        serviceIntent.putExtra("flag", "resume");
-        serviceIntent.putExtra("user_id", USER_ID);
-        TripsterActivity.this.startService(serviceIntent);
-
-        resumeButton.hideButtonInMenu(true);
-        pauseButton.showButtonInMenu(true);
-      }
-    });
-
-    endButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        Log.d(TAG, "wanna switch to stop recording");
-        Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
-        serviceIntent.putExtra("flag", "stop");
-        serviceIntent.putExtra("user_id", USER_ID);
-        TripsterActivity.this.startService(serviceIntent);
-
-        resumeButton.hideButtonInMenu(true);
-        pauseButton.hideButtonInMenu(true);
-        endButton.hideButtonInMenu(true);
-        startButton.showButtonInMenu(true);
-      }
-    });
-  }
-
-  private String getServiceStatus() {
-    Document currTrip = TripsterDb.getInstance().getCurrentlyRunningTrip(USER_ID);
-    if (currTrip == null) {
-      return "stopped";
-    } else {
-      if (currTrip.getProperty("status").equals("running")) {
-        Log.d(TAG, "Running");
-        return "running";
-      } else {
-        Log.d(TAG, "Paused");
-        return "paused";
-      }
-    }
+    //Update or Create the current User
+    Map<String, Object> props = new HashMap<>();
+    props.put(USER_NAME_K, name);
+    props.put(USER_EMAIL_K, email);
+    props.put(USER_AVATAR_K, avatarUrl);
+    tDb.upsertNewDocById(userId, props);
   }
 
   private void recreateLoginSession() {
@@ -256,6 +141,77 @@ public class TripsterActivity extends AppCompatActivity
       accountProvider = (LogoutProvider) obj;
     } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
       e.printStackTrace();
+    }
+  }
+
+  private void initializeFab() {
+    updateFabState(getSharedPreferences(APP_NAME, MODE_PRIVATE).getString(CURR_TRIP, ""));
+
+    findViewById(R.id.tracking_start).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        Log.d(TAG, "wanna switch to start recording");
+        Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
+        serviceIntent.putExtra("flag", "start");
+        TripsterActivity.this.startService(serviceIntent);
+      }
+    });
+
+    findViewById(R.id.tracking_pause).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        Log.d(TAG, "wanna switch to pause recording");
+        Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
+        serviceIntent.putExtra("flag", "pause");
+        TripsterActivity.this.startService(serviceIntent);
+      }
+    });
+
+    findViewById(R.id.tracking_resume).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        Log.d(TAG, "wanna switch to resume recording");
+        Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
+        serviceIntent.putExtra("flag", "resume");
+        TripsterActivity.this.startService(serviceIntent);
+      }
+    });
+
+    findViewById(R.id.tracking_stop).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        Log.d(TAG, "wanna switch to stop recording");
+        Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
+        serviceIntent.putExtra("flag", "stop");
+        TripsterActivity.this.startService(serviceIntent);
+      }
+    });
+  }
+
+  private void updateFabState(String currentTripDetails) {
+    final FloatingActionButton startButton = (FloatingActionButton) findViewById(R.id.tracking_start);
+    final FloatingActionButton pauseButton = (FloatingActionButton) findViewById(R.id.tracking_pause);
+    final FloatingActionButton resumeButton = (FloatingActionButton) findViewById(R.id.tracking_resume);
+    final FloatingActionButton endButton = (FloatingActionButton) findViewById(R.id.tracking_stop);
+
+    if (currentTripDetails.isEmpty()) {
+      //start button only
+      startButton.showButtonInMenu(true);
+      pauseButton.hideButtonInMenu(true);
+      resumeButton.hideButtonInMenu(true);
+      endButton.hideButtonInMenu(true);
+    } else if (currentTripDetails.contains("paused")) {
+      //resume and stop buttons
+      startButton.hideButtonInMenu(true);
+      pauseButton.hideButtonInMenu(true);
+      resumeButton.showButtonInMenu(true);
+      endButton.showButtonInMenu(true);
+    } else if (currentTripDetails.contains("running")) {
+      //pause and stop buttons
+      startButton.hideButtonInMenu(true);
+      resumeButton.hideButtonInMenu(true);
+      pauseButton.showButtonInMenu(true);
+      endButton.showButtonInMenu(true);
     }
   }
 
@@ -279,22 +235,21 @@ public class TripsterActivity extends AppCompatActivity
     if (id == R.id.nav_camera) {
       frag = new UserProfileFragment();
       Bundle args = new Bundle();
-      args.putString("userId", USER_ID);
+      args.putString("userId", currentUserId);
       frag.setArguments(args);
-      Log.d(TAG, "I want to switch to myTrips fragment");
+      Log.d(TAG, "I want to switch to MyProfile fragment");
     } else if (id == R.id.nav_slideshow) {
       frag = new SearchForUsersFragment();
       Bundle args = new Bundle();
       args.putString("userId", "none");
       frag.setArguments(args);
-      Log.d(TAG, "I want to switch to allUsers fragment");
+      Log.d(TAG, "I want to switch to AllUsers fragment");
     } else if (id == R.id.news_feed) {
-      Log.d(TAG, "I want to switch to newsFeed fragment");
       frag = new NewsfeedFragment();
+      Log.d(TAG, "I want to switch to NewsFeed fragment");
     } else if (id == R.id.nav_send) {
       frag = new NotificationsFragment();
-      Log.d(TAG, "I want to switch to notifications fragment");
-
+      Log.d(TAG, "I want to switch to Notifications fragment");
     } else if (id == R.id.nav_logout) {
       Log.d(TAG, "I want to switch to logout");
       accountProvider.logOut();
@@ -310,50 +265,46 @@ public class TripsterActivity extends AppCompatActivity
     return true;
   }
 
-  //----------------------------------------- EVENTS ---------------------------------------------//
+  //----------------------------------------- LISTENERS ------------------------------------------//
+  @Override
+  protected void onResume() {
+    super.onResume();
+    tDb.getDocumentById(currentUserId).addChangeListener(currentUserChangeListener);
+    getSharedPreferences(APP_NAME, MODE_PRIVATE).registerOnSharedPreferenceChangeListener(currentTripChangeListener);
+  }
 
-  @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-  public void onUsersChangedEvent(UsersChangedEvent event) {
-    QueryEnumerator enumerator = event.getEvent().getRows();
-    View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
-    for (int i = 0; i < enumerator.getCount(); i++) {
-      QueryRow row = enumerator.getRow(i);
-      if (row.getDocument().getId().equals(USER_ID)) {
-        Log.d(TAG, "Update user me: " + row.getDocument().getId());
-        Document me = row.getDocument();
-        ((TextView) header.findViewById(R.id.username)).setText((String) me.getProperty("name"));
-        Log.d(TAG, "MEMMEME" + (String) ((TextView) header.findViewById(R.id.username)).getText());
-        new Image((String) me.getProperty("avatarUrl"), "").displayIn(((ImageView) header.findViewById(R.id.avatar)));
-        ((TextView) header.findViewById(R.id.email)).setText((String) me.getProperty("email"));
-        return;
+  SharedPreferences.OnSharedPreferenceChangeListener currentTripChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+      if (key.equals(CURR_TRIP)) {
+        updateFabState(sharedPreferences.getString(CURR_TRIP, ""));
       }
     }
-  }
+  };
 
-  @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-  public void onPlacesChangedEvent(PlacesChangedEvent event) {
-    QueryEnumerator enumerator = event.getEvent().getRows();
-    for (int i = 0; i < enumerator.getCount(); i++) {
-      QueryRow row = enumerator.getRow(i);
-      Log.d(TAG, "Key is: " + row.getKey() + " and doc is: " + row.getDocument());
-    }
-  }
+  private Document.ChangeListener currentUserChangeListener = new Document.ChangeListener() {
+    @Override
+    public void changed(Document.ChangeEvent event) {
+      View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
 
-  @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-  public void onTripsChangedEvent(TripsChangedEvent event) {
-    QueryEnumerator enumerator = event.getEvent().getRows();
-    for (int i = 0; i < enumerator.getCount(); i++) {
-      QueryRow row = enumerator.getRow(i);
-      Log.d(TAG, "Key is: " + row.getKey() + " and doc is: " + row.getDocument() + " status is: " + row.getDocument().getProperty("status"));
-    }
-  }
+      Document me = tDb.getDocumentById(event.getChange().getDocumentId());
+      Log.d(TAG, "Current user changed, id is:" + me.getId());
 
-  @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-  public void onFriendsChangedEvent(FriendsChangedEvent event) {
-    QueryEnumerator enumerator = event.getEvent().getRows();
-    for (int i = 0; i < enumerator.getCount(); i++) {
-      QueryRow row = enumerator.getRow(i);
-      Log.d(TAG, row.getKey() + " friendship between " + row.getDocument().getProperty("sender") + " and " + row.getDocument().getProperty("receiver"));
+      ((TextView) header.findViewById(R.id.username)).setText((String) me.getProperty("name"));
+      Log.d(TAG, "Current user's new name is:" + ((TextView) header.findViewById(R.id.username)).getText());
+
+      new Image((String) me.getProperty("avatarUrl")).displayIn(((ImageView) header.findViewById(R.id.avatar)));
+      Log.d(TAG, "Current user's new avatarUrl should be:" + me.getProperty("avatarUrl"));
+
+      ((TextView) header.findViewById(R.id.email)).setText((String) me.getProperty("email"));
+      Log.d(TAG, "Current user's new email is:" + ((TextView) header.findViewById(R.id.email)).getText());
     }
+  };
+
+  @Override
+  protected void onPause() {
+    tDb.getDocumentById(currentUserId).removeChangeListener(currentUserChangeListener);
+    getSharedPreferences(APP_NAME, MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(currentTripChangeListener);
+    super.onPause();
   }
 }

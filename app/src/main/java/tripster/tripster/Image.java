@@ -9,24 +9,9 @@ public class Image {
   private static final String TAG = Image.class.getName();
 
   private String photoUri;
-  private String description;
 
-  public Image(String photoUri, String description) {
+  public Image(String photoUri) {
     this.photoUri = photoUri;
-    this.description = description;
-  }
-
-  @Override
-  public String toString() {
-    return description;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public String getPhotoUri() {
-    return photoUri;
   }
 
   public void displayIn(ImageView imageView) {

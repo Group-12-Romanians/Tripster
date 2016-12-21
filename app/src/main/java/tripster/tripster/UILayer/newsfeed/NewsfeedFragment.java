@@ -10,147 +10,78 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.LiveQuery;
-import com.couchbase.lite.QueryEnumerator;
-import com.couchbase.lite.QueryRow;
+import com.couchbase.lite.Query;
 
 import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import tripster.tripster.R;
-import tripster.tripster.UILayer.TripsterActivity;
-import tripster.tripster.dataLayer.events.FriendsChangedEvent;
-import tripster.tripster.dataLayer.events.TripsChangedEvent;
-import tripster.tripster.dataLayer.events.UsersChangedEvent;
 
 public class NewsfeedFragment extends Fragment {
   private static final String TAG = NewsfeedFragment.class.getName();
 
   private NewsfeedAdapter newsfeedAdapter;
-  private Map<String, Document> allUsers;
-  private Set<String> friendsIds;
-  private Map<String,Map<String, Document>> trips;
   private ListView newsfeed;
+
+  private Set<Object> friends = new HashSet<>();
 
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_newsfeed, container, false);
     newsfeed = (ListView) view.findViewById(R.id.userStories);
-    allUsers = new HashMap<>();
-    friendsIds = new HashSet<>();
-    trips = new HashMap<>();
+
     return view;
-  }
-
-  @Override
-  public void onResume() {
-    Log.d(TAG, "Register fragment");
-    EventBus.getDefault().register(this);
-    super.onResume();
-  }
-
-  @Override
-  public void onPause() {
-    Log.d(TAG, "Unregister fragment");
-    EventBus.getDefault().unregister(this);
-    super.onPause();
   }
 
   private void initItemListAdapter() {
     List<Pair<Document, Document>> userStories = new ArrayList<>();
 
-    for (String friendId : friendsIds) {
-      if (trips.containsKey(friendId)) {
-        for (Document tripDoc : trips.get(friendId).values()) {
-          userStories.add(new Pair<>(allUsers.get(friendId), tripDoc));
+    final Database db;
+    final Query friendsQuery = db.getView("friendsView").createQuery().setKeys(Collections.singletonList(getCurrentUserId()));
+    LiveQuery fLiveQuery = friendsQuery.toLiveQuery();
+    fLiveQuery.addChangeListener(new LiveQuery.ChangeListener() {
+      @Override
+      public void changed(LiveQuery.ChangeEvent event) {
+        List<Document> friendDocs = new ArrayList<>();
+        boolean changed = false;
+        for (int i = 0; i < event.getRows().getCount(); i++) {
+          String friendId = event.getRows().getRow(i).getDocumentId();
+          if (!friends.contains(friendId)) {
+            friends.add(friendId);
+            changed = true;
+          }
+        }
+        if (changed) {
+          List<Object> keys = new ArrayList<>(friends);
+          Query friendsTripsQuery = db.getView("tripsView").createQuery();
+          friendsTripsQuery.setKeys(keys);
+
+          LiveQuery lQ_ = friendsTripsQuery.toLiveQuery();
+          lQ_.addChangeListener(new LiveQuery.ChangeListener() {
+            @Override
+            public void changed(LiveQuery.ChangeEvent event) {
+
+            }
+          });
         }
       }
-    }
+    });
+
 
     newsfeedAdapter = new NewsfeedAdapter(
         getActivity(),
         R.layout.user_story,
         R.id.tripDescription,
-       userStories);
+        userStories);
     newsfeed.setAdapter(newsfeedAdapter);
-  }
-
-  //-----------------------------EVENTS--------------------------------------//
-  @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-  public void onUsersChangedEvent(UsersChangedEvent event) {
-    LiveQuery.ChangeEvent liveChangeEvent = event.getEvent();
-    QueryEnumerator changes = liveChangeEvent.getRows();
-    for (int i = 0; i < changes.getCount(); i++) {
-      Document doc = changes.getRow(i).getDocument();
-      allUsers.put((doc.getId()), doc);
-    }
-    initItemListAdapter();
-  }
-
-
-  @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-  public void onTripsChangedEvent(TripsChangedEvent event) {
-    Log.d(TAG, "In trips change");
-    LiveQuery.ChangeEvent liveChangeEvent = event.getEvent();
-    QueryEnumerator changes = liveChangeEvent.getRows();
-    boolean changed = false;
-    for (int i = 0; i < changes.getCount(); i++) {
-      QueryRow row = changes.getRow(i);
-      Document tripDoc = row.getDocument();
-      // Get only the documents corresponding to friends' trips.
-      String ownerId = (String) tripDoc.getProperty("ownerId");
-      if (tripDoc.getProperty("status").equals("stopped")) {
-        if (!trips.containsKey(ownerId)) {
-          Map<String, Document> docs = new HashMap<>();
-          docs.put(tripDoc.getId(), tripDoc);
-          trips.put(ownerId, docs);
-          changed = true;
-        } else {
-          if (!trips.get(ownerId).containsKey(tripDoc.getId())) {
-            trips.get(ownerId).put(tripDoc.getId(), tripDoc);
-            changed = true;
-          }
-        }
-      }
-    }
-
-    if (changed) {
-      initItemListAdapter();
-    }
-  }
-
-  @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-  public void onFriendsChangedEvent(FriendsChangedEvent event) {
-    LiveQuery.ChangeEvent liveChangeEvent = event.getEvent();
-    QueryEnumerator changes = liveChangeEvent.getRows();
-    boolean changed = false;
-    for (int i = 0; i < changes.getCount(); i++) {
-      QueryRow row = changes.getRow(i);
-      if (row.getKey().equals("confirmed")) {
-        Document friendshipDoc = row.getDocument();
-        if (friendshipDoc.getProperty("sender").equals(TripsterActivity.USER_ID)) {
-          if (friendsIds.add((String) friendshipDoc.getProperty("receiver"))) {
-           changed = true;
-          }
-        } else if (friendshipDoc.getProperty("receiver").equals(TripsterActivity.USER_ID)) {
-          if (friendsIds.add((String) friendshipDoc.getProperty("sender"))) {
-            changed = true;
-          }
-        }
-      }
-    }
-    if (changed) {
-      initItemListAdapter();
-    }
   }
 }

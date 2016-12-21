@@ -74,4 +74,6 @@ public class EditableFragment extends Fragment {
     );
     placesView.setAdapter(placesAdapter);
   }
+
+
 }

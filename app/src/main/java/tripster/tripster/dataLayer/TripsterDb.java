@@ -1,13 +1,18 @@
 package tripster.tripster.dataLayer;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.android.volley.Response;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
+import com.couchbase.lite.Emitter;
 import com.couchbase.lite.Manager;
+import com.couchbase.lite.Mapper;
+import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.UnsavedRevision;
 import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.replicator.Replication;
@@ -15,91 +20,50 @@ import com.couchbase.lite.replicator.ReplicationState;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
-import tripster.tripster.dataLayer.exceptions.UninitialisedDatabaseException;
-import tripster.tripster.dataLayer.views.FriendsView;
-import tripster.tripster.dataLayer.views.ImagesView;
-import tripster.tripster.dataLayer.views.PlacesView;
-import tripster.tripster.dataLayer.views.TripsView;
-import tripster.tripster.dataLayer.views.UsersView;
+import static tripster.tripster.Constants.DB_NAME;
+import static tripster.tripster.Constants.DB_STORAGE_TYPE;
+import static tripster.tripster.Constants.DB_SYNC_URL;
+import static tripster.tripster.Constants.TRIP_NAME_K;
+import static tripster.tripster.Constants.TRIP_OWNER_K;
+import static tripster.tripster.Constants.TRIP_PREVIEW_K;
+import static tripster.tripster.Constants.TRIP_STATUS_K;
+import static tripster.tripster.Constants.TRIPS_BY_OWNER;
+import static tripster.tripster.Constants.TRIP_STOPPED_AT;
 
 public class TripsterDb {
   private static final String TAG = TripsterDb.class.getName();
-  private static final String DATABASE_NAME = "tripster";
-  private static final String SERVER_URL = "http://146.169.46.220";
-  private static final String DB_PORT = "6984";
-  private static final String SYNC_URL = SERVER_URL + ":" + DB_PORT + "/" + DATABASE_NAME;
 
-  private Manager manager;
-  private Database handle;
+  private Database db;
 
-  UsersView usersView;
-  PlacesView placesView;
-  TripsView tripsView;
-  ImagesView imagesView;
-  FriendsView friendsView;
-
-  private static TripsterDb tripsterDb;
-
-  public static TripsterDb getInstance() {
-    if (tripsterDb != null) {
-      return tripsterDb;
-    }
-    throw new UninitialisedDatabaseException("Trying to get handle to uninitialised database");
-  }
-
-  public static TripsterDb getInstance(Context context) {
-    if (tripsterDb == null) {
-      Log.d(TAG, "Creating new Instance of TripsterDB<><><><><><><><><><><><><><><><><><><><><><>");
-      tripsterDb = new TripsterDb(context);
-    }
-    return tripsterDb;
-  }
-
-  private TripsterDb(Context context) {
-    init(context);
-    usersView = new UsersView(handle);
-    placesView = new PlacesView(handle);
-    tripsView = new TripsView(handle);
-    imagesView = new ImagesView(handle);
-    friendsView = new FriendsView(handle);
-  }
-
-  public Database getHandle() {
-    return handle;
-  }
-
-  private void init(Context context) {
+  public TripsterDb(Context context) {
     try {
-      manager = new Manager(new AndroidContext(context), Manager.DEFAULT_OPTIONS);
-      manager.setStorageType("ForestDB");
+      Manager manager = new Manager(new AndroidContext(context), Manager.DEFAULT_OPTIONS);
+      manager.setStorageType(DB_STORAGE_TYPE);
 
-      Manager.enableLogging(TAG, Log.VERBOSE);
-      Manager.enableLogging(com.couchbase.lite.util.Log.TAG, Log.VERBOSE);
-      Manager.enableLogging(com.couchbase.lite.util.Log.TAG_SYNC_ASYNC_TASK, Log.VERBOSE);
-      Manager.enableLogging(com.couchbase.lite.util.Log.TAG_SYNC, Log.VERBOSE);
-      Manager.enableLogging(com.couchbase.lite.util.Log.TAG_QUERY, Log.VERBOSE);
-      Manager.enableLogging(com.couchbase.lite.util.Log.TAG_VIEW, Log.VERBOSE);
-      Manager.enableLogging(com.couchbase.lite.util.Log.TAG_DATABASE, Log.VERBOSE);
-
-      handle = manager.getDatabase(DATABASE_NAME);
+      db = manager.getDatabase(DB_NAME);
     } catch (Exception e) {
-      Log.e(TAG, "Status???" + e.getMessage());
+      Log.e(TAG, "DB Status:" + e.getMessage());
     }
+  }
+
+  public Database getDb() {
+    return db;
+  }
+
+  public Document getDocumentById(String id) {
+    return db.getExistingDocument(id);
   }
 
   public void pushChanges(final Response.Listener<String> listener) {
-    URL syncUrl;
+    URL syncUrl = getSyncUrl();
+    if (syncUrl == null) return;
 
-    try {
-      syncUrl = new URL(SYNC_URL);
-    } catch (MalformedURLException e) {
-      Log.e(TAG, "Could not start Replication because of URL");
-      return;
-    }
-
-    Replication pushReplication = handle.createPushReplication(syncUrl);
+    Replication pushReplication = db.createPushReplication(syncUrl);
     pushReplication.addChangeListener(new Replication.ChangeListener() {
       @Override
       public void changed(Replication.ChangeEvent event) {
@@ -116,105 +80,147 @@ public class TripsterDb {
   }
 
   public void startSync() {
-    URL syncUrl;
+    startPullSync();
+    startPushSync();
+  }
 
-    try {
-      syncUrl = new URL(SYNC_URL);
-    } catch (MalformedURLException e) {
-      Log.e(TAG, "Could not start Replication because of URL");
-      return;
-    }
+  public void startPullSync() {
+    URL syncUrl = getSyncUrl();
+    if (syncUrl == null) return;
 
-    Replication pullReplication = handle.createPullReplication(syncUrl);
+    Replication pullReplication = db.createPullReplication(syncUrl);
     pullReplication.setContinuous(true);
-
-    Replication pushReplication = handle.createPushReplication(syncUrl);
-    pushReplication.setContinuous(true);
-
     pullReplication.start();
+  }
+
+  public void startPushSync() {
+    URL syncUrl = getSyncUrl();
+    if (syncUrl == null) return;
+
+    Replication pushReplication = db.createPushReplication(syncUrl);
+    pushReplication.setContinuous(true);
     pushReplication.start();
   }
 
-  public void upsertNewDocById(String id, Map<String, Object> props) {
-    Document doc = handle.getDocument(id);
-    Map<String, Object> prevProp = doc.getUserProperties();
-    if (prevProp != null) {
-      for (String k : prevProp.keySet()) {
-        if (!props.containsKey(k)) {
-          props.put(k, prevProp.get(k));
-        }
+  public void upsertNewDocById(String id, Map<String, Object> newProps) {
+    Document doc = db.getDocument(id);
+    boolean changed = false;
+    Map<String, Object> props = doc.getUserProperties();
+    for (String newK : newProps.keySet()) {
+      String newV = (String) newProps.get(newK);
+      if (!(props.containsKey(newK) && props.get(newK).equals(newV))) {
+        props.put(newK, newV);
+        changed = true;
       }
     }
 
-    UnsavedRevision temp = doc.createRevision();
-    temp.setUserProperties(props);
-    try {
-      temp.save();
-    } catch (CouchbaseLiteException e) {
-      Log.e(TAG, e.getCBLStatus().toString());
+    if (changed) {
+      UnsavedRevision temp = doc.createRevision();
+      temp.setUserProperties(props);
+      try {
+        temp.save();
+      } catch (CouchbaseLiteException e) {
+        Log.e(TAG, e.toString());
+      }
     }
   }
 
-  public Document getCurrentlyRunningTrip(String ownerId) {
-    return tripsView.getCurrentlyRunningTrip(ownerId);
+  @Nullable
+  private URL getSyncUrl() {
+    URL syncUrl;
+
+    try {
+      syncUrl = new URL(DB_SYNC_URL);
+    } catch (MalformedURLException e) {
+      Log.e(TAG, "Could not start Replication because of URL");
+      return null;
+    }
+    return syncUrl;
+  }
+
+  public void initAllViews() {
+    String mapVersion = UUID.randomUUID().toString();
+    db.getView(TRIPS_BY_OWNER).setMap(new Mapper() {
+      @Override
+      public void map(Map<String, Object> document, Emitter emitter) {
+        if (document.containsKey(TRIP_OWNER_K)
+            && document.containsKey(TRIP_STATUS_K)
+            && document.containsKey(TRIP_NAME_K)
+            && document.containsKey(TRIP_PREVIEW_K)
+            && document.containsKey(TRIP_STOPPED_AT)) {
+          emitter.emit(document.get(TRIP_OWNER_K), null);
+        }
+      }
+    }, mapVersion);
+
+//    db.getView("users/byId").setMap(new Mapper() {
+//      @Override
+//      public void map(Map<String, Object> document, Emitter emitter) {
+//        if (document.containsKey("email")
+//            && document.containsKey("avatarUrl")
+//            && document.containsKey("name")) {
+//          emitter.emit(document.get("_id"), null);
+//        }
+//      }
+//    }, mapVersion);
+//
+//    db.getView("places/byTripAndTime").setMap(new Mapper() {
+//      @Override
+//      public void map(Map<String, Object> document, Emitter emitter) {
+//        if (document.containsKey("tripId")
+//            && document.containsKey("time")
+//            && document.containsKey("lat")
+//            && document.containsKey("lng")) {
+//          List<Object> keys = new ArrayList<>();
+//          keys.add(document.get("tripId"));
+//          keys.add(document.get("time"));
+//          emitter.emit(keys, document);
+//        }
+//      }
+//    }, mapVersion);
+//
+//    db.getView("images/byPlace").setMap(new Mapper() {
+//      @Override
+//      public void map(Map<String, Object> document, Emitter emitter) {
+//        if (document.containsKey("placeId")
+//            && document.containsKey("tripId")
+//            && document.containsKey("path")
+//            && document.containsKey("time")) {
+//          emitter.emit(document.get("placeId"), document);
+//        }
+//      }
+//    }, mapVersion);
+//
+//    db.getView("friendships/byLevel").setMap(new Mapper() {
+//      @Override
+//      public void map(Map<String, Object> document, Emitter emitter) {
+//        if (document.containsKey("level")
+//            && document.containsKey("sender")
+//            && document.containsKey("receiver")) {
+//          emitter.emit(document.get("level"), document);
+//        }
+//      }
+//    }, mapVersion);
   }
 
   public Document getLastLocationOfTrip(String tripId) {
-    return placesView.getLastLocationOfTrip(tripId);
-  }
-
-  public void drop() {
     try {
-      handle.delete();
-      handle = manager.getDatabase(DATABASE_NAME);
+      Query q = db.getExistingView("places/byTripAndTime").createQuery();
+      List<Object> firstKey = new ArrayList<>();
+      firstKey.add(tripId);
+      firstKey.add((long) 0);
+      List<Object> lastKey = new ArrayList<>();
+      lastKey.add(tripId);
+      lastKey.add(System.currentTimeMillis());
+      q.setStartKey(lastKey);
+      q.setEndKey(firstKey);
+      q.setDescending(true);
+      q.setLimit(1);
+      QueryEnumerator enumerator = q.run();
+
+      return enumerator.getRow(0).getDocument();
     } catch (CouchbaseLiteException e) {
-      Log.e(TAG, "Cannot delete db because: " + e.getMessage());
+      throw new RuntimeException("currently running trip query failed:" + e.getMessage());
     }
-  }
-
-  protected void finalize() throws Throwable {
-    close();
-    super.finalize();
-  }
-
-  public static void close() {
-    if (tripsterDb != null) {
-      tripsterDb.usersView.stopLiveQuery();
-      tripsterDb.placesView.stopLiveQuery();
-      tripsterDb.tripsView.stopLiveQuery();
-      tripsterDb.imagesView.stopLiveQuery();
-      tripsterDb.friendsView.stopLiveQuery();
-
-      if (tripsterDb.manager != null) {
-        tripsterDb.manager.close();
-      }
-      tripsterDb.manager = null;
-      tripsterDb.handle = null;
-      tripsterDb = null;
-    }
-  }
-
-  public Document getUserWithId(String userId) {
-    return usersView.getUserWithId(userId);
-  }
-
-  public void startUsersLiveQuery() {
-    usersView.startLiveQuery();
-  }
-
-  public void startPlacesLiveQuery() {
-    placesView.startLiveQuery();
-  }
-
-  public void startImagesLiveQuery() {
-    imagesView.startLiveQuery();
-  }
-
-  public void startTripsLiveQuery() {
-    tripsView.startLiveQuery();
-  }
-
-  public void startFriendsLiveQuery() {
-    friendsView.startLiveQuery();
   }
 }
