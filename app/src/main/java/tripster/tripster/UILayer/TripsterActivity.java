@@ -74,6 +74,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
 
     tDb = TripsterDb.getInstance(getApplicationContext());
     tDb.initAllViews();
+    tDb.startSync();
 
     pref = new AppPreferences(getApplicationContext());
 
@@ -293,8 +294,12 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
 
   @Override
   protected void onPause() {
-    tDb.getDocumentById(currentUserId).removeChangeListener(currentUserChangeListener);
-    pref.unregisterOnTrayPreferenceChangeListener(currentTripChangeListener);
+    try {
+      tDb.getDocumentById(currentUserId).removeChangeListener(currentUserChangeListener);
+      pref.unregisterOnTrayPreferenceChangeListener(currentTripChangeListener);
+    } catch (NullPointerException e) {
+      Log.e(TAG, "Something failed");
+    }
     super.onPause();
   }
 }

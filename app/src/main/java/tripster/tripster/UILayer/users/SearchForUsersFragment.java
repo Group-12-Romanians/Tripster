@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -125,7 +126,11 @@ public class SearchForUsersFragment extends Fragment {
 
   @Override
   public void onPause() {
-    usersLQ.stop();
+    try {
+      usersLQ.stop();
+    } catch (NullPointerException e) {
+      Log.e(TAG, "Something failed");
+    }
     super.onPause();
   }
 

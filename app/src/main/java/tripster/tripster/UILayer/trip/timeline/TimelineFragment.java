@@ -143,7 +143,11 @@ public class TimelineFragment extends Fragment {
 
   @Override
   public void onPause() {
-    imagesLQ.stop();
+    try {
+      imagesLQ.stop();
+    } catch (NullPointerException e) {
+    Log.e(TAG, "Something failed");
+  }
     super.onPause();
   }
 

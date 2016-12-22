@@ -263,10 +263,14 @@ public class UserProfileFragment extends Fragment {
 
   @Override
   public void onPause() {
-    tDb.getDocumentById(userId).removeChangeListener(userChangedListener);
-    tripsLQ.stop();
-    friendshipLQ.stop();
-    friendsLQ.stop();
+    try {
+      tDb.getDocumentById(userId).removeChangeListener(userChangedListener);
+      tripsLQ.stop();
+      friendshipLQ.stop();
+      friendsLQ.stop();
+    } catch (NullPointerException e) {
+      Log.e(TAG, "Something failed");
+    }
     super.onPause();
   }
 

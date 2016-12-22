@@ -1,6 +1,7 @@
 package tripster.tripster.account;
 
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -34,7 +35,7 @@ public class GoogleProvider extends AccountProvider {
     googleApiClient = new GoogleApiClient.Builder(parentActivity)
         .enableAutoManage(parentActivity, new GoogleApiClient.OnConnectionFailedListener() {
           @Override
-          public void onConnectionFailed(ConnectionResult connectionResult) {
+          public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
             Toast.makeText(parentActivity, "Login canceled", Toast.LENGTH_LONG).show();
           }
         }).addApi(Auth.GOOGLE_SIGN_IN_API, gso).build();

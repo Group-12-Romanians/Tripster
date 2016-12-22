@@ -3,6 +3,7 @@ package tripster.tripster.UILayer.notifications;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -66,7 +67,11 @@ public class NotificationsFragment extends Fragment {
 
   @Override
   public void onPause() {
-    notificationsLQ.stop();
+    try {
+      notificationsLQ.stop();
+    } catch (NullPointerException e) {
+      Log.e(TAG, "Something failed");
+    }
     super.onPause();
   }
 

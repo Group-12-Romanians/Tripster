@@ -3,6 +3,7 @@ package tripster.tripster.UILayer.newsfeed;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -95,8 +96,12 @@ public class NewsfeedFragment extends Fragment {
 
   @Override
   public void onPause() {
-    friendsLQ.stop();
-    fTripsLQ.stop();
+    try {
+      friendsLQ.stop();
+      fTripsLQ.stop();
+    } catch (NullPointerException e) {
+      Log.e(TAG, "Something failed");
+    }
     super.onPause();
   }
 
