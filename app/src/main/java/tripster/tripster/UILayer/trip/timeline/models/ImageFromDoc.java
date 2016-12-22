@@ -1,4 +1,4 @@
-package tripster.tripster.UILayer.trip.timeline.events;
+package tripster.tripster.UILayer.trip.timeline.models;
 
 import com.couchbase.lite.Document;
 

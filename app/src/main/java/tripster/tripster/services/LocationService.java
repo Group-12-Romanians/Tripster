@@ -60,7 +60,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
   public LocationService() {
     super();
     googleClient = null;
-    tDb = new TripsterDb(getApplicationContext());
+    tDb = TripsterDb.getInstance(getApplicationContext());
     tDb.initPlacesByTripAndTimeView();
     Log.i(TAG, "LocationService created");
   }

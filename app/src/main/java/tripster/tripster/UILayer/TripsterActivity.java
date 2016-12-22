@@ -72,7 +72,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    tDb = new TripsterDb(getApplicationContext());
+    tDb = TripsterDb.getInstance(getApplicationContext());
     tDb.initAllViews();
 
     setContentView(R.layout.activity_tripster);

@@ -13,7 +13,7 @@ import java.util.List;
 
 import tripster.tripster.Image;
 import tripster.tripster.R;
-import tripster.tripster.UILayer.trip.timeline.events.ImageFromDoc;
+import tripster.tripster.UILayer.trip.timeline.models.ImageFromDoc;
 
 public class ImagesGridAdapter extends ArrayAdapter {
   private List<ImageFromDoc> images;

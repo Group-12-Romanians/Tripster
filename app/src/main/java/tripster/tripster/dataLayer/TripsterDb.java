@@ -52,8 +52,16 @@ public class TripsterDb {
   private static final String TAG = TripsterDb.class.getName();
 
   private Database db;
+  private static TripsterDb instance;
 
-  public TripsterDb(Context context) {
+  public static TripsterDb getInstance(Context context) {
+    if (instance == null) {
+      instance = new TripsterDb(context);
+    }
+    return instance;
+  }
+
+  private TripsterDb(Context context) {
     try {
       Manager manager = new Manager(new AndroidContext(context), Manager.DEFAULT_OPTIONS);
       manager.setStorageType(DB_STORAGE_TYPE);

@@ -35,7 +35,7 @@ public class CameraEventReceiver extends BroadcastReceiver {
   @Override
   public void onReceive(Context context, Intent intent) {
     String userId = context.getSharedPreferences("UUID", MODE_PRIVATE).getString("UUID", "");
-    TripsterDb tDb = new TripsterDb(context.getApplicationContext());
+    TripsterDb tDb = TripsterDb.getInstance(context.getApplicationContext());
     AppPreferences pref = new AppPreferences(context.getApplicationContext());
     String currentTripId = pref.getString(CURR_TRIP, "");
     assertNotNull(currentTripId);

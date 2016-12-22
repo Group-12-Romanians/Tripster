@@ -17,9 +17,9 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.List;
 
 import tripster.tripster.R;
-import tripster.tripster.UILayer.trip.timeline.events.ImageFromDoc;
-import tripster.tripster.UILayer.trip.timeline.events.Place;
-import tripster.tripster.UILayer.trip.timeline.events.Trip;
+import tripster.tripster.UILayer.trip.timeline.models.ImageFromDoc;
+import tripster.tripster.UILayer.trip.timeline.models.Place;
+import tripster.tripster.UILayer.trip.timeline.models.Trip;
 import tripster.tripster.dataLayer.events.EditableTripEvent;
 
 public class EditableFragment extends Fragment {

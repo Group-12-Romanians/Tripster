@@ -11,7 +11,7 @@ import android.widget.EditText;
 import java.util.List;
 
 import tripster.tripster.R;
-import tripster.tripster.UILayer.trip.timeline.events.Place;
+import tripster.tripster.UILayer.trip.timeline.models.Place;
 
 public class PlaceListAdapter extends ArrayAdapter {
   private List<Place> places;

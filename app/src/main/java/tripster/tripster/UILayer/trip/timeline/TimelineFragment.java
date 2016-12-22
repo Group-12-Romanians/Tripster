@@ -35,25 +35,23 @@ import java.util.Set;
 import tripster.tripster.Image;
 import tripster.tripster.R;
 import tripster.tripster.UILayer.TripsterActivity;
-import tripster.tripster.UILayer.trip.timeline.events.ImageFromDoc;
-import tripster.tripster.UILayer.trip.timeline.events.Place;
-import tripster.tripster.UILayer.trip.timeline.events.Trip;
+import tripster.tripster.UILayer.trip.timeline.models.ImageFromDoc;
+import tripster.tripster.UILayer.trip.timeline.models.Place;
+import tripster.tripster.UILayer.trip.timeline.models.Trip;
 import tripster.tripster.UILayer.trip.timeline.map.MapActivity;
 import tripster.tripster.dataLayer.TripsterDb;
 import tripster.tripster.dataLayer.events.EditableTripEvent;
 import tripster.tripster.dataLayer.events.ImagesChangedEvent;
 import tripster.tripster.dataLayer.events.PlacesChangedEvent;
 import tripster.tripster.dataLayer.events.TripsChangedEvent;
-import tripster.tripster.timeline.TimeLineAdapter;
 
 public class TimelineFragment extends Fragment {
-
   private static final String TAG = TimelineFragment.class.getName();
+
   private String tripId;
   private Button editButton;
   private Button locationButton;
   private RecyclerView mRecyclerView;
-
 
   private ImageView preview;
   private TextView tripName;
@@ -70,13 +68,14 @@ public class TimelineFragment extends Fragment {
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_timeline, container, false);
-    // Get userId from bundle.
     tripId = this.getArguments().getString("tripId");
+
     tripName = (TextView) view.findViewById(R.id.tripName);
     tripDescription = (TextView) view.findViewById(R.id.tripDesc);
     mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
     mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     mRecyclerView.setHasFixedSize(true);
+
     preview = (ImageView) view.findViewById(R.id.preview);
     editButton = (Button) view.findViewById(R.id.editButton);
     locationButton = (Button) view.findViewById(R.id.noOfLocations);
@@ -140,7 +139,7 @@ public class TimelineFragment extends Fragment {
 //        R.layout.event,
 //        R.id.locationName,
 //        events);
-    TimeLineAdapter timeLineAdapter = new TimeLineAdapter(events);
+    TimelineAdapter timeLineAdapter = new TimelineAdapter(events);
     mRecyclerView.setAdapter(timeLineAdapter);
   }
 
