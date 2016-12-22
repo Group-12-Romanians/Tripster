@@ -278,13 +278,13 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
       Document me = tDb.getDocumentById(event.getChange().getDocumentId());
       Log.d(TAG, "Current user changed, id is:" + me.getId());
 
-      ((TextView) header.findViewById(R.id.username)).setText((String) me.getProperty("name"));
+      ((TextView) header.findViewById(R.id.username)).setText((String) me.getProperty(USER_NAME_K));
       Log.d(TAG, "Current user's new name is:" + ((TextView) header.findViewById(R.id.username)).getText());
 
-      new Image((String) me.getProperty("avatarUrl")).displayIn(((ImageView) header.findViewById(R.id.avatar)));
-      Log.d(TAG, "Current user's new avatarUrl should be:" + me.getProperty("avatarUrl"));
+      new Image((String) me.getProperty(USER_AVATAR_K)).displayIn(((ImageView) header.findViewById(R.id.avatar)));
+      Log.d(TAG, "Current user's new avatarUrl should be:" + me.getProperty(USER_AVATAR_K));
 
-      ((TextView) header.findViewById(R.id.email)).setText((String) me.getProperty("email"));
+      ((TextView) header.findViewById(R.id.email)).setText((String) me.getProperty(USER_EMAIL_K));
       Log.d(TAG, "Current user's new email is:" + ((TextView) header.findViewById(R.id.email)).getText());
     }
   };

@@ -101,7 +101,6 @@ public class NewsfeedFragment extends Fragment {
   }
 
   private void initItemListAdapter(List<Pair<Long, String>> results) {
-
     List<String> userStories = new ArrayList<>();
 
     for (Pair<Long, String> p : results) {

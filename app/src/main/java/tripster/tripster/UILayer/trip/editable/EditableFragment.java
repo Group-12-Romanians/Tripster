@@ -1,4 +1,4 @@
-package tripster.tripster.UILayer.trip.timeline;
+package tripster.tripster.UILayer.trip.editable;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -17,9 +17,6 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.List;
 
 import tripster.tripster.R;
-import tripster.tripster.UILayer.trip.timeline.models.ImageFromDoc;
-import tripster.tripster.UILayer.trip.timeline.models.Place;
-import tripster.tripster.UILayer.trip.timeline.models.Trip;
 import tripster.tripster.dataLayer.events.EditableTripEvent;
 
 public class EditableFragment extends Fragment {

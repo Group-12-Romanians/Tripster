@@ -1,4 +1,4 @@
-package tripster.tripster.UILayer.trip.timeline.map;
+package tripster.tripster.UILayer.trip.map;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 

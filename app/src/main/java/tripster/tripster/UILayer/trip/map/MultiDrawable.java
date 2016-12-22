@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package tripster.tripster.UILayer.trip.timeline.map;
+package tripster.tripster.UILayer.trip.map;
 
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;

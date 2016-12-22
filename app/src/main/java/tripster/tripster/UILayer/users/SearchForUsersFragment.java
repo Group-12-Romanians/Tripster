@@ -23,7 +23,10 @@ import java.util.List;
 import tripster.tripster.R;
 
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNotSame;
+import static junit.framework.Assert.assertSame;
 import static tripster.tripster.Constants.FRIENDS_BY_USER;
+import static tripster.tripster.Constants.USERS_BY_ID;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 public class SearchForUsersFragment extends Fragment {
@@ -64,14 +67,41 @@ public class SearchForUsersFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
-    restartUsersLiveQuery();
+    if (myId.equals("none")) {
+      restartAllUsersLiveQuery();
+    } else {
+      restartUsersLiveQuery();
+    }
+  }
+
+  private void restartAllUsersLiveQuery() {
+    assertSame(myId, "none");
+    Query q = tDb.getDb().getExistingView(USERS_BY_ID).createQuery();
+    usersLQ = q.toLiveQuery();
+    usersLQ.addChangeListener(new LiveQuery.ChangeListener() {
+      @Override
+      public void changed(LiveQuery.ChangeEvent event) {
+        List<String> results = new ArrayList<>();
+        for (int i = 0; i < event.getRows().getCount(); i++) {
+          QueryRow r = event.getRows().getRow(i);
+          results.add(r.getDocumentId());
+        }
+        Collections.sort(results, new Comparator<String>() {
+          @Override
+          public int compare(String o1, String o2) {
+            return o1.compareTo(o2);
+          }
+        });
+        initSearchableAdapter(results);
+      }
+    });
+    usersLQ.start();
   }
 
   private void restartUsersLiveQuery() {
+    assertNotSame(myId, "none");
     Query q = tDb.getDb().getExistingView(FRIENDS_BY_USER).createQuery();
-    if (!myId.equals("none")) {
-      q.setKeys(Collections.singletonList((Object) myId));
-    }
+    q.setKeys(Collections.singletonList((Object) myId));
     usersLQ = q.toLiveQuery();
     usersLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override

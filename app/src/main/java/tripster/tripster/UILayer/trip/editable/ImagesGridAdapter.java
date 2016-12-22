@@ -1,4 +1,4 @@
-package tripster.tripster.UILayer.trip.timeline;
+package tripster.tripster.UILayer.trip.editable;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -13,7 +13,6 @@ import java.util.List;
 
 import tripster.tripster.Image;
 import tripster.tripster.R;
-import tripster.tripster.UILayer.trip.timeline.models.ImageFromDoc;
 
 public class ImagesGridAdapter extends ArrayAdapter {
   private List<ImageFromDoc> images;
@@ -63,7 +62,7 @@ public class ImagesGridAdapter extends ArrayAdapter {
     imageDescriptionView.setText(images.get(position).getDescription());
 
     ImageView imageView = ((ViewHolderEditableImagePreview) convertView.getTag()).image;
-    new Image(images.get(position).getPath(), "This is description!").displayIn(imageView);
+    new Image(images.get(position).getPath()).displayIn(imageView);
     return convertView;
   }
 }

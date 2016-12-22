@@ -1,6 +1,6 @@
 package tripster.tripster.dataLayer.events;
 
-import tripster.tripster.UILayer.trip.timeline.models.Trip;
+import tripster.tripster.UILayer.trip.editable.Trip;
 
 public class EditableTripEvent {
   private Trip trip;

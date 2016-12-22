@@ -35,7 +35,12 @@ import static tripster.tripster.Constants.FS_LEVEL_SENT;
 import static tripster.tripster.Constants.FS_RECEIVER_K;
 import static tripster.tripster.Constants.FS_SENDER_K;
 import static tripster.tripster.Constants.FS_TIME_K;
+import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_TIME;
 import static tripster.tripster.Constants.NOTIFICATIONS_BY_USER;
+import static tripster.tripster.Constants.PHOTO_PATH_K;
+import static tripster.tripster.Constants.PHOTO_PLACE_K;
+import static tripster.tripster.Constants.PHOTO_TIME_K;
+import static tripster.tripster.Constants.PHOTO_TRIP_K;
 import static tripster.tripster.Constants.PLACES_BY_TRIP_AND_TIME;
 import static tripster.tripster.Constants.PLACE_LAT_K;
 import static tripster.tripster.Constants.PLACE_LNG_K;
@@ -47,6 +52,11 @@ import static tripster.tripster.Constants.TRIP_OWNER_K;
 import static tripster.tripster.Constants.TRIP_PREVIEW_K;
 import static tripster.tripster.Constants.TRIP_STATUS_K;
 import static tripster.tripster.Constants.TRIP_STOPPED_AT_K;
+import static tripster.tripster.Constants.USERS_BY_ID;
+import static tripster.tripster.Constants.USER_AVATAR_K;
+import static tripster.tripster.Constants.USER_EMAIL_K;
+import static tripster.tripster.Constants.USER_ID_K;
+import static tripster.tripster.Constants.USER_NAME_K;
 
 public class TripsterDb {
   private static final String TAG = TripsterDb.class.getName();
@@ -162,8 +172,40 @@ public class TripsterDb {
   public void initAllViews() {
     initTripsByOwnerIdView();
     initPlacesByTripAndTimeView();
+    initImagesByTripAndTimeView();
     initFriendsByUserIdView();
     initNotificationsByUser();
+    initUsersById();
+  }
+
+  private void initUsersById() {
+    db.getView(USERS_BY_ID).setMap(new Mapper() {
+      @Override
+      public void map(Map<String, Object> document, Emitter emitter) {
+        if (document.containsKey(USER_AVATAR_K)
+            && document.containsKey(USER_EMAIL_K)
+            && document.containsKey(USER_NAME_K)) {
+          emitter.emit(document.get(USER_ID_K), null);
+        }
+      }
+    }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+  }
+
+  private void initImagesByTripAndTimeView() {
+    db.getView(IMAGES_BY_TRIP_AND_TIME).setMap(new Mapper() {
+      @Override
+      public void map(Map<String, Object> document, Emitter emitter) {
+        if (document.containsKey(PHOTO_TRIP_K)
+            && document.containsKey(PHOTO_TIME_K)
+            && document.containsKey(PHOTO_PLACE_K)
+            && document.containsKey(PHOTO_PATH_K)) {
+          List<Object> keys = new ArrayList<>();
+          keys.add(document.get(PHOTO_TRIP_K));
+          keys.add(document.get(PHOTO_TIME_K));
+          emitter.emit(keys, document.get(PHOTO_PLACE_K));
+        }
+      }
+    }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 
   private void initNotificationsByUser() {

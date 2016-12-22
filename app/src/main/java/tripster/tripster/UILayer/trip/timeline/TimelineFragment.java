@@ -1,10 +1,11 @@
 package tripster.tripster.UILayer.trip.timeline;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -18,213 +19,138 @@ import android.widget.TextView;
 
 import com.couchbase.lite.Document;
 import com.couchbase.lite.LiveQuery;
-import com.couchbase.lite.QueryEnumerator;
+import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryRow;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import tripster.tripster.Image;
 import tripster.tripster.R;
-import tripster.tripster.UILayer.TripsterActivity;
-import tripster.tripster.UILayer.trip.timeline.models.ImageFromDoc;
-import tripster.tripster.UILayer.trip.timeline.models.Place;
-import tripster.tripster.UILayer.trip.timeline.models.Trip;
-import tripster.tripster.UILayer.trip.timeline.map.MapActivity;
-import tripster.tripster.dataLayer.TripsterDb;
-import tripster.tripster.dataLayer.events.EditableTripEvent;
-import tripster.tripster.dataLayer.events.ImagesChangedEvent;
-import tripster.tripster.dataLayer.events.PlacesChangedEvent;
-import tripster.tripster.dataLayer.events.TripsChangedEvent;
+import tripster.tripster.UILayer.trip.map.MapActivity;
+
+import static junit.framework.Assert.assertNotNull;
+import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_TIME;
+import static tripster.tripster.Constants.TRIP_DESCRIPTION_K;
+import static tripster.tripster.Constants.TRIP_NAME_K;
+import static tripster.tripster.Constants.TRIP_PREVIEW_K;
+import static tripster.tripster.Constants.TRIP_VIDEO_K;
+import static tripster.tripster.R.id.tripDesc;
+import static tripster.tripster.R.id.tripName;
+import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 public class TimelineFragment extends Fragment {
   private static final String TAG = TimelineFragment.class.getName();
 
   private String tripId;
-  private Button editButton;
-  private Button locationButton;
-  private RecyclerView mRecyclerView;
-
-  private ImageView preview;
-  private TextView tripName;
-  private TextView tripDescription;
-
-  private Set<String> importantPlaces;
-  private Map<String, Document> places;
-  private Map<String, List<Document>> images;
-  private List<Pair<Document, List<Document>>> events;
-
-
+  private LiveQuery imagesLQ;
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+  public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_timeline, container, false);
     tripId = this.getArguments().getString("tripId");
+    RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
+    recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+    recyclerView.setHasFixedSize(true);
 
-    tripName = (TextView) view.findViewById(R.id.tripName);
-    tripDescription = (TextView) view.findViewById(R.id.tripDesc);
-    mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
-    mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-    mRecyclerView.setHasFixedSize(true);
-
-    preview = (ImageView) view.findViewById(R.id.preview);
-    editButton = (Button) view.findViewById(R.id.editButton);
-    locationButton = (Button) view.findViewById(R.id.noOfLocations);
+//  editButton = (Button) view.findViewById(R.id.editButton);
+    Button locationButton = (Button) view.findViewById(R.id.noOfLocations);
     locationButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         Intent intent = new Intent(getActivity(), MapActivity.class);
+        intent.putExtra("tripId", tripId);
         getActivity().startActivity(intent);
       }
     });
     return view;
   }
 
-  private void changeToEditMode(String tripId, List<Pair<Document, List<Document>>> events) {
-    publishEditableTrip(tripId, events);
-    // Change to the corresponding EditableFragment.
-    EditableFragment frag = new EditableFragment();
-    FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag);
-    trans.addToBackStack("");
-    trans.commit();
-  }
-
-  private void publishEditableTrip(String tripId, List<Pair<Document, List<Document>>> events) {
-    List<Place> places = new ArrayList<>();
-    List<ImageFromDoc> images = new ArrayList<>();
-
-    for (Pair<Document, List<Document>> event : events) {
-      places.add(new Place(event.first));
-      for (Document image : event.second) {
-        images.add(new ImageFromDoc(image));
-      }
-    }
-    Document tripDoc = TripsterDb.getInstance().getHandle().getDocument(tripId);
-    Trip trip = new Trip(tripDoc, places, images);
-    EventBus.getDefault().postSticky(new EditableTripEvent(trip));
-  }
-
   @Override
   public void onResume() {
-    Log.d(TAG, "Register fragment");
-    EventBus.getDefault().register(this);
     super.onResume();
+    restartImagesLiveQuery();
+    setGeneralDetails();
+  }
+
+  private void setGeneralDetails() {
+    final Document tripDoc = tDb.getDocumentById(tripId);
+    Log.d(TAG, "Current trip changed, id is:" + tripDoc.getId());
+    assertNotNull(getView());
+
+    // set trip name
+    ((TextView) getView().findViewById(tripName)).setText((String) tripDoc.getProperty(TRIP_NAME_K));
+
+    // set trip description
+    ((TextView) getView().findViewById(tripDesc)).setText((String) tripDoc.getProperty(TRIP_DESCRIPTION_K));
+
+    // set trip preview and video link
+    ImageView previewView = (ImageView) getView().findViewById(R.id.preview);
+    new Image((String) tripDoc.getProperty(TRIP_PREVIEW_K)).displayIn(previewView);
+    previewView.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        String videoUrl = (String) tripDoc.getProperty(TRIP_VIDEO_K);
+        Log.d(TAG, "Video url is " + videoUrl );
+        if (videoUrl != null) {
+          intent.setDataAndType(Uri.parse(videoUrl), "video/*");
+          if (getContext() instanceof AppCompatActivity) {
+            AppCompatActivity activity = (AppCompatActivity) getContext();
+            activity.startActivity(Intent.createChooser(intent, "Complete action using"));
+          }
+        }
+      }
+    });
+  }
+
+  private void restartImagesLiveQuery() {
+    Query q = tDb.getDb().getExistingView(IMAGES_BY_TRIP_AND_TIME).createQuery();
+    List<Object> firstKey = new ArrayList<>();
+    firstKey.add(tripId);
+    firstKey.add((long) 0);
+    List<Object> lastKey = new ArrayList<>();
+    lastKey.add(tripId);
+    lastKey.add(System.currentTimeMillis());
+    q.setStartKey(lastKey);
+    q.setEndKey(firstKey);
+    q.setDescending(true);
+    imagesLQ = q.toLiveQuery();
+    imagesLQ.addChangeListener(new LiveQuery.ChangeListener() {
+      @Override
+      public void changed(LiveQuery.ChangeEvent event) {
+        List<Pair<String, List<String>>> results = new ArrayList<>();
+        Iterator<QueryRow> it = event.getRows().iterator();
+        String prevPlaceId = null;
+        while (it.hasNext()) {
+          QueryRow r = it.next();
+          String placeId = (String) r.getValue();
+          if (!placeId.equals(prevPlaceId)) {
+            results.add(new Pair<String, List<String>>(placeId, new ArrayList<String>()));
+            prevPlaceId = placeId;
+          }
+          results.get(results.size() - 1).second.add(r.getDocumentId());
+        }
+        assertNotNull(getView());
+        ((Button) getView().findViewById(R.id.noOfLocations)).setText(results.size());
+        initListAdapter(results);
+      }
+    });
+    imagesLQ.start();
   }
 
   @Override
   public void onPause() {
-    Log.d(TAG, "UnRegister fragment");
-    EventBus.getDefault().unregister(this);
+    imagesLQ.stop();
     super.onPause();
   }
 
-  private void initListAdapter() {
-    events = new ArrayList<>();
-    for (String importantPlace : importantPlaces) {
-      if (places != null && places.containsKey(importantPlace)) {
-        events.add(new Pair<>(places.get(importantPlace), images.get(importantPlace)));
-      }
-    }
-//    TimelineAdapter timelineAdapter = new TimelineAdapter(
-//        getActivity(),
-//        R.layout.event,
-//        R.id.locationName,
-//        events);
-    TimelineAdapter timeLineAdapter = new TimelineAdapter(events);
-    mRecyclerView.setAdapter(timeLineAdapter);
-  }
+  private void initListAdapter(List<Pair<String, List<String>>> events) {
+    TimeLineAdapter timeLineAdapter = new TimeLineAdapter(events);
 
-  //-----------------------EVENTS--------------------------------------//
-  @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-  public void onPlaceChangedEvent(PlacesChangedEvent event) {
-    Log.d(TAG, "In places change");
-    places = new HashMap<>();
-    LiveQuery.ChangeEvent liveChangeEvent = event.getEvent();
-    QueryEnumerator changes = liveChangeEvent.getRows();
-    View view = getView();
-    for (int i = 0; i < changes.getCount(); i++) {
-      QueryRow row = changes.getRow(i);
-      Document placeDoc = row.getDocument();
-      String placeTripId = (String) placeDoc.getProperty("tripId");
-      // Get only the documents corresponding to the current user.
-      if (tripId.equals(placeTripId)) {
-        places.put(placeDoc.getId(), placeDoc);
-      }
-    }
-    initListAdapter();
-  }
-
-  @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-  public void onImagesChangedEvent(ImagesChangedEvent event) {
-    Log.d(TAG, "In images change");
-    images = new HashMap<>();
-    importantPlaces = new HashSet<>();
-    int noOfImages = 0;
-    LiveQuery.ChangeEvent liveChangeEvent = event.getEvent();
-    QueryEnumerator changes = liveChangeEvent.getRows();
-    View view = getView();
-    for (int i = 0; i < changes.getCount(); i++) {
-      QueryRow row = changes.getRow(i);
-      Document imageDoc = row.getDocument();
-      String imageTripId = (String) imageDoc.getProperty("tripId");
-      String placeId = (String) imageDoc.getProperty("placeId");
-      // Get only the documents corresponding to the current user.
-      if (tripId.equals(imageTripId)) {
-        noOfImages++;
-        importantPlaces.add(placeId);
-        List<Document> placeImages;
-        if (!images.containsKey(placeId)) {
-          placeImages = new ArrayList<>();
-        } else {
-          placeImages = images.get(placeId);
-        }
-        placeImages.add(imageDoc);
-        images.put(placeId, placeImages);
-      }
-    }
-    // Set the number of photos.
-    ((Button) view.findViewById(R.id.noOfPhotos)).setText(String.valueOf(noOfImages));
-    // Set the number of places.
-    ((Button) view.findViewById(R.id.noOfLocations)).setText(String.valueOf(importantPlaces.size()));
-    initListAdapter();
-  }
-
-  @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-  public void onTripsChangedEvent(TripsChangedEvent event) {
-    Log.d(TAG, "In trip change");
-    LiveQuery.ChangeEvent liveChangeEvent = event.getEvent();
-    QueryEnumerator changes = liveChangeEvent.getRows();
-    for (int i = 0; i < changes.getCount(); i++) {
-      QueryRow row = changes.getRow(i);
-      Document tripDoc = row.getDocument();
-      if (tripId.equals(tripDoc.getId())) {
-        if (tripDoc.getProperty("ownerId").equals(TripsterActivity.USER_ID)) {
-          editButton.setVisibility(View.VISIBLE);
-          editButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-              changeToEditMode(tripId, events);
-            }
-          });
-        }
-        new Image((String) tripDoc.getProperty("preview"), "Description").displayIn(preview);
-        tripName.setText((String) tripDoc.getProperty("name"));
-        if (tripDoc.getProperty("description") != null) {
-          tripDescription.setVisibility(View.VISIBLE);
-          tripDescription.setText((String) tripDoc.getProperty("description"));
-        } else {
-          tripDescription.setVisibility(View.GONE);
-        }
-      }
-    }
+    assertNotNull(getView());
+    ((RecyclerView) getView().findViewById(R.id.recyclerView)).setAdapter(timeLineAdapter);
   }
 }

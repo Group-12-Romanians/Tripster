@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package tripster.tripster.UILayer.trip.timeline.map.model;
+package tripster.tripster.UILayer.trip.map.model;
 
 import com.google.android.gms.maps.model.LatLng;
 import android.clustering.ClusterItem;
 
-public class Person implements ClusterItem {
-    public final String name;
-    public final int profilePhoto;
+public class MyItem implements ClusterItem {
     private final LatLng mPosition;
 
-    public Person(LatLng position, String name, int pictureResource) {
-        this.name = name;
-        profilePhoto = pictureResource;
-        mPosition = position;
+    public MyItem(double lat, double lng) {
+        mPosition = new LatLng(lat, lng);
     }
 
     @Override

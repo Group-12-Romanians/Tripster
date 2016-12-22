@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package tripster.tripster.UILayer.trip.timeline.map;
+package tripster.tripster.UILayer.trip.map;
 
 
+import android.geometry.Point;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.projection.SphericalMercatorProjection;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.TileProvider;
-import android.geometry.Point;
-import android.projection.SphericalMercatorProjection;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;

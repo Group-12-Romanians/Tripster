@@ -1,4 +1,4 @@
-package tripster.tripster.UILayer.trip.timeline;
+package tripster.tripster.UILayer.trip.editable;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -11,7 +11,6 @@ import android.widget.EditText;
 import java.util.List;
 
 import tripster.tripster.R;
-import tripster.tripster.UILayer.trip.timeline.models.Place;
 
 public class PlaceListAdapter extends ArrayAdapter {
   private List<Place> places;

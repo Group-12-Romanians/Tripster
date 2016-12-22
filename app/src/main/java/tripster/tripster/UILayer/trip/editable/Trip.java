@@ -1,4 +1,4 @@
-package tripster.tripster.UILayer.trip.timeline.models;
+package tripster.tripster.UILayer.trip.editable;
 
 import com.couchbase.lite.Document;
 
