@@ -65,7 +65,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   public static TripsterDb tDb;
   public static String currentUserId;
 
-  private AppPreferences pref = new AppPreferences(getApplicationContext());
+  private AppPreferences pref;
   private LogoutProvider accountProvider;
 
   @Override
@@ -74,6 +74,8 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
 
     tDb = TripsterDb.getInstance(getApplicationContext());
     tDb.initAllViews();
+
+    pref = new AppPreferences(getApplicationContext());
 
     setContentView(R.layout.activity_tripster);
     askForPermissions();

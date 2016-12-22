@@ -4,14 +4,13 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
@@ -20,27 +19,34 @@ import android.widget.TextView;
 
 import com.couchbase.lite.Document;
 import com.couchbase.lite.LiveQuery;
-import com.couchbase.lite.QueryEnumerator;
+import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryRow;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import tripster.tripster.Image;
 import tripster.tripster.R;
-import tripster.tripster.UILayer.trip.timeline.TimelineFragment;
-import tripster.tripster.dataLayer.TripsterDb;
-import tripster.tripster.dataLayer.events.FriendsChangedEvent;
-import tripster.tripster.dataLayer.events.TripsChangedEvent;
-import tripster.tripster.dataLayer.events.UsersChangedEvent;
+import tripster.tripster.UILayer.TransactionManager;
 
-import static tripster.tripster.UILayer.TripsterActivity.USER_ID;
+import static tripster.tripster.Constants.FRIENDS_BY_USER;
+import static tripster.tripster.Constants.FS_LEVEL_CONFIRMED;
+import static tripster.tripster.Constants.FS_LEVEL_K;
+import static tripster.tripster.Constants.FS_LEVEL_SENT;
+import static tripster.tripster.Constants.FS_RECEIVER_K;
+import static tripster.tripster.Constants.FS_SENDER_K;
+import static tripster.tripster.Constants.FS_TIME_K;
+import static tripster.tripster.Constants.TRIPS_BY_OWNER;
+import static tripster.tripster.Constants.USER_ABOUT_K;
+import static tripster.tripster.Constants.USER_AVATAR_K;
+import static tripster.tripster.Constants.USER_NAME_K;
+import static tripster.tripster.UILayer.TripsterActivity.currentUserId;
+import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 public class UserProfileFragment extends Fragment {
   private static final String TAG = UserProfileFragment.class.getName();
@@ -49,52 +55,49 @@ public class UserProfileFragment extends Fragment {
   public static final String REQUEST_SENT = "Request sent";
 
   private UserTripsAdapter tripsAdapter;
-  String userId;
-  private GridView grid;
+  private TransactionManager tM;
+  private String userId;
+  private String friendshipId = UUID.randomUUID().toString();
+  private LiveQuery tripsLQ;
+  private LiveQuery friendshipLQ;
+  private LiveQuery friendsLQ;
+
+  private TextView name;
+  private TextView about;
+  private ImageView avatar;
   private Button friendshipStatusButton;
-  private String friendshipId;
+  private Button noOfFriendsButton;
+  private Button noOfTripsButton;
+  private GridView grid;
 
   @Nullable
   @Override
   public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_trips, container, false);
-    // Get userId from bundle.
-    userId = this.getArguments().getString("userId");
-    grid = (GridView) view.findViewById(R.id.myTrips);
-    // Initial friendshipId
-    friendshipId = UUID.randomUUID().toString();
+    userId = getArguments().getString("userId");
+    tM = new TransactionManager(getContext());
 
-    view.findViewById(R.id.noOfFriends).setOnClickListener(new View.OnClickListener() {
+    name = (TextView) view.findViewById(R.id.userName);
+    about = (TextView) view.findViewById(R.id.userAbout);
+    avatar = (ImageView) view.findViewById(R.id.avatar);
+    friendshipStatusButton = (Button) view.findViewById(R.id.friendStatus);
+    noOfFriendsButton = (Button) view.findViewById(R.id.noOfFriends);
+    noOfTripsButton = (Button) view.findViewById(R.id.noOfTrips);
+    grid = (GridView) view.findViewById(R.id.myTrips);
+
+    noOfFriendsButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        SearchForUsersFragment frag = new SearchForUsersFragment();
-        Bundle arguments = new Bundle();
-        arguments.putString("userId", userId);
-        frag.setArguments(arguments);
-        FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag);
-        trans.addToBackStack("");
-        trans.commit();
+        tM.accessFriendsOfUser(userId);
       }
     });
 
-    friendshipStatusButton = (Button) view.findViewById(R.id.friendStatus);
-    if (!userId.equals(USER_ID)) {
-      friendshipStatusButton.setVisibility(View.VISIBLE);
-
-      changeFriendshipButton(ADD);
-      friendshipStatusButton.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          addFriendship(USER_ID, userId);
-        }
-      });
-    }
-    if (userId.equals(USER_ID)) {
-      view.findViewById(R.id.userAbout).setOnLongClickListener(new View.OnLongClickListener() {
+    if (userId.equals(currentUserId)) {
+      about.setOnLongClickListener(new View.OnLongClickListener() {
         @Override
         public boolean onLongClick(View v) {
           AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-          builder.setTitle("Title");
+          builder.setTitle("Let others know who you are!");
 
           final EditText input = new EditText(getActivity());
           input.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -103,8 +106,8 @@ public class UserProfileFragment extends Fragment {
             @Override
             public void onClick(DialogInterface dialog, int which) {
               Map<String, Object> props = new HashMap<>();
-              props.put("about", input.getText().toString());
-              TripsterDb.getInstance().upsertNewDocById(userId, props);
+              props.put(USER_ABOUT_K, input.getText().toString());
+              tDb.upsertNewDocById(userId, props);
             }
           });
           builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -118,166 +121,168 @@ public class UserProfileFragment extends Fragment {
           return false;
         }
       });
+    } else {
+      friendshipStatusButton.setVisibility(View.VISIBLE);
+      friendshipStatusButton.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          addFriendship();
+        }
+      });
+      changeFriendshipButton(ADD);
     }
+
     return view;
   }
 
-  private void addFriendship(String me, String otherUser) {
-    Document friendship = TripsterDb.getInstance().getHandle().getDocument(friendshipId);
-    String level = (String) friendship.getProperty("level");
+  private void addFriendship() {
+    Document friendship = tDb.getDb().getDocument(friendshipId);
+    String level = (String) friendship.getProperty(FS_LEVEL_K);
     Map<String, Object> props = new HashMap<>();
     if (level != null) {
-      if ((friendship.getProperty("sender").equals(otherUser) &&
-          friendship.getProperty("receiver").equals(me)) &&
-          (friendship.getProperty("level").equals("declined") ||
-          friendship.getProperty("level").equals("sent"))) {
-        props.put("level", "confirmed");
+      if ((friendship.getProperty(FS_SENDER_K).equals(userId) &&
+          friendship.getProperty(FS_RECEIVER_K).equals(currentUserId)) &&
+          !level.equals(FS_LEVEL_CONFIRMED)) {
+        props.put(FS_LEVEL_K, FS_LEVEL_CONFIRMED);
       } else {
         Log.e(TAG, "Friendship is in a weird state :((");
       }
     } else {
-      props.put("sender", me);
-      props.put("receiver", otherUser);
-      props.put("level", "sent");
+      props.put(FS_SENDER_K, currentUserId);
+      props.put(FS_RECEIVER_K, userId);
+      props.put(FS_TIME_K, System.currentTimeMillis());
+      props.put(FS_LEVEL_K, FS_LEVEL_SENT);
     }
-    TripsterDb.getInstance().upsertNewDocById(friendship.getId(), props);
+    tDb.upsertNewDocById(friendship.getId(), props);
   }
 
   @Override
   public void onResume() {
-    Log.d(TAG, "Register fragment");
-    initItemGridAdapter();
-    EventBus.getDefault().register(this);
     super.onResume();
+    tDb.getDocumentById(userId).addChangeListener(userChangedListener);
+    restartTripsLiveQuery();
+    restartFriendshipLiveQuery();
+    restartFriendsLiveQuery();
   }
+
+  private void restartFriendsLiveQuery() {
+    Query q = tDb.getDb().getExistingView(FRIENDS_BY_USER).createQuery();
+    q.setKeys(Collections.singletonList((Object) currentUserId));
+    friendsLQ = q.toLiveQuery();
+    friendsLQ.addChangeListener(new LiveQuery.ChangeListener() {
+      @Override
+      public void changed(LiveQuery.ChangeEvent event) {
+        noOfFriendsButton.setText(event.getRows().getCount());
+      }
+    });
+    friendsLQ.start();
+  }
+
+  private void restartFriendshipLiveQuery() {
+    Query q = tDb.getDb().getExistingView(TRIPS_BY_OWNER).createQuery();
+    List<Object> keys = new ArrayList<>(2);
+    List<String> key = new ArrayList<>();
+    key.add(currentUserId);
+    key.add(userId);
+    keys.add(key);
+    key = new ArrayList<>();
+    key.add(userId);
+    key.add(currentUserId);
+    keys.add(key);
+    q.setKeys(keys);
+    friendshipLQ = q.toLiveQuery();
+    friendshipLQ.addChangeListener(new LiveQuery.ChangeListener() {
+      @Override
+      public void changed(LiveQuery.ChangeEvent event) {
+        int count = event.getRows().getCount();
+        if (count == 0) {
+          Log.d(TAG, "We do get notfied even when no rows");
+        } else if (count == 1) {
+          Document fs = event.getRows().getRow(0).getDocument();
+          friendshipId = fs.getId();
+          String level = (String) fs.getProperty(FS_LEVEL_K);
+          String sender = (String) fs.getProperty(FS_SENDER_K);
+          if (level.equals(FS_LEVEL_CONFIRMED)) {
+            changeFriendshipButton(FRIENDS);
+          } else if (sender.equals(currentUserId)) {
+            changeFriendshipButton(REQUEST_SENT);
+          }
+        } else if (count > 1) {
+          Log.e(TAG, "Inconsistent state of friendship between: " + currentUserId + " and " + userId);
+        }
+      }
+    });
+    friendshipLQ.start();
+  }
+
+  private void restartTripsLiveQuery() {
+    Query q = tDb.getDb().getExistingView(TRIPS_BY_OWNER).createQuery();
+    q.setKeys(Collections.singletonList((Object) userId));
+    tripsLQ = q.toLiveQuery();
+    tripsLQ.addChangeListener(new LiveQuery.ChangeListener() {
+      @Override
+      public void changed(LiveQuery.ChangeEvent event) {
+        List<Pair<Long, String>> results = new ArrayList<>();
+        for (int i = 0; i < event.getRows().getCount(); i++) {
+          QueryRow r = event.getRows().getRow(i);
+          Pair<Long, String> p = new Pair<>((Long) r.getValue(), r.getDocumentId());
+          results.add(p);
+        }
+        Collections.sort(results, new Comparator<Pair<Long, String>>() {
+          @Override
+          public int compare(Pair<Long, String> o1, Pair<Long, String> o2) {
+            return o2.first.compareTo(o1.first);
+          }
+        });
+        noOfTripsButton.setText(results.size());
+        initItemGridAdapter(results);
+      }
+    });
+    tripsLQ.start();
+  }
+
+  private Document.ChangeListener userChangedListener = new Document.ChangeListener() {
+    @Override
+    public void changed(Document.ChangeEvent event) {
+      Document userDoc = tDb.getDocumentById(event.getChange().getDocumentId());
+
+      name.setText((String) userDoc.getProperty(USER_NAME_K));
+
+      String aboutUser = (String) userDoc.getProperty(USER_ABOUT_K);
+      if (aboutUser != null) {
+        about.setText(aboutUser);
+      } else if (userId.equals(currentUserId)) {
+        about.setText("Long touch to add something about you...");
+      } else {
+        about.setVisibility(View.GONE);
+      }
+
+      new Image((String) userDoc.getProperty(USER_AVATAR_K)).displayIn(avatar);
+    }
+  };
 
   @Override
   public void onPause() {
-    Log.d(TAG, "UnRegister fragment");
-    EventBus.getDefault().unregister(this);
+    tDb.getDocumentById(userId).removeChangeListener(userChangedListener);
+    tripsLQ.stop();
+    friendshipLQ.stop();
+    friendsLQ.stop();
     super.onPause();
   }
 
-  private void initItemGridAdapter() {
+  private void initItemGridAdapter(List<Pair<Long, String>> results) {
+    List<String> trips = new ArrayList<>();
+
+    for (Pair<Long, String> p : results) {
+      trips.add(p.second);
+    }
+
     tripsAdapter = new UserTripsAdapter(
         getContext(),
         R.layout.trips_grid_item,
         R.id.tripName,
-        new ArrayList<Document>()
-    );
+        trips);
     grid.setAdapter(tripsAdapter);
-    grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-      @Override
-      public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Log.d(TAG, "I clicked a trip, I want to see it :)");
-        UserTripsAdapter.ViewHolderTripPreview holder = (UserTripsAdapter.ViewHolderTripPreview) view.getTag();
-        accessTrip(holder.doc);
-      }
-    });
-  }
-
-  private void accessTrip(Document tripDoc) {
-    // Change to the corresponding TripFragment.
-    TimelineFragment frag = new TimelineFragment();
-    Bundle arguments = new Bundle();
-    arguments.putString("tripId", tripDoc.getId());
-    arguments.putString("userId", userId);
-    frag.setArguments(arguments);
-    FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag);
-    trans.addToBackStack("");
-    trans.commit();
-  }
-
-  //-----------------------------EVENTS--------------------------------------//
-  @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-  public void onUsersChangedEvent(UsersChangedEvent event) {
-    LiveQuery.ChangeEvent liveChangeEvent = event.getEvent();
-    QueryEnumerator changes = liveChangeEvent.getRows();
-    View view = getView();
-    for (int i = 0; i < changes.getCount(); i++) {
-      QueryRow change = changes.getRow(i);
-      Document userDoc = change.getDocument();
-      // Get only the document corresponding to the current user.
-      if ((userDoc.getId()).equals(userId)) {
-        String userName = (String) userDoc.getProperty("name");
-        String avatarUrl = (String) userDoc.getProperty("avatarUrl");
-        String about = (String) userDoc.getProperty("about");
-
-        // Set avatar, about and user name according to the document.
-        ((TextView) view.findViewById(R.id.userName)).setText(userName);
-        if (about != null) {
-          ((TextView) view.findViewById(R.id.userAbout)).setText(about);
-        } else if (!userId.equals(USER_ID)){
-          view.findViewById(R.id.userAbout).setVisibility(View.GONE);
-        } else if (userId.equals(USER_ID)){
-          ((TextView) view.findViewById(R.id.userAbout)).setText("Long touch to add something about you.");
-        }
-        new Image(avatarUrl, "").displayIn(((ImageView) view.findViewById(R.id.avatar)));
-        break;
-      }
-    }
-  }
-
-  @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-  public void onTripsChangedEvent(TripsChangedEvent event) {
-    Log.d(TAG, "In trips change");
-    LiveQuery.ChangeEvent liveChangeEvent = event.getEvent();
-    QueryEnumerator changes = liveChangeEvent.getRows();
-    View view = getView();
-    tripsAdapter.clear();
-    for (int i = 0; i < changes.getCount(); i++) {
-      QueryRow row = changes.getRow(i);
-      Document tripDoc = row.getDocument();
-      String ownerId = (String) tripDoc.getProperty("ownerId");
-      // Get only the documents corresponding to the current user.
-      if (ownerId.equals(userId)) {
-        tripsAdapter.add(tripDoc);
-      }
-    }
-    // Set the number of trips and update the grid.
-    ((Button) view.findViewById(R.id.noOfTrips)).setText(String.valueOf(tripsAdapter.getCount()));
-    tripsAdapter.notifyDataSetChanged();
-  }
-
-  @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-  public void onFriendsChangedEvent(FriendsChangedEvent event) {
-    int noOfFriends = 0;
-    QueryEnumerator enumerator = event.getEvent().getRows();
-
-    for (int i = 0; i < enumerator.getCount(); i++) {
-      QueryRow row = enumerator.getRow(i);
-      if (row.getKey().equals("confirmed")) {
-        Document friendshipDoc = row.getDocument();
-        if (friendshipDoc.getProperty("sender").equals(userId)) {
-          if (friendshipDoc.getProperty("receiver").equals(USER_ID)) {
-            changeFriendshipButton(FRIENDS);
-          }
-          noOfFriends++;
-        } else if (friendshipDoc.getProperty("receiver").equals(userId)) {
-          if (friendshipDoc.getProperty("sender").equals(USER_ID)) {
-            changeFriendshipButton(FRIENDS);
-          }
-          noOfFriends++;
-        }
-      } else {
-        Log.d(TAG, "Level is sent");
-        Document friendshipDoc = row.getDocument();
-        if (friendshipDoc.getProperty("sender").equals(USER_ID)) {
-          if (friendshipDoc.getProperty("receiver").equals(userId)) {
-            Log.d(TAG, "I am the sender");
-            changeFriendshipButton(REQUEST_SENT);
-            friendshipId = friendshipDoc.getId();
-          }
-        } else if (friendshipDoc.getProperty("receiver").equals(USER_ID)) {
-          if (friendshipDoc.getProperty("sender").equals(userId)) {
-            Log.d(TAG, "The other is the sender");
-            changeFriendshipButton(ADD);
-            friendshipId = friendshipDoc.getId();
-          }
-        }
-      }
-    }
-    ((Button) getView().findViewById(R.id.noOfFriends)).setText(String.valueOf(noOfFriends));
   }
 
   private void changeFriendshipButton(String friendshipStatus) {

@@ -16,32 +16,40 @@ import java.util.List;
 
 import tripster.tripster.Image;
 import tripster.tripster.R;
+import tripster.tripster.UILayer.TransactionManager;
 
-public class UserTripsAdapter extends ArrayAdapter {
+import static tripster.tripster.Constants.TRIP_NAME_K;
+import static tripster.tripster.Constants.TRIP_PREVIEW_K;
+import static tripster.tripster.R.id.tripName;
+import static tripster.tripster.UILayer.TripsterActivity.tDb;
+
+class UserTripsAdapter extends ArrayAdapter<String> {
   private static final String TAG = UserTripsAdapter.class.getName();
-  private final Context context;
-  private List<Document> tripsDocuments;
 
-  public UserTripsAdapter(Context context, int resource, int textViewResourceId, List<Document> objects) {
-    super(context, resource, textViewResourceId, objects);
-    this.tripsDocuments = objects;
-    this.context = context;
+  private List<String> trips;
+  private LayoutInflater inflater;
+  private TransactionManager tM;
+
+  UserTripsAdapter(Context context, int resource, int textViewResourceId, List<String> trips) {
+    super(context, resource, textViewResourceId, trips);
+    this.trips = trips;
+    inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    tM = new TransactionManager(getContext());
   }
 
-  public class ViewHolderTripPreview {
+  private class ViewHolder {
     ImageView tripPreview;
     TextView tripName;
-    Document doc;
   }
 
   @Override
   public int getCount() {
-    return tripsDocuments.size();
+    return trips.size();
   }
 
   @Override
-  public Object getItem(int position) {
-    return tripsDocuments.get(position);
+  public String getItem(int position) {
+    return trips.get(position);
   }
 
   @Override
@@ -52,36 +60,34 @@ public class UserTripsAdapter extends ArrayAdapter {
   @NonNull
   public View getView(int position, View convertView, @NonNull ViewGroup parent) {
     if (convertView == null) {
-      LayoutInflater view
-          = (LayoutInflater)parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-      convertView = view.inflate(R.layout.trips_grid_item, null);
-
-      ViewHolderTripPreview holder = new ViewHolderTripPreview();
-
-      holder.tripName = (TextView) convertView.findViewById(R.id.tripName);
+      convertView = inflater.inflate(R.layout.trips_grid_item, parent);
+      ViewHolder holder = new ViewHolder();
+      holder.tripName = (TextView) convertView.findViewById(tripName);
       holder.tripPreview = (ImageView) convertView.findViewById(R.id.tripPrev);
-
-      holder.doc = tripsDocuments.get(position);
       convertView.setTag(holder);
     }
-
     try {
-      Document tripDocument = tripsDocuments.get(position);
-      String tripNameString = (String) tripDocument.getProperty("name");
-      String tripPreviewPhotoURI = (String) tripDocument.getProperty("preview");
+      final String tripId = trips.get(position);
+      Document tripDocument = tDb.getDocumentById(tripId);
 
-      TextView tripName = ((ViewHolderTripPreview)convertView.getTag()).tripName;
-      tripName.setText(tripNameString);
+      View.OnClickListener tripClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          tM.accessTrip(tripId);
+        }
+      };
 
-      ImageView tripPreview = ((ViewHolderTripPreview)convertView.getTag()).tripPreview;
-      Image image = new Image(tripPreviewPhotoURI, tripNameString);
-      image.displayIn(tripPreview);
+      TextView nameView = ((ViewHolder) convertView.getTag()).tripName;
+      nameView.setText((String) tripDocument.getProperty(TRIP_NAME_K));
+      nameView.setOnClickListener(tripClickListener);
 
+      ImageView previewView = ((ViewHolder) convertView.getTag()).tripPreview;
+      new Image((String) tripDocument.getProperty(TRIP_PREVIEW_K)).displayIn(previewView);
+      previewView.setOnClickListener(tripClickListener);
     } catch (Exception e) {
-      Log.d(TAG, "Cannot display trip");
+      Log.e(TAG, "Cannot display trip");
       e.printStackTrace();
     }
-
     return convertView;
   }
 }

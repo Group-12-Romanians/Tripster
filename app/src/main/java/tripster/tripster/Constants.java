@@ -25,6 +25,7 @@ public class Constants {
   public static final String FRIENDS_BY_USER = "friends/byUser";
   public static final String USERS_BY_ID = "users/byId";
   public static final String NOTIFICATIONS_BY_USER = "notifications/byUser";
+  public static final String FRIENDSHIPS_BY_USER = "friendships/byUser";
 
   // TRIP
   public static final String TRIP_OWNER_K = "ownerId";
@@ -37,6 +38,7 @@ public class Constants {
 
   // USER
   public static final String USER_ID_K = "id";
+  public static final String USER_ABOUT_K = "about";
   public static final String USER_NAME_K = "name";
   public static final String USER_EMAIL_K = "email";
   public static final String USER_AVATAR_K = "avatarUrl";

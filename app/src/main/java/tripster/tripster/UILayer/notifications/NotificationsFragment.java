@@ -66,8 +66,8 @@ public class NotificationsFragment extends Fragment {
 
   @Override
   public void onPause() {
-    super.onPause();
     notificationsLQ.stop();
+    super.onPause();
   }
 
   private void initNotificationsAdapter(List<String> friendRequests) {

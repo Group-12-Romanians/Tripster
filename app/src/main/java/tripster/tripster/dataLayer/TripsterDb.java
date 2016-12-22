@@ -28,6 +28,7 @@ import java.util.Map;
 import static tripster.tripster.Constants.DB_NAME;
 import static tripster.tripster.Constants.DB_STORAGE_TYPE;
 import static tripster.tripster.Constants.DB_SYNC_URL;
+import static tripster.tripster.Constants.FRIENDSHIPS_BY_USER;
 import static tripster.tripster.Constants.FRIENDS_BY_USER;
 import static tripster.tripster.Constants.FS_LEVEL_CONFIRMED;
 import static tripster.tripster.Constants.FS_LEVEL_K;
@@ -137,6 +138,9 @@ public class TripsterDb {
     Document doc = db.getDocument(id);
     boolean changed = false;
     Map<String, Object> props = doc.getUserProperties();
+    if (props == null) {
+      props = new HashMap<>();
+    }
     for (String newK : newProps.keySet()) {
       String newV = (String) newProps.get(newK);
       if (!(props.containsKey(newK) && props.get(newK).equals(newV))) {
@@ -176,6 +180,7 @@ public class TripsterDb {
     initFriendsByUserIdView();
     initNotificationsByUser();
     initUsersById();
+    initFriendshipsByUser();
   }
 
   private void initUsersById() {
@@ -219,6 +224,24 @@ public class TripsterDb {
           keys.add(document.get(FS_RECEIVER_K));
           keys.add(document.get(FS_TIME_K));
           emitter.emit(keys, document); //NOTICE: I emit the document to catch changes in status
+          //TODO: We might not need to emit document actually.
+        }
+      }
+    }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+  }
+
+  private void initFriendshipsByUser() {
+    db.getView(FRIENDSHIPS_BY_USER).setMap(new Mapper() {
+      @Override
+      public void map(Map<String, Object> document, Emitter emitter) {
+        if (document.containsKey(FS_RECEIVER_K) &&
+            document.containsKey(FS_LEVEL_K) &&
+            document.containsKey(FS_SENDER_K)) {
+          List<Object> keys = new ArrayList<>();
+          keys.add(document.get(FS_RECEIVER_K));
+          keys.add(document.get(FS_SENDER_K));
+          emitter.emit(keys, document); //NOTICE: I emit the document to catch changes in status
+          //TODO: We might not need to emit document actually.
         }
       }
     }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.

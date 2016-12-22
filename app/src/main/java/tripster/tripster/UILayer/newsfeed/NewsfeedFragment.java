@@ -95,9 +95,9 @@ public class NewsfeedFragment extends Fragment {
 
   @Override
   public void onPause() {
-    super.onPause();
     friendsLQ.stop();
     fTripsLQ.stop();
+    super.onPause();
   }
 
   private void initItemListAdapter(List<Pair<Long, String>> results) {
