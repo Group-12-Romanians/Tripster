@@ -21,19 +21,32 @@ import com.couchbase.lite.replicator.ReplicationState;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static tripster.tripster.Constants.DB_NAME;
 import static tripster.tripster.Constants.DB_STORAGE_TYPE;
 import static tripster.tripster.Constants.DB_SYNC_URL;
+import static tripster.tripster.Constants.FRIENDS_BY_USER;
+import static tripster.tripster.Constants.FS_LEVEL_CONFIRMED;
+import static tripster.tripster.Constants.FS_LEVEL_K;
+import static tripster.tripster.Constants.FS_LEVEL_SENT;
+import static tripster.tripster.Constants.FS_RECEIVER_K;
+import static tripster.tripster.Constants.FS_SENDER_K;
+import static tripster.tripster.Constants.FS_TIME_K;
+import static tripster.tripster.Constants.NOTIFICATIONS_BY_USER;
+import static tripster.tripster.Constants.PLACES_BY_TRIP_AND_TIME;
+import static tripster.tripster.Constants.PLACE_LAT_K;
+import static tripster.tripster.Constants.PLACE_LNG_K;
+import static tripster.tripster.Constants.PLACE_TIME_K;
+import static tripster.tripster.Constants.PLACE_TRIP_K;
+import static tripster.tripster.Constants.TRIPS_BY_OWNER;
 import static tripster.tripster.Constants.TRIP_NAME_K;
 import static tripster.tripster.Constants.TRIP_OWNER_K;
 import static tripster.tripster.Constants.TRIP_PREVIEW_K;
 import static tripster.tripster.Constants.TRIP_STATUS_K;
-import static tripster.tripster.Constants.TRIPS_BY_OWNER;
-import static tripster.tripster.Constants.TRIP_STOPPED_AT;
+import static tripster.tripster.Constants.TRIP_STOPPED_AT_K;
 
 public class TripsterDb {
   private static final String TAG = TripsterDb.class.getName();
@@ -139,7 +152,29 @@ public class TripsterDb {
   }
 
   public void initAllViews() {
-    String mapVersion = UUID.randomUUID().toString();
+    initTripsByOwnerIdView();
+    initPlacesByTripAndTimeView();
+    initFriendsByUserIdView();
+    initNotificationsByUser();
+  }
+
+  private void initNotificationsByUser() {
+    db.getView(NOTIFICATIONS_BY_USER).setMap(new Mapper() {
+      @Override
+      public void map(Map<String, Object> document, Emitter emitter) {
+        if (document.containsKey(FS_RECEIVER_K) &&
+            document.containsKey(FS_LEVEL_K) &&
+            document.get(FS_LEVEL_K).equals(FS_LEVEL_SENT)) {
+          List<Object> keys = new ArrayList<>();
+          keys.add(document.get(FS_RECEIVER_K));
+          keys.add(document.get(FS_TIME_K));
+          emitter.emit(keys, document); //NOTICE: I emit the document to catch changes in status
+        }
+      }
+    }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+  }
+
+  private void initTripsByOwnerIdView() {
     db.getView(TRIPS_BY_OWNER).setMap(new Mapper() {
       @Override
       public void map(Map<String, Object> document, Emitter emitter) {
@@ -147,65 +182,56 @@ public class TripsterDb {
             && document.containsKey(TRIP_STATUS_K)
             && document.containsKey(TRIP_NAME_K)
             && document.containsKey(TRIP_PREVIEW_K)
-            && document.containsKey(TRIP_STOPPED_AT)) {
-          emitter.emit(document.get(TRIP_OWNER_K), null);
+            && document.containsKey(TRIP_STOPPED_AT_K)) {
+          emitter.emit(document.get(TRIP_OWNER_K), document.get(TRIP_STOPPED_AT_K)); // NOTICE: emit this because we need to sort by it
+          // Also note that this view does not see changes to trips, but that's never going to be needed (from my plans - Dragos)
         }
       }
-    }, mapVersion);
+    }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+  }
 
-//    db.getView("users/byId").setMap(new Mapper() {
-//      @Override
-//      public void map(Map<String, Object> document, Emitter emitter) {
-//        if (document.containsKey("email")
-//            && document.containsKey("avatarUrl")
-//            && document.containsKey("name")) {
-//          emitter.emit(document.get("_id"), null);
-//        }
-//      }
-//    }, mapVersion);
-//
-//    db.getView("places/byTripAndTime").setMap(new Mapper() {
-//      @Override
-//      public void map(Map<String, Object> document, Emitter emitter) {
-//        if (document.containsKey("tripId")
-//            && document.containsKey("time")
-//            && document.containsKey("lat")
-//            && document.containsKey("lng")) {
-//          List<Object> keys = new ArrayList<>();
-//          keys.add(document.get("tripId"));
-//          keys.add(document.get("time"));
-//          emitter.emit(keys, document);
-//        }
-//      }
-//    }, mapVersion);
-//
-//    db.getView("images/byPlace").setMap(new Mapper() {
-//      @Override
-//      public void map(Map<String, Object> document, Emitter emitter) {
-//        if (document.containsKey("placeId")
-//            && document.containsKey("tripId")
-//            && document.containsKey("path")
-//            && document.containsKey("time")) {
-//          emitter.emit(document.get("placeId"), document);
-//        }
-//      }
-//    }, mapVersion);
-//
-//    db.getView("friendships/byLevel").setMap(new Mapper() {
-//      @Override
-//      public void map(Map<String, Object> document, Emitter emitter) {
-//        if (document.containsKey("level")
-//            && document.containsKey("sender")
-//            && document.containsKey("receiver")) {
-//          emitter.emit(document.get("level"), document);
-//        }
-//      }
-//    }, mapVersion);
+  private void initFriendsByUserIdView() {
+    db.getView(FRIENDS_BY_USER).setMap(new Mapper() {
+      @Override
+      public void map(Map<String, Object> document, Emitter emitter) {
+        if (document.containsKey(FS_SENDER_K)
+            && document.containsKey(FS_RECEIVER_K)
+            && document.containsKey(FS_LEVEL_K)) {
+          if (document.get(FS_LEVEL_K).equals(FS_LEVEL_CONFIRMED)) {
+            Map<String, Object> receiver = new HashMap<>();
+            receiver.put("_id", document.get(FS_RECEIVER_K));
+            emitter.emit(document.get(FS_SENDER_K), receiver);
+
+            Map<String, Object> sender = new HashMap<>();
+            sender.put("_id", document.get(FS_SENDER_K));
+            emitter.emit(document.get(FS_RECEIVER_K), sender); // NOTICE: I redirect this to point at user rows because that's what we need anyway
+            // Also this doesn't see changes in user docs and not even in friendship docs
+          }
+        }
+      }
+    }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+  }
+
+  public void initPlacesByTripAndTimeView() {
+    db.getView(PLACES_BY_TRIP_AND_TIME).setMap(new Mapper() {
+      @Override
+      public void map(Map<String, Object> document, Emitter emitter) {
+        if (document.containsKey(PLACE_TRIP_K)
+            && document.containsKey(PLACE_TIME_K)
+            && document.containsKey(PLACE_LAT_K)
+            && document.containsKey(PLACE_LNG_K)) {
+          List<Object> keys = new ArrayList<>();
+          keys.add(document.get(PLACE_TRIP_K));
+          keys.add(document.get(PLACE_TIME_K));
+          emitter.emit(keys, null);
+        }
+      }
+    }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 
   public Document getLastLocationOfTrip(String tripId) {
     try {
-      Query q = db.getExistingView("places/byTripAndTime").createQuery();
+      Query q = db.getExistingView(PLACES_BY_TRIP_AND_TIME).createQuery();
       List<Object> firstKey = new ArrayList<>();
       firstKey.add(tripId);
       firstKey.add((long) 0);
@@ -217,10 +243,16 @@ public class TripsterDb {
       q.setDescending(true);
       q.setLimit(1);
       QueryEnumerator enumerator = q.run();
-
-      return enumerator.getRow(0).getDocument();
+      if (enumerator.getCount() == 1) {
+        return enumerator.getRow(0).getDocument();
+      } else if (enumerator.getCount() == 1){
+        return null;
+      } else {
+        Log.e(TAG, "Impossible, since limit was set to 1!!!!!!!");
+        return null;
+      }
     } catch (CouchbaseLiteException e) {
-      throw new RuntimeException("currently running trip query failed:" + e.getMessage());
+      throw new RuntimeException("Currently running trip query failed:" + e.getMessage());
     }
   }
 }

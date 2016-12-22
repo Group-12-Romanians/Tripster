@@ -1,8 +1,8 @@
 package tripster.tripster.UILayer;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -22,8 +22,13 @@ import android.widget.Toast;
 import com.couchbase.lite.Document;
 import com.github.clans.fab.FloatingActionButton;
 
+import net.grandcentrix.tray.AppPreferences;
+import net.grandcentrix.tray.core.OnTrayPreferenceChangeListener;
+import net.grandcentrix.tray.core.TrayItem;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,9 +46,12 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
-import static tripster.tripster.Constants.APP_NAME;
 import static tripster.tripster.Constants.CURR_TRIP;
 import static tripster.tripster.Constants.MY_ID;
+import static tripster.tripster.Constants.PAUSE_SERVICE;
+import static tripster.tripster.Constants.RESUME_SERVICE;
+import static tripster.tripster.Constants.START_SERVICE;
+import static tripster.tripster.Constants.STOP_SERVICE;
 import static tripster.tripster.Constants.USER_AVATAR_K;
 import static tripster.tripster.Constants.USER_EMAIL_K;
 import static tripster.tripster.Constants.USER_ID_K;
@@ -57,6 +65,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   public static TripsterDb tDb;
   public static String currentUserId;
 
+  private AppPreferences pref = new AppPreferences(getApplicationContext());
   private LogoutProvider accountProvider;
 
   @Override
@@ -84,7 +93,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   }
 
   @Override
-  public void onRequestPermissionsResult(int requestCode, String perms[], int[] grantResults) {
+  public void onRequestPermissionsResult(int requestCode, @NonNull String perms[], @NonNull int[] grantResults) {
     switch (requestCode) {
       case MY_PERMISSIONS_REQUEST: {
         if (grantResults.length != 2 || grantResults[0] == PERMISSION_DENIED ||  grantResults[1] == PERMISSION_DENIED) {
@@ -116,7 +125,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
     String avatarUrl = getIntent().getStringExtra(USER_AVATAR_K);
 
     currentUserId = userId;
-    getSharedPreferences(APP_NAME, MODE_PRIVATE).edit().putString(MY_ID, userId).apply();
+    pref.put(MY_ID, userId);
     Log.d(TAG, "The current user ID is: " + userId);
 
     recreateLoginSession();
@@ -145,47 +154,24 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   }
 
   private void initializeFab() {
-    updateFabState(getSharedPreferences(APP_NAME, MODE_PRIVATE).getString(CURR_TRIP, ""));
+    updateFabState(pref.getString(CURR_TRIP, ""));
 
-    findViewById(R.id.tracking_start).setOnClickListener(new View.OnClickListener() {
+    findViewById(R.id.tracking_start).setOnClickListener(getFABListener(START_SERVICE));
+    findViewById(R.id.tracking_pause).setOnClickListener(getFABListener(PAUSE_SERVICE));
+    findViewById(R.id.tracking_resume).setOnClickListener(getFABListener(RESUME_SERVICE));
+    findViewById(R.id.tracking_stop).setOnClickListener(getFABListener(STOP_SERVICE));
+  }
+
+  private View.OnClickListener getFABListener(final String flag) {
+    return new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        Log.d(TAG, "wanna switch to start recording");
+        Log.d(TAG, "wanna switch to " + flag + " recording");
         Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
-        serviceIntent.putExtra("flag", "start");
+        serviceIntent.putExtra("flag", flag);
         TripsterActivity.this.startService(serviceIntent);
       }
-    });
-
-    findViewById(R.id.tracking_pause).setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        Log.d(TAG, "wanna switch to pause recording");
-        Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
-        serviceIntent.putExtra("flag", "pause");
-        TripsterActivity.this.startService(serviceIntent);
-      }
-    });
-
-    findViewById(R.id.tracking_resume).setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        Log.d(TAG, "wanna switch to resume recording");
-        Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
-        serviceIntent.putExtra("flag", "resume");
-        TripsterActivity.this.startService(serviceIntent);
-      }
-    });
-
-    findViewById(R.id.tracking_stop).setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        Log.d(TAG, "wanna switch to stop recording");
-        Intent serviceIntent = new Intent(TripsterActivity.this, LocationService.class);
-        serviceIntent.putExtra("flag", "stop");
-        TripsterActivity.this.startService(serviceIntent);
-      }
-    });
+    };
   }
 
   private void updateFabState(String currentTripDetails) {
@@ -227,7 +213,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
 
   @SuppressWarnings("StatementWithEmptyBody")
   @Override
-  public boolean onNavigationItemSelected(MenuItem item) {
+  public boolean onNavigationItemSelected(@NonNull MenuItem item) {
     // Handle navigation view item clicks here.
     int id = item.getItemId();
 
@@ -270,14 +256,16 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   protected void onResume() {
     super.onResume();
     tDb.getDocumentById(currentUserId).addChangeListener(currentUserChangeListener);
-    getSharedPreferences(APP_NAME, MODE_PRIVATE).registerOnSharedPreferenceChangeListener(currentTripChangeListener);
+    pref.registerOnTrayPreferenceChangeListener(currentTripChangeListener);
   }
 
-  SharedPreferences.OnSharedPreferenceChangeListener currentTripChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+  OnTrayPreferenceChangeListener currentTripChangeListener = new OnTrayPreferenceChangeListener() {
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-      if (key.equals(CURR_TRIP)) {
-        updateFabState(sharedPreferences.getString(CURR_TRIP, ""));
+    public void onTrayPreferenceChanged(Collection<TrayItem> items) {
+      for(TrayItem i : items) {
+        if(i.key().equals(CURR_TRIP)) {
+          updateFabState(pref.getString(CURR_TRIP, ""));
+        }
       }
     }
   };
@@ -304,7 +292,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   @Override
   protected void onPause() {
     tDb.getDocumentById(currentUserId).removeChangeListener(currentUserChangeListener);
-    getSharedPreferences(APP_NAME, MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(currentTripChangeListener);
+    pref.unregisterOnTrayPreferenceChangeListener(currentTripChangeListener);
     super.onPause();
   }
 }

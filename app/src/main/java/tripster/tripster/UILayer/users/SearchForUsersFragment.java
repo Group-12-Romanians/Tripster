@@ -3,44 +3,35 @@ package tripster.tripster.UILayer.users;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.couchbase.lite.Document;
 import com.couchbase.lite.LiveQuery;
-import com.couchbase.lite.QueryEnumerator;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
+import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryRow;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import tripster.tripster.R;
-import tripster.tripster.dataLayer.events.FriendsChangedEvent;
-import tripster.tripster.dataLayer.events.UsersChangedEvent;
+
+import static junit.framework.Assert.assertNotNull;
+import static tripster.tripster.Constants.FRIENDS_BY_USER;
+import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 public class SearchForUsersFragment extends Fragment {
   private static final String TAG = SearchForUsersFragment.class.getName();
 
   private SearchableAdapter searchableAdapter;
-  private ListView friendsList;
-  private Map<String, Document> users;
-  private Set<String> myFriends;
   private String myId;
+  private LiveQuery usersLQ;
 
   @Nullable
   @Override
@@ -61,96 +52,58 @@ public class SearchForUsersFragment extends Fragment {
         if (searchableAdapter != null) {
           searchableAdapter.getFilter().filter(s.toString());
         }
-
       }
 
       @Override
       public void afterTextChanged(Editable s) {
       }
     });
-    friendsList = (ListView) view.findViewById(R.id.friends_list);
     return view;
   }
 
   @Override
   public void onResume() {
-    Log.d(TAG, "Register fragment");
-    users = new HashMap<>();
-    myFriends = new HashSet<>();
-    EventBus.getDefault().register(this);
     super.onResume();
+    restartUsersLiveQuery();
   }
 
-  @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-  public void onUsersChangedEvent(UsersChangedEvent event) {
-    LiveQuery.ChangeEvent liveChangeEvent = event.getEvent();
-    QueryEnumerator changes = liveChangeEvent.getRows();
-    for (int i = 0; i < changes.getCount(); i++) {
-      Document doc = changes.getRow(i).getDocument();
-      users.put(doc.getId(), doc);
-    }
-    initSearchableAdapter();
-  }
-
-  @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-  public void onFriendsChangedEvent(FriendsChangedEvent event) {
+  private void restartUsersLiveQuery() {
+    Query q = tDb.getDb().getExistingView(FRIENDS_BY_USER).createQuery();
     if (!myId.equals("none")) {
-      LiveQuery.ChangeEvent liveChangeEvent = event.getEvent();
-      QueryEnumerator changes = liveChangeEvent.getRows();
-      for (int i = 0; i < changes.getCount(); i++) {
-        if (changes.getRow(i).getKey().equals("confirmed")) {
-          Document doc = changes.getRow(i).getDocument();
-          if (doc.getProperty("sender").equals(myId)) {
-            myFriends.add((String) doc.getProperty("receiver"));
-          } else if (doc.getProperty("receiver").equals(myId)) {
-            myFriends.add((String) doc.getProperty("sender"));
-          }
-        }
-      }
-      //TODO:add reinit
-      initSearchableAdapter();
+      q.setKeys(Collections.singletonList((Object) myId));
     }
-  }
-
-  private void initSearchableAdapter() {
-    List<Document> list;
-    if (!myId.equals("none")) {
-      list  = new ArrayList<>();
-      for (String friend : myFriends) {
-        list.add(users.get(friend));
-      }
-    } else {
-      list = new ArrayList<>(users.values());
-    }
-    searchableAdapter = new SearchableAdapter(
-        getActivity(),
-        list);
-    friendsList.setAdapter(searchableAdapter);
-    friendsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+    usersLQ = q.toLiveQuery();
+    usersLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
-      public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Log.d(TAG, "I clicked on a user, I want to see him :)");
-        SearchableAdapter.ViewHolder holder = (SearchableAdapter.ViewHolder) view.getTag();
-        accessUserProfile(holder.doc);
+      public void changed(LiveQuery.ChangeEvent event) {
+        List<String> results = new ArrayList<>();
+        for (int i = 0; i < event.getRows().getCount(); i++) {
+          QueryRow r = event.getRows().getRow(i);
+          results.add(r.getDocumentId());
+        }
+        Collections.sort(results, new Comparator<String>() {
+          @Override
+          public int compare(String o1, String o2) {
+            return o1.compareTo(o2);
+          }
+        });
+        initSearchableAdapter(results);
       }
     });
-  }
-
-  private void accessUserProfile(Document doc) {
-    // Change to the corresponding UserProfile.
-    UserProfileFragment frag = new UserProfileFragment();
-    Bundle arguments = new Bundle();
-    arguments.putString("userId", doc.getId());
-    frag.setArguments(arguments);
-    FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag);
-    trans.addToBackStack("");
-    trans.commit();
+    usersLQ.start();
   }
 
   @Override
   public void onPause() {
-    Log.d(TAG, "UnRegister fragment");
-    EventBus.getDefault().unregister(this);
+    usersLQ.stop();
     super.onPause();
+  }
+
+  private void initSearchableAdapter(List<String> users) {
+    searchableAdapter = new SearchableAdapter(
+        getActivity(),
+        users);
+    assertNotNull(getView());
+    ((ListView) getView().findViewById(R.id.friends_list)).setAdapter(searchableAdapter);
   }
 }

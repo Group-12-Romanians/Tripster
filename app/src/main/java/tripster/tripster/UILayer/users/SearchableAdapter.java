@@ -1,6 +1,9 @@
 package tripster.tripster.UILayer.users;
 
 import android.app.Activity;
+import android.content.Context;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -16,20 +19,28 @@ import java.util.List;
 
 import tripster.tripster.Image;
 import tripster.tripster.R;
+import tripster.tripster.UILayer.TransactionManager;
 
-public class SearchableAdapter extends BaseAdapter implements Filterable {
+import static tripster.tripster.Constants.USER_AVATAR_K;
+import static tripster.tripster.Constants.USER_NAME_K;
+import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
+class SearchableAdapter extends BaseAdapter implements Filterable {
   private static final String TAG = SearchableAdapter.class.getName();
-  private final List<Document> originalData;
-  private List<Document> filteredData;
-  private Activity activity;
+
+  private final List<String> originalData;
+  private List<String> filteredData;
+  private TransactionManager tM;
+  private LayoutInflater inflater;
   private Filter itemFilter;
 
-  public SearchableAdapter(Activity activity, List<Document> data) {
+  SearchableAdapter(Activity activity, List<String> data) {
     this.filteredData = data;
     this.originalData = data;
-    this.activity = activity;
     itemFilter = new ItemFilter();
+
+    inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    tM = new TransactionManager(activity);
   }
 
   @Override
@@ -38,7 +49,7 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
   }
 
   @Override
-  public Object getItem(int position) {
+  public String getItem(int position) {
     return filteredData.get(position);
   }
 
@@ -47,36 +58,46 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
     return position;
   }
 
-  public class ViewHolder {
+  private class ViewHolder {
     TextView text;
     ImageView image;
-    Document doc;
   }
 
   @Override
   public View getView(int position, View convertView, ViewGroup parent) {
-    // A ViewHolder keeps references to children views to avoid unnecessary calls to findViewById() on each row.
-    ViewHolder holder;
-
-    // When convertView is not null, we can reuse it directly, there is no need to reinflate it.
     if (convertView == null) {
-      convertView = activity.getLayoutInflater().inflate(R.layout.users_list_item, null);
-
-      // Creates a ViewHolder and store references to the two children views
-      // we want to bind data to.
-      holder = new ViewHolder();
+      convertView = inflater.inflate(R.layout.users_list_item, parent);
+      ViewHolder holder = new ViewHolder();
       holder.text = (TextView) convertView.findViewById(R.id.friend_item_view);
       holder.image = (ImageView) convertView.findViewById(R.id.friend_pic);
-      holder.doc = filteredData.get(position);
-
       convertView.setTag(holder);
-    } else {
-      holder = (ViewHolder) convertView.getTag();
     }
+    try {
+      final String userId = filteredData.get(position);
+      final Document userDoc = tDb.getDocumentById(userId);
 
-    String userName = (String) filteredData.get(position).getProperty("name");
-    holder.text.setText(userName);
-    new Image((String) filteredData.get(position).getProperty("avatarUrl"), "").displayIn(holder.image);
+      // Listeners
+      View.OnClickListener userClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          tM.accessUser(userId);
+        }
+      };
+
+      // Set user name.
+      TextView name = ((ViewHolder) convertView.getTag()).text;
+      name.setOnClickListener(userClickListener);
+      name.setText((String) userDoc.getProperty(USER_NAME_K));
+
+      // Set user picture.
+      ImageView requesterPhoto = ((ViewHolder)convertView.getTag()).image;
+      Image image = new Image((String) userDoc.getProperty(USER_AVATAR_K));
+      requesterPhoto.setOnClickListener(userClickListener);
+      image.displayIn(requesterPhoto);
+    } catch (Exception e) {
+      Log.e(TAG, "Cannot display friend request");
+      e.printStackTrace();
+    }
     return convertView;
   }
 
@@ -89,9 +110,9 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
     @Override
     protected FilterResults performFiltering(CharSequence constraint) {
       String filterString = constraint.toString().toLowerCase();
-      List<Document> results = new ArrayList<>();
-      for (Document candidateData : originalData) {
-        String candidate = (String) candidateData.getProperty("name");
+      List<String> results = new ArrayList<>();
+      for (String candidateData : originalData) {
+        String candidate = (String) tDb.getDocumentById(candidateData).getProperty(USER_NAME_K);
         if (candidate.toLowerCase().contains(filterString)) {
           results.add(candidateData);
         }
@@ -105,7 +126,7 @@ public class SearchableAdapter extends BaseAdapter implements Filterable {
     @SuppressWarnings("unchecked")
     @Override
     protected void publishResults(CharSequence constraint, FilterResults results) {
-      filteredData = (List<Document>) results.values;
+      filteredData = (List<String>) results.values;
       notifyDataSetChanged();
     }
   }

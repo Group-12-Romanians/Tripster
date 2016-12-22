@@ -3,12 +3,9 @@ package tripster.tripster.UILayer.newsfeed;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,33 +19,43 @@ import java.util.List;
 
 import tripster.tripster.Image;
 import tripster.tripster.R;
-import tripster.tripster.UILayer.trip.timeline.TimelineFragment;
-import tripster.tripster.UILayer.users.UserProfileFragment;
+import tripster.tripster.UILayer.TransactionManager;
 
-public class NewsfeedAdapter extends ArrayAdapter {
+import static tripster.tripster.Constants.TRIP_DESCRIPTION_K;
+import static tripster.tripster.Constants.TRIP_NAME_K;
+import static tripster.tripster.Constants.TRIP_OWNER_K;
+import static tripster.tripster.Constants.TRIP_PREVIEW_K;
+import static tripster.tripster.Constants.TRIP_VIDEO_K;
+import static tripster.tripster.Constants.USER_AVATAR_K;
+import static tripster.tripster.Constants.USER_NAME_K;
+import static tripster.tripster.R.id.tripDescription;
+import static tripster.tripster.R.id.userName;
+import static tripster.tripster.UILayer.TripsterActivity.tDb;
+
+class NewsfeedAdapter extends ArrayAdapter<String> {
 
   private static final String TAG = NewsfeedAdapter.class.getName();
-  public static final int TRANSPARENCY = 90;
-  private List<Pair<Document, Document>> friendsTrips;
-  private Context context;
+  private static final int TRANSPARENCY = 90;
+  private List<String> friendsTrips;
+  private TransactionManager tM;
+  private LayoutInflater inflater;
 
-  public NewsfeedAdapter(Context context, int resource, int textViewResourceId, List<Pair<Document, Document>> friendsTrips) {
-    super(context, resource, textViewResourceId, friendsTrips);
-    this.friendsTrips = friendsTrips;
-    this.context = context;
+   NewsfeedAdapter(Context context, int resource, int textViewResourceId, List<String> userStories) {
+     super(context, resource, textViewResourceId, userStories);
+     this.friendsTrips = userStories;
+     inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+     tM = new TransactionManager(getContext());
   }
 
-  public class ViewHolderNewsfeedPreview {
+  private class ViewHolder {
     // User details
     ImageView userAvatar;
     TextView userName;
-    Document userDoc;
     // Trip details
     ImageView tripPreview;
     ImageView playBtnImg;
     TextView tripName;
     TextView tripDescription;
-    Document tripDoc;
   }
 
   @Override
@@ -57,7 +64,7 @@ public class NewsfeedAdapter extends ArrayAdapter {
   }
 
   @Override
-  public Object getItem(int position) {
+  public String getItem(int position) {
     return friendsTrips.get(position);
   }
 
@@ -69,77 +76,79 @@ public class NewsfeedAdapter extends ArrayAdapter {
   @NonNull
   public View getView(int position, View convertView, @NonNull ViewGroup parent) {
     if (convertView == null) {
-      LayoutInflater view
-          = (LayoutInflater)parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-      convertView = view.inflate(R.layout.user_story, null);
-      convertView.addOnAttachStateChangeListener();
-      ViewHolderNewsfeedPreview holder = new ViewHolderNewsfeedPreview();
-      // Set user details
-      holder.userName = (TextView) convertView.findViewById(R.id.userName);
+      convertView = inflater.inflate(R.layout.user_story, parent);
+      ViewHolder holder = new ViewHolder();
+
+      // Set holder fields
+      holder.userName = (TextView) convertView.findViewById(userName);
       holder.userAvatar = (ImageView) convertView.findViewById(R.id.userAvatar);
-      holder.userDoc = friendsTrips.get(position).first;
-      // Set trip details
       holder.tripName = (TextView) convertView.findViewById(R.id.tripName);
-      holder.tripDescription = (TextView) convertView.findViewById(R.id.tripDescription);
+      holder.tripDescription = (TextView) convertView.findViewById(tripDescription);
       holder.tripPreview = (ImageView) convertView.findViewById(R.id.tripPreview);
-      holder.tripDoc = friendsTrips.get(position).second;
       holder.playBtnImg = (ImageView) convertView.findViewById(R.id.playBtImg);
+      holder.playBtnImg.setImageAlpha(TRANSPARENCY);
       convertView.setTag(holder);
     }
 
     try {
-      Pair<Document, Document> newsFeedDocs = friendsTrips.get(position);
-      final Document userDoc = newsFeedDocs.first;
-      final Document tripDoc = newsFeedDocs.second;
+
+      final String tripId = friendsTrips.get(position);
+      final Document tripDoc = tDb.getDocumentById(tripId);
+      final String userId = (String) tripDoc.getProperty(TRIP_OWNER_K);
+      Document userDoc = tDb.getDocumentById(userId);
+
+      View.OnClickListener userClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          tM.accessUser(userId);
+        }
+      };
+      View.OnClickListener tripClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          tM.accessTrip(tripId);
+        }
+      };
 
       // Set username
-      String userName = (String) userDoc.getProperty("name");
-      TextView userNameView = ((ViewHolderNewsfeedPreview) convertView.getTag()).userName;
-      userNameView.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          accessUser(userDoc);
-        }
-      });
-      userNameView.setText(userName);
+      TextView userNameView = ((ViewHolder) convertView.getTag()).userName;
+      userNameView.setOnClickListener(userClickListener);
+      userNameView.setText((String) userDoc.getProperty(USER_NAME_K));
+
       // Set avatar
-      String userAvatar = (String) userDoc.getProperty("avatarUrl");
-      Image avatar = new Image(userAvatar, userName);
-      ImageView userAvatarView = ((ViewHolderNewsfeedPreview) convertView.getTag()).userAvatar;
+      ImageView userAvatarView = ((ViewHolder) convertView.getTag()).userAvatar;
+      userAvatarView.setOnClickListener(userClickListener);
+      Image avatar = new Image((String) userDoc.getProperty(USER_AVATAR_K));
       avatar.displayIn(userAvatarView);
+
       // Set trip name
-      String tripName = (String) tripDoc.getProperty("name");
-      TextView tripNameView = ((ViewHolderNewsfeedPreview) convertView.getTag()).tripName;
-      tripNameView.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          accessTrip(tripDoc);
-        }
-      });
-      tripNameView.setText(tripName);
+      TextView tripNameView = ((ViewHolder) convertView.getTag()).tripName;
+      tripNameView.setOnClickListener(tripClickListener);
+      tripNameView.setText((String) tripDoc.getProperty(TRIP_NAME_K));
+
       // Set trip description
-      String tripDescription = (String) tripDoc.getProperty("description");
-      TextView tripDescriptionView = ((ViewHolderNewsfeedPreview) convertView.getTag()).tripDescription;
+      TextView tripDescriptionView = ((ViewHolder) convertView.getTag()).tripDescription;
+      String tripDescription = (String) tripDoc.getProperty(TRIP_DESCRIPTION_K);
       if (tripDescription == null) {
-        tripDescriptionView.setVisibility(View.INVISIBLE);
+        tripDescriptionView.setVisibility(View.GONE);
       } else {
         tripDescriptionView.setVisibility(View.VISIBLE);
+        tripDescriptionView.setOnClickListener(tripClickListener);
         tripDescriptionView.setText(tripDescription);
       }
+
       // Set trip preview
-      String tripPreviewUri = (String) tripDoc.getProperty("preview");
-      ImageView tripPreview = ((ViewHolderNewsfeedPreview) convertView.getTag()).tripPreview;
-      Image image = new Image(tripPreviewUri, "");
+      ImageView tripPreview = ((ViewHolder) convertView.getTag()).tripPreview;
+      Image image = new Image((String) tripDoc.getProperty(TRIP_PREVIEW_K));
       image.displayIn(tripPreview);
-      // Add play button image view
-      ImageView playbtnView = ((ViewHolderNewsfeedPreview) convertView.getTag()).playBtnImg;
-      playbtnView.setImageAlpha(TRANSPARENCY);
-      playbtnView.setOnClickListener(new View.OnClickListener() {
+
+      // Set play button image view listener
+      ((ViewHolder) convertView.getTag()).playBtnImg.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
           Intent intent = new Intent(Intent.ACTION_VIEW);
-          String videoUrl = (String) tripDoc.getProperty("video");
-          Log.d(TAG, "Video uri is " +videoUrl );
+          String videoUrl = (String) tripDoc.getProperty(TRIP_VIDEO_K);
+          Log.d(TAG, "Video url is " + videoUrl );
           if (videoUrl != null) {
             intent.setDataAndType(Uri.parse(videoUrl), "video/*");
             if (getContext() instanceof AppCompatActivity) {
@@ -150,37 +159,9 @@ public class NewsfeedAdapter extends ArrayAdapter {
         }
       });
     } catch (Exception e) {
-      Log.d(TAG, "Cannot display trip story");
+      Log.e(TAG, "Cannot display trip story");
       e.printStackTrace();
     }
     return convertView;
-  }
-
-  private void accessTrip(Document tripDoc) {
-    // Change to the corresponding TripFragment.
-    TimelineFragment frag = new TimelineFragment();
-    Bundle arguments = new Bundle();
-    arguments.putString("tripId", tripDoc.getId());
-    frag.setArguments(arguments);
-    if (getContext() instanceof AppCompatActivity) {
-      AppCompatActivity activity = (AppCompatActivity) getContext();
-      FragmentTransaction trans = activity.getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag);
-      trans.addToBackStack("");
-      trans.commit();
-    }
-  }
-
-  private void accessUser(Document userDoc) {
-    // Change to the corresponding UserProfileFragment.
-    UserProfileFragment frag = new UserProfileFragment();
-    Bundle arguments = new Bundle();
-    arguments.putString("userId", userDoc.getId());
-    frag.setArguments(arguments);
-    if (getContext() instanceof AppCompatActivity) {
-      AppCompatActivity activity = (AppCompatActivity) getContext();
-      FragmentTransaction trans = activity.getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag);
-      trans.addToBackStack("");
-      trans.commit();
-    }
   }
 }

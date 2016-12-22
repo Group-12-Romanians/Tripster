@@ -21,7 +21,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static tripster.tripster.UILayer.TripsterActivity.SERVER_URL;
+import static junit.framework.Assert.assertNotNull;
+import static tripster.tripster.Constants.SCALED_HEIGHT;
+import static tripster.tripster.Constants.SCALED_WIDTH;
+import static tripster.tripster.Constants.SERVER_URL;
 
 public class ImageUploader extends AsyncTask<String, Void, String> {
   private static final String CRLF = "\r\n";
@@ -47,27 +50,25 @@ public class ImageUploader extends AsyncTask<String, Void, String> {
       e.printStackTrace();
     }
     try {
+      assertNotNull(url);
       httpUrlConnection = (HttpURLConnection) url.openConnection();
       httpUrlConnection.setUseCaches(false);
       httpUrlConnection.setDoOutput(true);
-
       httpUrlConnection.setRequestMethod("POST");
       httpUrlConnection.setRequestProperty("Connection", "Keep-Alive");
       httpUrlConnection.setRequestProperty("Cache-Control", "no-cache");
-      httpUrlConnection.setRequestProperty(
-          "Content-Type", "multipart/form-data;boundary=" + BOUNDARY);
+      httpUrlConnection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + BOUNDARY);
 
       DataOutputStream request = new DataOutputStream(httpUrlConnection.getOutputStream());
       request.writeBytes(TWO_HYPHENS + BOUNDARY + CRLF);
-      request.writeBytes("Content-Disposition: form-data; name=\"photo\"; filename=\"" +
-          photoId + ".jpg" + "\"" + CRLF);
+      request.writeBytes("Content-Disposition: form-data; name=\"photo\"; filename=\"" + photoId + ".jpg" + "\"" + CRLF);
       request.writeBytes(CRLF);
 
       File imageFile = new File(photoPath);
       FileInputStream fis = new FileInputStream(imageFile);
 
       Bitmap bm = BitmapFactory.decodeStream(fis);
-      Bitmap resizedBitmap = bitmapResize(bm, 640, 440);
+      Bitmap resizedBitmap = bitmapResize(bm, SCALED_WIDTH, SCALED_HEIGHT);
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
       byte[] bytes = baos.toByteArray();
@@ -86,9 +87,7 @@ public class ImageUploader extends AsyncTask<String, Void, String> {
       String line;
       StringBuilder stringBuilder = new StringBuilder();
 
-      while ((line = responseStreamReader.readLine()) != null)
-
-      {
+      while ((line = responseStreamReader.readLine()) != null) {
         stringBuilder.append(line).append("\n");
       }
 
@@ -98,7 +97,6 @@ public class ImageUploader extends AsyncTask<String, Void, String> {
       Log.d("RESPONSE IS:", response);
 
       responseStream.close();
-
       httpUrlConnection.disconnect();
     } catch (IOException e) {
       e.printStackTrace();
