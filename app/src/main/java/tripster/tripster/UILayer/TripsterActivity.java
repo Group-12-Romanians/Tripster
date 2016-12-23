@@ -2,6 +2,8 @@ package tripster.tripster.UILayer;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -279,7 +281,12 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   private Document.ChangeListener currentUserChangeListener = new Document.ChangeListener() {
     @Override
     public void changed(Document.ChangeEvent event) {
-      initializeHeader();
+      new Handler(Looper.getMainLooper()).post(new Runnable() {
+        @Override
+        public void run() {
+          initializeHeader();
+        }
+      });
     }
   };
 

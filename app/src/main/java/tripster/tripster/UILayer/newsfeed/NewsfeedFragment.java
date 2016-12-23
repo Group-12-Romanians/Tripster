@@ -1,6 +1,8 @@
 package tripster.tripster.UILayer.newsfeed;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -79,7 +81,7 @@ public class NewsfeedFragment extends Fragment {
     fTripsLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(LiveQuery.ChangeEvent event) {
-        List<Pair<Long, String>> results = new ArrayList<>();
+        final List<Pair<Long, String>> results = new ArrayList<>();
         for (int i = 0; i < event.getRows().getCount(); i++) {
           QueryRow r = event.getRows().getRow(i);
           Pair<Long, String> p = new Pair<>((Long) r.getValue(), r.getDocumentId());
@@ -91,7 +93,12 @@ public class NewsfeedFragment extends Fragment {
             return o2.first.compareTo(o1.first);
           }
         });
-        initItemListAdapter(results);
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+          @Override
+          public void run() {
+            initItemListAdapter(results);
+          }
+        });
       }
     });
     fTripsLQ.start();

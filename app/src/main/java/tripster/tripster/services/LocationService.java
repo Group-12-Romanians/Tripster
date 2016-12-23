@@ -54,20 +54,23 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
   private GoogleApiClient googleClient;
   private Timer timer;
   private Pair<String, String> currentTripDetails = new Pair<>("", "");
-  private AppPreferences pref = new AppPreferences(getApplicationContext());
+  private AppPreferences pref;
   private TripsterDb tDb;
 
   public LocationService() {
     super();
     googleClient = null;
-    tDb = TripsterDb.getInstance(getApplicationContext());
-    tDb.initPlacesByTripAndTimeView();
     Log.i(TAG, "LocationService created");
   }
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     super.onStartCommand(intent, flags, startId);
+
+    pref = new AppPreferences(getApplicationContext());
+    tDb = TripsterDb.getInstance(getApplicationContext());
+    tDb.initPlacesByTripAndTimeView();
+
     String userId = pref.getString(MY_ID, "");
     currentTripDetails = getCurrentTripDetails();
 
@@ -102,8 +105,9 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
   }
 
   private Pair<String, String> getCurrentTripDetails() {
-    String prefDetails = pref.getString(CURR_TRIP, "");
+    String prefDetails = pref.getString(CURR_TRIP, ":");
     assertNotNull(prefDetails); //TODO: Take care with this in prod.
+    Log.d(TAG, "Pref details of curr trip are: " + prefDetails);
     String[] parts = prefDetails.split(":");
     if (parts.length == 2) {
       return new Pair<>(parts[0], parts[1]);
@@ -153,6 +157,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
   }
 
   private void pauseTrip() {
+    Log.d(TAG, "Pause info: tripId" + getTripId() + ", status " + getStatus() + "docById" + tDb.getDocumentById(getTripId()));
     if (!getTripId().isEmpty() && getStatus().equals("running") && tDb.getDocumentById(getTripId()) != null) {
       setCurrentTripDetails("paused", getTripId());
 
@@ -279,6 +284,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
   private void saveLocation(Location currentLocation) {
     String newId = UUID.randomUUID().toString();
     Map<String, Object> props = new HashMap<>();
+    Log.d(TAG, "New location: " + currentLocation.getLatitude() + ", " + currentLocation.getLongitude() + " at " + currentLocation.getTime());
     props.put(PLACE_LAT_K, currentLocation.getLatitude());
     props.put(PLACE_LNG_K, currentLocation.getLongitude());
     props.put(PLACE_TIME_K, currentLocation.getTime());
