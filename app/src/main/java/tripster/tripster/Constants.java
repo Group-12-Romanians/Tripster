@@ -29,7 +29,6 @@ public class Constants {
 
   // TRIP
   public static final String TRIP_OWNER_K = "ownerId";
-  public static final String TRIP_STATUS_K = "status";
   public static final String TRIP_NAME_K = "name";
   public static final String TRIP_PREVIEW_K = "preview";
   public static final String TRIP_STOPPED_AT_K = "stoppedAt";
