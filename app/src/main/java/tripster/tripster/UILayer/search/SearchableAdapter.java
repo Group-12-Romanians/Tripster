@@ -1,4 +1,4 @@
-package tripster.tripster.UILayer.users;
+package tripster.tripster.UILayer.search;
 
 import android.app.Activity;
 import android.content.Context;
@@ -66,7 +66,7 @@ class SearchableAdapter extends BaseAdapter implements Filterable {
   @Override
   public View getView(int position, View convertView, ViewGroup parent) {
     if (convertView == null) {
-      convertView = inflater.inflate(R.layout.users_list_item, parent);
+      convertView = inflater.inflate(R.layout.users_list_item, null);
       ViewHolder holder = new ViewHolder();
       holder.text = (TextView) convertView.findViewById(R.id.friend_item_view);
       holder.image = (ImageView) convertView.findViewById(R.id.friend_pic);

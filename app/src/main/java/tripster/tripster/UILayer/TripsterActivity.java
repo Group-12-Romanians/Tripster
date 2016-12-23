@@ -36,7 +36,7 @@ import tripster.tripster.Image;
 import tripster.tripster.R;
 import tripster.tripster.UILayer.newsfeed.NewsfeedFragment;
 import tripster.tripster.UILayer.notifications.NotificationsFragment;
-import tripster.tripster.UILayer.users.SearchForUsersFragment;
+import tripster.tripster.UILayer.search.SearchForUsersFragment;
 import tripster.tripster.UILayer.users.UserProfileFragment;
 import tripster.tripster.account.LogoutProvider;
 import tripster.tripster.dataLayer.TripsterDb;
@@ -67,6 +67,9 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
 
   private AppPreferences pref;
   private LogoutProvider accountProvider;
+
+  private DrawerLayout drawer;
+  private View header;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -110,11 +113,12 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   private void initializeDrawer() {
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
-    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+    drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
     ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
     drawer.addDrawerListener(toggle);
     toggle.syncState();
     NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+    header = navigationView.getHeaderView(0);
     navigationView.setNavigationItemSelectedListener(this);
   }
 
@@ -206,7 +210,6 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
 
   @Override
   public void onBackPressed() {
-    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
     if (drawer.isDrawerOpen(GravityCompat.START)) {
       drawer.closeDrawer(GravityCompat.START);
     } else {
@@ -249,7 +252,6 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
       getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag).commit();
     }
 
-    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
     drawer.closeDrawer(GravityCompat.START);
     return true;
   }
@@ -258,6 +260,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   @Override
   protected void onResume() {
     super.onResume();
+    initializeHeader();
     tDb.getDocumentById(currentUserId).addChangeListener(currentUserChangeListener);
     pref.registerOnTrayPreferenceChangeListener(currentTripChangeListener);
   }
@@ -276,21 +279,23 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   private Document.ChangeListener currentUserChangeListener = new Document.ChangeListener() {
     @Override
     public void changed(Document.ChangeEvent event) {
-      View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
-
-      Document me = tDb.getDocumentById(event.getChange().getDocumentId());
-      Log.d(TAG, "Current user changed, id is:" + me.getId());
-
-      ((TextView) header.findViewById(R.id.username)).setText((String) me.getProperty(USER_NAME_K));
-      Log.d(TAG, "Current user's new name is:" + ((TextView) header.findViewById(R.id.username)).getText());
-
-      new Image((String) me.getProperty(USER_AVATAR_K)).displayIn(((ImageView) header.findViewById(R.id.avatar)));
-      Log.d(TAG, "Current user's new avatarUrl should be:" + me.getProperty(USER_AVATAR_K));
-
-      ((TextView) header.findViewById(R.id.email)).setText((String) me.getProperty(USER_EMAIL_K));
-      Log.d(TAG, "Current user's new email is:" + ((TextView) header.findViewById(R.id.email)).getText());
+      initializeHeader();
     }
   };
+
+  private void initializeHeader() {
+    Document me = tDb.getDocumentById(currentUserId);
+    Log.d(TAG, "Current user changed, id is:" + me.getId());
+
+    ((TextView) header.findViewById(R.id.username)).setText((String) me.getProperty(USER_NAME_K));
+    Log.d(TAG, "Current user's new name is:" + ((TextView) header.findViewById(R.id.username)).getText());
+
+    new Image((String) me.getProperty(USER_AVATAR_K)).displayIn(((ImageView) header.findViewById(R.id.avatar)));
+    Log.d(TAG, "Current user's new avatarUrl should be:" + me.getProperty(USER_AVATAR_K));
+
+    ((TextView) header.findViewById(R.id.email)).setText((String) me.getProperty(USER_EMAIL_K));
+    Log.d(TAG, "Current user's new email is:" + ((TextView) header.findViewById(R.id.email)).getText());
+  }
 
   @Override
   protected void onPause() {

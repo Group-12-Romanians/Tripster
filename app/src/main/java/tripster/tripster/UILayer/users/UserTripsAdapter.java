@@ -60,7 +60,7 @@ class UserTripsAdapter extends ArrayAdapter<String> {
   @NonNull
   public View getView(int position, View convertView, @NonNull ViewGroup parent) {
     if (convertView == null) {
-      convertView = inflater.inflate(R.layout.trips_grid_item, parent);
+      convertView = inflater.inflate(R.layout.trips_grid_item, null);
       ViewHolder holder = new ViewHolder();
       holder.tripName = (TextView) convertView.findViewById(tripName);
       holder.tripPreview = (ImageView) convertView.findViewById(R.id.tripPrev);

@@ -56,7 +56,6 @@ import static tripster.tripster.Constants.TRIP_STOPPED_AT_K;
 import static tripster.tripster.Constants.USERS_BY_ID;
 import static tripster.tripster.Constants.USER_AVATAR_K;
 import static tripster.tripster.Constants.USER_EMAIL_K;
-import static tripster.tripster.Constants.USER_ID_K;
 import static tripster.tripster.Constants.USER_NAME_K;
 
 public class TripsterDb {
@@ -190,10 +189,10 @@ public class TripsterDb {
         if (document.containsKey(USER_AVATAR_K)
             && document.containsKey(USER_EMAIL_K)
             && document.containsKey(USER_NAME_K)) {
-          emitter.emit(document.get(USER_ID_K), null);
+          emitter.emit("0", document);
         }
       }
-    }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+    }, "667"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 
   private void initImagesByTripAndTimeView() {

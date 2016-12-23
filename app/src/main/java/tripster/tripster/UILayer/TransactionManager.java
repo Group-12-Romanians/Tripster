@@ -8,7 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import tripster.tripster.R;
 import tripster.tripster.UILayer.trip.timeline.TimelineFragment;
-import tripster.tripster.UILayer.users.SearchForUsersFragment;
+import tripster.tripster.UILayer.search.SearchForUsersFragment;
 import tripster.tripster.UILayer.users.UserProfileFragment;
 public class TransactionManager {
 

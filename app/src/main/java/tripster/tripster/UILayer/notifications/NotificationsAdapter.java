@@ -67,7 +67,7 @@ class NotificationsAdapter extends ArrayAdapter<String> {
   @NonNull
   public View getView(int position, View convertView, @NonNull ViewGroup parent) {
     if (convertView == null) {
-      convertView = inflater.inflate(R.layout.notifications_list_item, parent);
+      convertView = inflater.inflate(R.layout.notifications_list_item, null);
       ViewHolder holder = new ViewHolder();
       holder.requesterPhoto = (ImageView) convertView.findViewById(R.id.userPhoto);
       holder.notificationText = (TextView) convertView.findViewById(R.id.notification_text);

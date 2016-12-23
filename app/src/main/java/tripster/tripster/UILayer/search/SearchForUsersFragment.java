@@ -1,6 +1,8 @@
-package tripster.tripster.UILayer.users;
+package tripster.tripster.UILayer.search;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -82,9 +84,11 @@ public class SearchForUsersFragment extends Fragment {
     usersLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(LiveQuery.ChangeEvent event) {
+        Log.d(TAG, "Got a change in users liveQ");
         List<String> results = new ArrayList<>();
         for (int i = 0; i < event.getRows().getCount(); i++) {
           QueryRow r = event.getRows().getRow(i);
+          Log.d(TAG, "User added: " + r.getDocumentId());
           results.add(r.getDocumentId());
         }
         Collections.sort(results, new Comparator<String>() {
@@ -93,6 +97,7 @@ public class SearchForUsersFragment extends Fragment {
             return o1.compareTo(o2);
           }
         });
+        Log.d(TAG, "Other users are: " + results);
         initSearchableAdapter(results);
       }
     });
@@ -134,11 +139,16 @@ public class SearchForUsersFragment extends Fragment {
     super.onPause();
   }
 
-  private void initSearchableAdapter(List<String> users) {
-    searchableAdapter = new SearchableAdapter(
-        getActivity(),
-        users);
-    assertNotNull(getView());
-    ((ListView) getView().findViewById(R.id.friends_list)).setAdapter(searchableAdapter);
+  private void initSearchableAdapter(final List<String> users) {
+    new Handler(Looper.getMainLooper()).post(new Runnable() {
+      @Override
+      public void run() {
+        searchableAdapter = new SearchableAdapter(
+            getActivity(),
+            users);
+        assertNotNull(getView());
+        ((ListView) getView().findViewById(R.id.friends_list)).setAdapter(searchableAdapter);
+      }
+    });
   }
 }

@@ -76,7 +76,7 @@ class NewsfeedAdapter extends ArrayAdapter<String> {
   @NonNull
   public View getView(int position, View convertView, @NonNull ViewGroup parent) {
     if (convertView == null) {
-      convertView = inflater.inflate(R.layout.user_story, parent);
+      convertView = inflater.inflate(R.layout.user_story, null);
       ViewHolder holder = new ViewHolder();
 
       // Set holder fields

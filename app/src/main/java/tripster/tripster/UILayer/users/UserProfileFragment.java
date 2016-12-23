@@ -2,6 +2,8 @@ package tripster.tripster.UILayer.users;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
@@ -159,6 +161,7 @@ public class UserProfileFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
+    updateUserDetails();
     tDb.getDocumentById(userId).addChangeListener(userChangedListener);
     restartTripsLiveQuery();
     restartFriendshipLiveQuery();
@@ -171,8 +174,13 @@ public class UserProfileFragment extends Fragment {
     friendsLQ = q.toLiveQuery();
     friendsLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
-      public void changed(LiveQuery.ChangeEvent event) {
-        noOfFriendsButton.setText(event.getRows().getCount());
+      public void changed(final LiveQuery.ChangeEvent event) {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+          @Override
+          public void run() {
+            noOfFriendsButton.setText(String.valueOf(event.getRows().getCount()));
+          }
+        });
       }
     });
     friendsLQ.start();
@@ -222,7 +230,7 @@ public class UserProfileFragment extends Fragment {
     tripsLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(LiveQuery.ChangeEvent event) {
-        List<Pair<Long, String>> results = new ArrayList<>();
+        final List<Pair<Long, String>> results = new ArrayList<>();
         for (int i = 0; i < event.getRows().getCount(); i++) {
           QueryRow r = event.getRows().getRow(i);
           Pair<Long, String> p = new Pair<>((Long) r.getValue(), r.getDocumentId());
@@ -234,8 +242,13 @@ public class UserProfileFragment extends Fragment {
             return o2.first.compareTo(o1.first);
           }
         });
-        noOfTripsButton.setText(results.size());
-        initItemGridAdapter(results);
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+          @Override
+          public void run() {
+            noOfTripsButton.setText(String.valueOf(results.size()));
+            initItemGridAdapter(results);
+          }
+        });
       }
     });
     tripsLQ.start();
@@ -244,22 +257,26 @@ public class UserProfileFragment extends Fragment {
   private Document.ChangeListener userChangedListener = new Document.ChangeListener() {
     @Override
     public void changed(Document.ChangeEvent event) {
-      Document userDoc = tDb.getDocumentById(event.getChange().getDocumentId());
-
-      name.setText((String) userDoc.getProperty(USER_NAME_K));
-
-      String aboutUser = (String) userDoc.getProperty(USER_ABOUT_K);
-      if (aboutUser != null) {
-        about.setText(aboutUser);
-      } else if (userId.equals(currentUserId)) {
-        about.setText("Long touch to add something about you...");
-      } else {
-        about.setVisibility(View.GONE);
-      }
-
-      new Image((String) userDoc.getProperty(USER_AVATAR_K)).displayIn(avatar);
+      updateUserDetails();
     }
   };
+
+  private void updateUserDetails() {
+    Document userDoc = tDb.getDocumentById(userId);
+
+    name.setText((String) userDoc.getProperty(USER_NAME_K));
+
+    String aboutUser = (String) userDoc.getProperty(USER_ABOUT_K);
+    if (aboutUser != null) {
+      about.setText(aboutUser);
+    } else if (userId.equals(currentUserId)) {
+      about.setText("Long touch to add something about you...");
+    } else {
+      about.setVisibility(View.GONE);
+    }
+
+    new Image((String) userDoc.getProperty(USER_AVATAR_K)).displayIn(avatar);
+  }
 
   @Override
   public void onPause() {

@@ -35,12 +35,15 @@ public class NewsfeedFragment extends Fragment {
   private LiveQuery friendsLQ;
   private LiveQuery fTripsLQ;
 
+  private ListView stories;
   private Set<String> friends = new HashSet<>();
 
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-    return inflater.inflate(R.layout.fragment_newsfeed, container, false);
+    View v = inflater.inflate(R.layout.fragment_newsfeed, container, false);
+    stories = (ListView) v.findViewById(R.id.userStories);
+    return v;
   }
 
   @Override
@@ -118,6 +121,6 @@ public class NewsfeedFragment extends Fragment {
         R.id.tripDescription,
         userStories);
     assertNotNull(getView());
-    ((ListView) getView().findViewById(R.id.userStories)).setAdapter(newsfeedAdapter);
+    stories.setAdapter(newsfeedAdapter);
   }
 }
