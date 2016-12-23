@@ -31,6 +31,7 @@ import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static tripster.tripster.Constants.CURR_TRIP_ID;
+import static tripster.tripster.Constants.CURR_TRIP_LL;
 import static tripster.tripster.Constants.CURR_TRIP_ST;
 import static tripster.tripster.Constants.MY_ID;
 import static tripster.tripster.Constants.PLACE_LAT_K;
@@ -69,7 +70,6 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
 
     pref = new AppPreferences(getApplicationContext());
     tDb = TripsterDb.getInstance(getApplicationContext());
-    tDb.initPlacesByTripAndTimeView();
     tDb.startPushSync(); // start push replication
 
     String userId = pref.getString(MY_ID, "");
@@ -166,6 +166,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
       //sanity check only
       if (currTrip != null && currTrip.getProperty(TRIP_STOPPED_AT_K) != null) {
         setCurrentTripDetails("", "");
+        pref.put(CURR_TRIP_LL, "");
       }
       Log.d(TAG, "Stopped by app");
       exit();
@@ -254,7 +255,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
   }
 
   private void addLocation(Location currentLocation) {
-    Document previousLocation = tDb.getLastLocationOfTrip(getTripId());
+    Document previousLocation = tDb.getDocumentById(pref.getString(CURR_TRIP_LL, ""));
     if (previousLocation != null) {
       Location prevLoc = new Location("");
       prevLoc.setLatitude((double) previousLocation.getProperty(PLACE_LAT_K));
@@ -277,6 +278,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
     props.put(PLACE_TIME_K, currentLocation.getTime());
     props.put(PLACE_TRIP_K, getTripId());
     tDb.upsertNewDocById(newId, props);
+    pref.put(CURR_TRIP_LL, newId);
   }
 
   @Override

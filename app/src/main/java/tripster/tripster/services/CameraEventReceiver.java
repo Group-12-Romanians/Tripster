@@ -8,7 +8,6 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.android.volley.Response;
-import com.couchbase.lite.Document;
 
 import net.grandcentrix.tray.AppPreferences;
 
@@ -20,6 +19,7 @@ import tripster.tripster.dataLayer.TripsterDb;
 
 import static junit.framework.Assert.assertNotNull;
 import static tripster.tripster.Constants.CURR_TRIP_ID;
+import static tripster.tripster.Constants.CURR_TRIP_LL;
 import static tripster.tripster.Constants.CURR_TRIP_ST;
 import static tripster.tripster.Constants.PHOTO_PATH_K;
 import static tripster.tripster.Constants.PHOTO_PLACE_K;
@@ -62,18 +62,20 @@ public class CameraEventReceiver extends BroadcastReceiver {
     new ImageUploader().execute(photoId, imagePath);
 
     // Insert image in DB
-    Document lastLocationInTripDoc = tDb.getLastLocationOfTrip(currentTripId);
-    if (lastLocationInTripDoc != null) {
-      String locationId = lastLocationInTripDoc.getId();
+    String lastLocationId = pref.getString(CURR_TRIP_LL, "");
+    assertNotNull(lastLocationId);
+
+    if (!lastLocationId.isEmpty()) {
+      Log.d(TAG, "got last location: " + lastLocationId);
       Map<String, Object> props = new HashMap<>();
-      props.put(PHOTO_PLACE_K, locationId);
+      props.put(PHOTO_PLACE_K, lastLocationId);
       props.put(PHOTO_PATH_K, SERVER_URL + "/" + photoId + ".jpg");
       props.put(PHOTO_TRIP_K, currentTripId);
       props.put(PHOTO_TIME_K, System.currentTimeMillis());
       tDb.upsertNewDocById(photoId, props);
     }
 
-    Toast.makeText(context, "Tripster saved this photo.", Toast.LENGTH_SHORT).show();
+    Toast.makeText(context.getApplicationContext(), "Tripster saved this photo.", Toast.LENGTH_LONG).show();
 
     status = "running";
     tDb.pushChanges(new Response.Listener<String>() {

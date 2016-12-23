@@ -20,7 +20,6 @@ public class Constants {
 
   //------------------------------------------- VIEWS --------------------------------------------//
   public static final String TRIPS_BY_OWNER = "trips/byOwner";
-  public static final String PLACES_BY_TRIP_AND_TIME = "places/byTripAndTime";
   public static final String IMAGES_BY_TRIP_AND_TIME = "images/byTripAndTime";
   public static final String FRIENDS_BY_USER = "friends/byUser";
   public static final String USERS_BY_ID = "users/byId";
@@ -74,6 +73,7 @@ public class Constants {
   public static final String MY_ID = "myId";
   public static final String CURR_TRIP_ID = "currTripId";
   public static final String CURR_TRIP_ST = "currTripSt";
+  public static final String CURR_TRIP_LL = "currTripLL";
 
   // CURRENT TRIP
   public static final String TRIP_RUNNING = "running";

@@ -11,8 +11,6 @@ import com.couchbase.lite.Document;
 import com.couchbase.lite.Emitter;
 import com.couchbase.lite.Manager;
 import com.couchbase.lite.Mapper;
-import com.couchbase.lite.Query;
-import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.UnsavedRevision;
 import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.replicator.Replication;
@@ -42,11 +40,6 @@ import static tripster.tripster.Constants.PHOTO_PATH_K;
 import static tripster.tripster.Constants.PHOTO_PLACE_K;
 import static tripster.tripster.Constants.PHOTO_TIME_K;
 import static tripster.tripster.Constants.PHOTO_TRIP_K;
-import static tripster.tripster.Constants.PLACES_BY_TRIP_AND_TIME;
-import static tripster.tripster.Constants.PLACE_LAT_K;
-import static tripster.tripster.Constants.PLACE_LNG_K;
-import static tripster.tripster.Constants.PLACE_TIME_K;
-import static tripster.tripster.Constants.PLACE_TRIP_K;
 import static tripster.tripster.Constants.TRIPS_BY_OWNER;
 import static tripster.tripster.Constants.TRIP_NAME_K;
 import static tripster.tripster.Constants.TRIP_OWNER_K;
@@ -173,7 +166,6 @@ public class TripsterDb {
 
   public void initAllViews() {
     initTripsByOwnerIdView();
-    initPlacesByTripAndTimeView();
     initImagesByTripAndTimeView();
     initFriendsByUserIdView();
     initNotificationsByUser();
@@ -280,49 +272,5 @@ public class TripsterDb {
         }
       }
     }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
-  }
-
-  public void initPlacesByTripAndTimeView() {
-    db.getView(PLACES_BY_TRIP_AND_TIME).setMap(new Mapper() {
-      @Override
-      public void map(Map<String, Object> document, Emitter emitter) {
-        if (document.containsKey(PLACE_TRIP_K)
-            && document.containsKey(PLACE_TIME_K)
-            && document.containsKey(PLACE_LAT_K)
-            && document.containsKey(PLACE_LNG_K)) {
-          List<Object> keys = new ArrayList<>();
-          keys.add(document.get(PLACE_TRIP_K));
-          keys.add(document.get(PLACE_TIME_K));
-          emitter.emit(keys, null);
-        }
-      }
-    }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
-  }
-
-  public Document getLastLocationOfTrip(String tripId) {
-    try {
-      Query q = db.getExistingView(PLACES_BY_TRIP_AND_TIME).createQuery();
-      List<Object> firstKey = new ArrayList<>();
-      firstKey.add(tripId);
-      firstKey.add((long) 0);
-      List<Object> lastKey = new ArrayList<>();
-      lastKey.add(tripId);
-      lastKey.add(System.currentTimeMillis());
-      q.setStartKey(lastKey);
-      q.setEndKey(firstKey);
-      q.setDescending(true);
-      q.setLimit(1);
-      QueryEnumerator enumerator = q.run();
-      if (enumerator.getCount() == 1) {
-        return enumerator.getRow(0).getDocument();
-      } else if (enumerator.getCount() == 0){
-        return null;
-      } else {
-        Log.e(TAG, "Impossible, since limit was set to 1!!!!!!!");
-        return null;
-      }
-    } catch (CouchbaseLiteException e) {
-      throw new RuntimeException("Currently running trip query failed:" + e.getMessage());
-    }
   }
 }
