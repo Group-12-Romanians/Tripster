@@ -141,7 +141,7 @@ public class TripsterDb {
       props = new HashMap<>();
     }
     for (String newK : newProps.keySet()) {
-      String newV = (String) newProps.get(newK);
+      Object newV = newProps.get(newK);
       if (!(props.containsKey(newK) && props.get(newK).equals(newV))) {
         props.put(newK, newV);
         changed = true;
@@ -317,7 +317,7 @@ public class TripsterDb {
       QueryEnumerator enumerator = q.run();
       if (enumerator.getCount() == 1) {
         return enumerator.getRow(0).getDocument();
-      } else if (enumerator.getCount() == 1){
+      } else if (enumerator.getCount() == 0){
         return null;
       } else {
         Log.e(TAG, "Impossible, since limit was set to 1!!!!!!!");

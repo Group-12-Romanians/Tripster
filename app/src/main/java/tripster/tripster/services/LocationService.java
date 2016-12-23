@@ -169,6 +169,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
       }
       Log.d(TAG, "Stopped by app");
       exit();
+      return;
     }
     Log.e(TAG, "Unsuccessfully stopped by app");
   }
@@ -262,7 +263,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
         saveLocation(currentLocation);
       }
     } else {
-      Log.d(TAG, "Saving Trip");
+      Log.d(TAG, "Saving Location");
       saveLocation(currentLocation);
     }
   }

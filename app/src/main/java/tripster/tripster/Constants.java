@@ -2,7 +2,7 @@ package tripster.tripster;
 
 public class Constants {
   public static final String APP_NAME = "Tripster";
-  public static final String SERVER = "http://146.169.46.220";
+  public static final String SERVER = "http://146.169.46.142";
   public static final String APP_PORT = "8081";
   public static final String SERVER_URL = SERVER + ":" + APP_PORT;
 
@@ -14,7 +14,7 @@ public class Constants {
 
   //------------------------------------------ DATABASE ------------------------------------------//
   public static final String DB_NAME = "tripster";
-  public static final String DB_PORT = "6984";
+  public static final String DB_PORT = "5984";
   public static final String DB_SYNC_URL = SERVER + ":" + DB_PORT + "/" + DB_NAME;
   public static final String DB_STORAGE_TYPE = "ForestDB";
 
