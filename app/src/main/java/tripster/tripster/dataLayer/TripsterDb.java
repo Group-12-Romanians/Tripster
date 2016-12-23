@@ -257,7 +257,7 @@ public class TripsterDb {
           // Also note that this view does not see changes to trips, but that's never going to be needed (from my plans - Dragos)
         }
       }
-    }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+    }, "668"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 
   private void initFriendsByUserIdView() {

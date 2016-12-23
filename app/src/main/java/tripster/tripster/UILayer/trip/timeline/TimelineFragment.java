@@ -32,14 +32,11 @@ import tripster.tripster.Image;
 import tripster.tripster.R;
 import tripster.tripster.UILayer.trip.map.MapActivity;
 
-import static junit.framework.Assert.assertNotNull;
 import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_TIME;
 import static tripster.tripster.Constants.TRIP_DESCRIPTION_K;
 import static tripster.tripster.Constants.TRIP_NAME_K;
 import static tripster.tripster.Constants.TRIP_PREVIEW_K;
 import static tripster.tripster.Constants.TRIP_VIDEO_K;
-import static tripster.tripster.R.id.tripDesc;
-import static tripster.tripster.R.id.tripName;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 public class TimelineFragment extends Fragment {
@@ -47,7 +44,15 @@ public class TimelineFragment extends Fragment {
 
   private String tripId;
   private LiveQuery imagesLQ;
+
   private RecyclerView timeline;
+
+  private Button editButton;
+  private Button locationButton;
+  private TextView name;
+  private TextView description;
+  private ImageView preview;
+
 
   @Nullable
   @Override
@@ -58,8 +63,11 @@ public class TimelineFragment extends Fragment {
     timeline.setLayoutManager(new LinearLayoutManager(getContext()));
     timeline.setHasFixedSize(true);
 
-//  editButton = (Button) view.findViewById(R.id.editButton);
-    Button locationButton = (Button) view.findViewById(R.id.noOfLocations);
+    locationButton = (Button) view.findViewById(R.id.noOfLocations);
+    name = (TextView) view.findViewById(R.id.tripName);
+    description = (TextView) view.findViewById(R.id.tripDesc);
+    preview = (ImageView) view.findViewById(R.id.preview);
+
     locationButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -81,18 +89,16 @@ public class TimelineFragment extends Fragment {
   private void setGeneralDetails() {
     final Document tripDoc = tDb.getDocumentById(tripId);
     Log.d(TAG, "Current trip changed, id is:" + tripDoc.getId());
-    assertNotNull(getView());
 
     // set trip name
-    ((TextView) getView().findViewById(tripName)).setText((String) tripDoc.getProperty(TRIP_NAME_K));
+    name.setText((String) tripDoc.getProperty(TRIP_NAME_K));
 
     // set trip description
-    ((TextView) getView().findViewById(tripDesc)).setText((String) tripDoc.getProperty(TRIP_DESCRIPTION_K));
+    description.setText((String) tripDoc.getProperty(TRIP_DESCRIPTION_K));
 
     // set trip preview and video link
-    ImageView previewView = (ImageView) getView().findViewById(R.id.preview);
-    new Image((String) tripDoc.getProperty(TRIP_PREVIEW_K)).displayIn(previewView);
-    previewView.setOnClickListener(new View.OnClickListener() {
+    new Image((String) tripDoc.getProperty(TRIP_PREVIEW_K)).displayIn(preview);
+    preview.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -136,11 +142,10 @@ public class TimelineFragment extends Fragment {
           }
           results.get(results.size() - 1).second.add(r.getDocumentId());
         }
-        assertNotNull(getView());
         new Handler(Looper.getMainLooper()).post(new Runnable() {
           @Override
           public void run() {
-            ((Button) getView().findViewById(R.id.noOfLocations)).setText(results.size());
+            locationButton.setText(String.valueOf(results.size()));
             initListAdapter(results);
           }
         });
