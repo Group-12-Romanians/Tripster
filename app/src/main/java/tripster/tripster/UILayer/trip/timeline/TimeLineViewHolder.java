@@ -18,14 +18,13 @@ import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 class TimeLineViewHolder extends RecyclerView.ViewHolder {
   TextView locationTextView;
-  private TimelineView timelineView;
   private View itemView;
 
   TimeLineViewHolder(View itemView, int viewType) {
     super(itemView);
     this.itemView = itemView;
     locationTextView = (TextView) itemView.findViewById(R.id.tx_name);
-    timelineView = (TimelineView) itemView.findViewById(R.id.time_marker);
+    TimelineView timelineView = (TimelineView) itemView.findViewById(R.id.time_marker);
     timelineView.initLine(viewType);
   }
 
