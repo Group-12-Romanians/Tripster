@@ -61,13 +61,18 @@ public class NotificationsFragment extends Fragment {
       @Override
       public void changed(LiveQuery.ChangeEvent event) {
         Log.d(TAG, "This is a change");
-        List<String> results = new ArrayList<>();
+        final List<String> results = new ArrayList<>();
         for (int i = 0; i < event.getRows().getCount(); i++) {
           QueryRow r = event.getRows().getRow(i);
           Log.d(TAG, "This is a request: " + r.getDocumentId());
           results.add(r.getDocumentId());
         }
-        initNotificationsAdapter(results);
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+          @Override
+          public void run() {
+            initNotificationsAdapter(results);
+          }
+        });
       }
     });
     notificationsLQ.start();
@@ -84,18 +89,11 @@ public class NotificationsFragment extends Fragment {
   }
 
   private void initNotificationsAdapter(final List<String> friendRequests) {
-    new Handler(Looper.getMainLooper()).post(new Runnable() {
-      @Override
-      public void run() {
-        NotificationsAdapter notificationsAdapter = new NotificationsAdapter(getContext(),
-            R.layout.fragment_requests,
-            R.id.notification_text,
-            friendRequests);
-        assertNotNull(getView());
-        notifications.setAdapter(notificationsAdapter);
-      }
-    });
-
+    NotificationsAdapter notificationsAdapter = new NotificationsAdapter(getContext(),
+        R.layout.fragment_requests,
+        R.id.notification_text,
+        friendRequests);
+    assertNotNull(getView());
+    notifications.setAdapter(notificationsAdapter);
   }
-
 }

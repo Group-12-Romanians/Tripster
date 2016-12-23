@@ -78,6 +78,18 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   private DrawerLayout drawer;
   private View header;
 
+  // User info
+  private ImageView avatar;
+  private TextView name;
+  private TextView email;
+
+  // Current trip status
+  private FloatingActionMenu menu;
+  private FloatingActionButton start;
+  private FloatingActionButton pause;
+  private FloatingActionButton resume;
+  private FloatingActionButton stop;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -127,6 +139,10 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
     NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
     header = navigationView.getHeaderView(0);
     navigationView.setNavigationItemSelectedListener(this);
+
+    name = (TextView) header.findViewById(R.id.username);
+    email = (TextView) header.findViewById(R.id.email);
+    avatar = (ImageView) header.findViewById(R.id.avatar);
   }
 
   @Override
@@ -144,6 +160,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
 
     recreateLoginSession();
 
+    initializeTrackingButtons();
     initializeFab();
 
     //Update or Create the current User
@@ -152,6 +169,15 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
     props.put(USER_EMAIL_K, email);
     props.put(USER_AVATAR_K, avatarUrl);
     tDb.upsertNewDocById(userId, props);
+  }
+
+  private void initializeTrackingButtons() {
+    menu = (FloatingActionMenu) findViewById(R.id.tracking_menu);
+
+    start = (FloatingActionButton) findViewById(R.id.tracking_start);
+    pause = (FloatingActionButton) findViewById(R.id.tracking_pause);
+    resume = (FloatingActionButton) findViewById(R.id.tracking_resume);
+    stop = (FloatingActionButton)findViewById(R.id.tracking_stop);
   }
 
   private void recreateLoginSession() {
@@ -170,10 +196,10 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   private void initializeFab() {
     updateFabState();
 
-    findViewById(R.id.tracking_start).setOnClickListener(getFABListener(START_SERVICE));
-    findViewById(R.id.tracking_pause).setOnClickListener(getFABListener(PAUSE_SERVICE));
-    findViewById(R.id.tracking_resume).setOnClickListener(getFABListener(RESUME_SERVICE));
-    findViewById(R.id.tracking_stop).setOnClickListener(getFABListener(STOP_SERVICE));
+    start.setOnClickListener(getFABListener(START_SERVICE));
+    pause.setOnClickListener(getFABListener(PAUSE_SERVICE));
+    resume.setOnClickListener(getFABListener(RESUME_SERVICE));
+    stop.setOnClickListener(getFABListener(STOP_SERVICE));
   }
 
   private View.OnClickListener getFABListener(final String flag) {
@@ -195,32 +221,27 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
     assertNotNull(currentTripState);
     Log.d(TAG, "Called this with: " + currentTripId + " and " + currentTripState);
 
-    final FloatingActionButton startButton = (FloatingActionButton) findViewById(R.id.tracking_start);
-    final FloatingActionButton pauseButton = (FloatingActionButton) findViewById(R.id.tracking_pause);
-    final FloatingActionButton resumeButton = (FloatingActionButton) findViewById(R.id.tracking_resume);
-    final FloatingActionButton endButton = (FloatingActionButton) findViewById(R.id.tracking_stop);
-    final FloatingActionMenu menu = (FloatingActionMenu) findViewById(R.id.tracking_menu);
     if (!menu.isOpened()) {
       menu.open(false);
     }
     if (currentTripId.isEmpty()) {
       //start button only
-      startButton.showButtonInMenu(true);
-      pauseButton.hideButtonInMenu(true);
-      resumeButton.hideButtonInMenu(true);
-      endButton.hideButtonInMenu(true);
+      start.showButtonInMenu(true);
+      pause.hideButtonInMenu(true);
+      resume.hideButtonInMenu(true);
+      stop.hideButtonInMenu(true);
     } else if (currentTripState.equals(TRIP_PAUSED)) {
       //resume and stop buttons
-      startButton.hideButtonInMenu(true);
-      pauseButton.hideButtonInMenu(true);
-      resumeButton.showButtonInMenu(true);
-      endButton.showButtonInMenu(true);
+      start.hideButtonInMenu(true);
+      pause.hideButtonInMenu(true);
+      resume.showButtonInMenu(true);
+      stop.showButtonInMenu(true);
     } else if (currentTripState.equals(TRIP_RUNNING)) {
       //pause and stop buttons
-      startButton.hideButtonInMenu(true);
-      resumeButton.hideButtonInMenu(true);
-      pauseButton.showButtonInMenu(true);
-      endButton.showButtonInMenu(true);
+      start.hideButtonInMenu(true);
+      resume.hideButtonInMenu(true);
+      pause.showButtonInMenu(true);
+      stop.showButtonInMenu(true);
     }
   }
 
@@ -304,14 +325,14 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
     Document me = tDb.getDocumentById(currentUserId);
     Log.d(TAG, "Current user changed, id is:" + me.getId());
 
-    ((TextView) header.findViewById(R.id.username)).setText((String) me.getProperty(USER_NAME_K));
-    Log.d(TAG, "Current user's new name is:" + ((TextView) header.findViewById(R.id.username)).getText());
+    name.setText((String) me.getProperty(USER_NAME_K));
+    Log.d(TAG, "Current user's new name is:" + (name.getText()));
 
-    new Image((String) me.getProperty(USER_AVATAR_K)).displayIn(((ImageView) header.findViewById(R.id.avatar)));
+    new Image((String) me.getProperty(USER_AVATAR_K)).displayIn(avatar);
     Log.d(TAG, "Current user's new avatarUrl should be:" + me.getProperty(USER_AVATAR_K));
 
-    ((TextView) header.findViewById(R.id.email)).setText((String) me.getProperty(USER_EMAIL_K));
-    Log.d(TAG, "Current user's new email is:" + ((TextView) header.findViewById(R.id.email)).getText());
+    email.setText((String) me.getProperty(USER_EMAIL_K));
+    Log.d(TAG, "Current user's new email is:" + email.getText());
   }
 
   @Override

@@ -3,6 +3,8 @@ package tripster.tripster.UILayer.trip.timeline;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -45,15 +47,16 @@ public class TimelineFragment extends Fragment {
 
   private String tripId;
   private LiveQuery imagesLQ;
+  private RecyclerView timeline;
 
   @Nullable
   @Override
   public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fragment_timeline, container, false);
     tripId = this.getArguments().getString("tripId");
-    RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
-    recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-    recyclerView.setHasFixedSize(true);
+    timeline = (RecyclerView) view.findViewById(R.id.recyclerView);
+    timeline.setLayoutManager(new LinearLayoutManager(getContext()));
+    timeline.setHasFixedSize(true);
 
 //  editButton = (Button) view.findViewById(R.id.editButton);
     Button locationButton = (Button) view.findViewById(R.id.noOfLocations);
@@ -121,7 +124,7 @@ public class TimelineFragment extends Fragment {
     imagesLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(LiveQuery.ChangeEvent event) {
-        List<Pair<String, List<String>>> results = new ArrayList<>();
+        final List<Pair<String, List<String>>> results = new ArrayList<>();
         Iterator<QueryRow> it = event.getRows().iterator();
         String prevPlaceId = null;
         while (it.hasNext()) {
@@ -134,8 +137,13 @@ public class TimelineFragment extends Fragment {
           results.get(results.size() - 1).second.add(r.getDocumentId());
         }
         assertNotNull(getView());
-        ((Button) getView().findViewById(R.id.noOfLocations)).setText(results.size());
-        initListAdapter(results);
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+          @Override
+          public void run() {
+            ((Button) getView().findViewById(R.id.noOfLocations)).setText(results.size());
+            initListAdapter(results);
+          }
+        });
       }
     });
     imagesLQ.start();
@@ -153,8 +161,6 @@ public class TimelineFragment extends Fragment {
 
   private void initListAdapter(List<Pair<String, List<String>>> events) {
     TimeLineAdapter timeLineAdapter = new TimeLineAdapter(events);
-
-    assertNotNull(getView());
-    ((RecyclerView) getView().findViewById(R.id.recyclerView)).setAdapter(timeLineAdapter);
+    timeline.setAdapter(timeLineAdapter);
   }
 }

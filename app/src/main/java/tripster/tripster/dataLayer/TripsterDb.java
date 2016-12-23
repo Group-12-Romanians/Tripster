@@ -141,7 +141,7 @@ public class TripsterDb {
       props = new HashMap<>();
     }
     for (String newK : newProps.keySet()) {
-      String newV = (String) newProps.get(newK);
+      Object newV = newProps.get(newK);
       if (!(props.containsKey(newK) && props.get(newK).equals(newV))) {
         props.put(newK, newV);
         changed = true;

@@ -36,6 +36,7 @@ public class SearchForUsersFragment extends Fragment {
   private static final String TAG = SearchForUsersFragment.class.getName();
 
   private SearchableAdapter searchableAdapter;
+  private ListView usersList;
   private String myId;
   private LiveQuery usersLQ;
 
@@ -46,7 +47,9 @@ public class SearchForUsersFragment extends Fragment {
     myId = getArguments().getString("userId"); // We will only see the friends of this id
     // if this is "none" then we will see all the users
 
+    usersList = (ListView) view.findViewById(R.id.friends_list);
     EditText searchBar = (EditText) view.findViewById(R.id.search);
+
     searchBar.addTextChangedListener(new TextWatcher() {
       @Override
       public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -84,7 +87,7 @@ public class SearchForUsersFragment extends Fragment {
     usersLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(LiveQuery.ChangeEvent event) {
-        List<String> results = new ArrayList<>();
+        final List<String> results = new ArrayList<>();
         for (int i = 0; i < event.getRows().getCount(); i++) {
           QueryRow r = event.getRows().getRow(i);
           Log.d(TAG, "User added: " + r.getDocumentId());
@@ -96,7 +99,12 @@ public class SearchForUsersFragment extends Fragment {
             return o1.compareTo(o2);
           }
         });
-        initSearchableAdapter(results);
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+          @Override
+          public void run() {
+            initSearchableAdapter(results);
+          }
+        });
       }
     });
     usersLQ.start();
@@ -110,7 +118,7 @@ public class SearchForUsersFragment extends Fragment {
     usersLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(LiveQuery.ChangeEvent event) {
-        List<String> results = new ArrayList<>();
+        final List<String> results = new ArrayList<>();
         for (int i = 0; i < event.getRows().getCount(); i++) {
           QueryRow r = event.getRows().getRow(i);
           results.add(r.getDocumentId());
@@ -121,32 +129,32 @@ public class SearchForUsersFragment extends Fragment {
             return o1.compareTo(o2);
           }
         });
-        initSearchableAdapter(results);
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+          @Override
+          public void run() {
+            initSearchableAdapter(results);
+          }
+        });
       }
     });
     usersLQ.start();
   }
 
-  @Override
-  public void onPause() {
-    try {
-      usersLQ.stop();
-    } catch (NullPointerException e) {
-      Log.e(TAG, "Something failed");
+    @Override
+    public void onPause () {
+      try {
+        usersLQ.stop();
+      } catch (NullPointerException e) {
+        Log.e(TAG, "Something failed");
+      }
+      super.onPause();
     }
-    super.onPause();
-  }
 
   private void initSearchableAdapter(final List<String> users) {
-    new Handler(Looper.getMainLooper()).post(new Runnable() {
-      @Override
-      public void run() {
-        searchableAdapter = new SearchableAdapter(
-            getActivity(),
-            users);
-        assertNotNull(getView());
-        ((ListView) getView().findViewById(R.id.friends_list)).setAdapter(searchableAdapter);
-      }
-    });
+    searchableAdapter = new SearchableAdapter(
+        getActivity(),
+        users);
+    assertNotNull(getView());
+    usersList.setAdapter(searchableAdapter);
   }
 }
