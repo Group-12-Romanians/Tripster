@@ -23,6 +23,7 @@ import android.widget.Toast;
 
 import com.couchbase.lite.Document;
 import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 
 import net.grandcentrix.tray.AppPreferences;
 import net.grandcentrix.tray.core.OnTrayPreferenceChangeListener;
@@ -48,12 +49,16 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
-import static tripster.tripster.Constants.CURR_TRIP;
+import static junit.framework.Assert.assertNotNull;
+import static tripster.tripster.Constants.CURR_TRIP_ID;
+import static tripster.tripster.Constants.CURR_TRIP_ST;
 import static tripster.tripster.Constants.MY_ID;
 import static tripster.tripster.Constants.PAUSE_SERVICE;
 import static tripster.tripster.Constants.RESUME_SERVICE;
 import static tripster.tripster.Constants.START_SERVICE;
 import static tripster.tripster.Constants.STOP_SERVICE;
+import static tripster.tripster.Constants.TRIP_PAUSED;
+import static tripster.tripster.Constants.TRIP_RUNNING;
 import static tripster.tripster.Constants.USER_AVATAR_K;
 import static tripster.tripster.Constants.USER_EMAIL_K;
 import static tripster.tripster.Constants.USER_ID_K;
@@ -163,7 +168,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   }
 
   private void initializeFab() {
-    updateFabState(pref.getString(CURR_TRIP, ""));
+    updateFabState();
 
     findViewById(R.id.tracking_start).setOnClickListener(getFABListener(START_SERVICE));
     findViewById(R.id.tracking_pause).setOnClickListener(getFABListener(PAUSE_SERVICE));
@@ -183,25 +188,34 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
     };
   }
 
-  private void updateFabState(String currentTripDetails) {
+  private void updateFabState() {
+    String currentTripId = pref.getString(CURR_TRIP_ID, "");
+    String currentTripState = pref.getString(CURR_TRIP_ST, "");
+    assertNotNull(currentTripId);
+    assertNotNull(currentTripState);
+    Log.d(TAG, "Called this with: " + currentTripId + " and " + currentTripState);
+
     final FloatingActionButton startButton = (FloatingActionButton) findViewById(R.id.tracking_start);
     final FloatingActionButton pauseButton = (FloatingActionButton) findViewById(R.id.tracking_pause);
     final FloatingActionButton resumeButton = (FloatingActionButton) findViewById(R.id.tracking_resume);
     final FloatingActionButton endButton = (FloatingActionButton) findViewById(R.id.tracking_stop);
-
-    if (currentTripDetails.isEmpty()) {
+    final FloatingActionMenu menu = (FloatingActionMenu) findViewById(R.id.tracking_menu);
+    if (!menu.isOpened()) {
+      menu.open(false);
+    }
+    if (currentTripId.isEmpty()) {
       //start button only
       startButton.showButtonInMenu(true);
       pauseButton.hideButtonInMenu(true);
       resumeButton.hideButtonInMenu(true);
       endButton.hideButtonInMenu(true);
-    } else if (currentTripDetails.contains("paused")) {
+    } else if (currentTripState.equals(TRIP_PAUSED)) {
       //resume and stop buttons
       startButton.hideButtonInMenu(true);
       pauseButton.hideButtonInMenu(true);
       resumeButton.showButtonInMenu(true);
       endButton.showButtonInMenu(true);
-    } else if (currentTripDetails.contains("running")) {
+    } else if (currentTripState.equals(TRIP_RUNNING)) {
       //pause and stop buttons
       startButton.hideButtonInMenu(true);
       resumeButton.hideButtonInMenu(true);
@@ -270,11 +284,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   OnTrayPreferenceChangeListener currentTripChangeListener = new OnTrayPreferenceChangeListener() {
     @Override
     public void onTrayPreferenceChanged(Collection<TrayItem> items) {
-      for(TrayItem i : items) {
-        if(i.key().equals(CURR_TRIP)) {
-          updateFabState(pref.getString(CURR_TRIP, ""));
-        }
-      }
+      updateFabState();
     }
   };
 

@@ -73,7 +73,6 @@
             app:fab_size="mini"
             app:fab_label="End Trip"
             app:fab_colorNormal="@color/colorPrimary"/>
-
     </com.github.clans.fab.FloatingActionMenu>
 
 </android.support.design.widget.CoordinatorLayout>

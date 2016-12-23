@@ -9,7 +9,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
-import android.util.Pair;
 
 import com.android.volley.Response;
 import com.couchbase.lite.Document;
@@ -31,8 +30,8 @@ import tripster.tripster.dataLayer.TripsterDb;
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
-import static junit.framework.Assert.assertNotNull;
-import static tripster.tripster.Constants.CURR_TRIP;
+import static tripster.tripster.Constants.CURR_TRIP_ID;
+import static tripster.tripster.Constants.CURR_TRIP_ST;
 import static tripster.tripster.Constants.MY_ID;
 import static tripster.tripster.Constants.PLACE_LAT_K;
 import static tripster.tripster.Constants.PLACE_LNG_K;
@@ -40,7 +39,9 @@ import static tripster.tripster.Constants.PLACE_TIME_K;
 import static tripster.tripster.Constants.PLACE_TRIP_K;
 import static tripster.tripster.Constants.TRIP_NAME_K;
 import static tripster.tripster.Constants.TRIP_OWNER_K;
+import static tripster.tripster.Constants.TRIP_PAUSED;
 import static tripster.tripster.Constants.TRIP_PREVIEW_K;
+import static tripster.tripster.Constants.TRIP_RUNNING;
 import static tripster.tripster.Constants.TRIP_STOPPED_AT_K;
 
 public class LocationService extends Service implements GoogleApiClient.ConnectionCallbacks {
@@ -53,7 +54,6 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
 
   private GoogleApiClient googleClient;
   private Timer timer;
-  private Pair<String, String> currentTripDetails = new Pair<>("", "");
   private AppPreferences pref;
   private TripsterDb tDb;
 
@@ -70,11 +70,10 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
     pref = new AppPreferences(getApplicationContext());
     tDb = TripsterDb.getInstance(getApplicationContext());
     tDb.initPlacesByTripAndTimeView();
+    tDb.startPushSync(); // start push replication
 
     String userId = pref.getString(MY_ID, "");
-    currentTripDetails = getCurrentTripDetails();
 
-    tDb.startPushSync(); // start push replication
     if (intent != null) {
       switch (intent.getStringExtra("flag")) {
         case "resume":
@@ -100,28 +99,16 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
   }
 
   private void setCurrentTripDetails(String running, String tripId) {
-    currentTripDetails = new Pair<>(running, tripId);
-    pref.put(CURR_TRIP, currentTripDetails.first + ":" + currentTripDetails.second);
-  }
-
-  private Pair<String, String> getCurrentTripDetails() {
-    String prefDetails = pref.getString(CURR_TRIP, ":");
-    assertNotNull(prefDetails); //TODO: Take care with this in prod.
-    Log.d(TAG, "Pref details of curr trip are: " + prefDetails);
-    String[] parts = prefDetails.split(":");
-    if (parts.length == 2) {
-      return new Pair<>(parts[0], parts[1]);
-    } else {
-      throw new RuntimeException("Inconsistent current trip details:" + prefDetails);
-    }
+    pref.put(CURR_TRIP_ID, tripId);
+    pref.put(CURR_TRIP_ST, running);
   }
 
   private String getStatus() {
-    return currentTripDetails.first;
+    return pref.getString(CURR_TRIP_ST, "");
   }
 
   private String getTripId() {
-    return currentTripDetails.second;
+    return pref.getString(CURR_TRIP_ID, "");
   }
 
   private void startTrip(String userId) {
@@ -133,7 +120,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
       props.put(TRIP_OWNER_K, userId);
       tDb.upsertNewDocById(newId, props);
       if (tDb.getDocumentById(newId) != null) {
-        setCurrentTripDetails("running", getTripId());
+        setCurrentTripDetails(TRIP_RUNNING, newId);
 
         connectGoogleClient();
         Log.d(TAG, "Successfully started by app");
@@ -145,8 +132,8 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
 
   private void resumeTrip() {
     if (!getTripId().isEmpty() && tDb.getDocumentById(getTripId()) != null) {
-      if (getStatus().equals("paused")) {
-        setCurrentTripDetails("running", getTripId());
+      if (getStatus().equals(TRIP_PAUSED)) {
+        setCurrentTripDetails(TRIP_RUNNING, getTripId());
       }
 
       connectGoogleClient();
@@ -158,8 +145,8 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
 
   private void pauseTrip() {
     Log.d(TAG, "Pause info: tripId" + getTripId() + ", status " + getStatus() + "docById" + tDb.getDocumentById(getTripId()));
-    if (!getTripId().isEmpty() && getStatus().equals("running") && tDb.getDocumentById(getTripId()) != null) {
-      setCurrentTripDetails("paused", getTripId());
+    if (!getTripId().isEmpty() && getStatus().equals(TRIP_RUNNING) && tDb.getDocumentById(getTripId()) != null) {
+      setCurrentTripDetails(TRIP_PAUSED, getTripId());
 
       stopMonitor();
       Log.d(TAG, "Paused by app");
@@ -235,8 +222,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
             public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
               Log.e(TAG, "Connection Failed");
             }
-          })
-          .build();
+          }).build();
     }
     if (!googleClient.isConnected()) {
       googleClient.connect();
@@ -270,8 +256,8 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
     Document previousLocation = tDb.getLastLocationOfTrip(getTripId());
     if (previousLocation != null) {
       Location prevLoc = new Location("");
-      prevLoc.setLatitude((double) previousLocation.getProperty("lat"));
-      prevLoc.setLongitude((double) previousLocation.getProperty("lng"));
+      prevLoc.setLatitude((double) previousLocation.getProperty(PLACE_LAT_K));
+      prevLoc.setLongitude((double) previousLocation.getProperty(PLACE_LNG_K));
       if (prevLoc.distanceTo(currentLocation) > MIN_DIST) {
         saveLocation(currentLocation);
       }

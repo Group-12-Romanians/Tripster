@@ -73,6 +73,11 @@ public class Constants {
 
   // SPREF
   public static final String MY_ID = "myId";
-  public static final String CURR_TRIP = "currentTrip";
+  public static final String CURR_TRIP_ID = "currTripId";
+  public static final String CURR_TRIP_ST = "currTripSt";
+
+  // CURRENT TRIP
+  public static final String TRIP_RUNNING = "running";
+  public static final String TRIP_PAUSED = "paused";
 
 }

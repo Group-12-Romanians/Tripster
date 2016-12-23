@@ -18,29 +18,30 @@ import java.util.UUID;
 
 import tripster.tripster.dataLayer.TripsterDb;
 
-import static android.content.Context.MODE_PRIVATE;
 import static junit.framework.Assert.assertNotNull;
-import static tripster.tripster.Constants.CURR_TRIP;
+import static tripster.tripster.Constants.CURR_TRIP_ID;
+import static tripster.tripster.Constants.CURR_TRIP_ST;
 import static tripster.tripster.Constants.PHOTO_PATH_K;
 import static tripster.tripster.Constants.PHOTO_PLACE_K;
 import static tripster.tripster.Constants.PHOTO_TIME_K;
 import static tripster.tripster.Constants.PHOTO_TRIP_K;
 import static tripster.tripster.Constants.SERVER_URL;
+import static tripster.tripster.Constants.TRIP_PAUSED;
 
 public class CameraEventReceiver extends BroadcastReceiver {
   private static final String TAG = CameraEventReceiver.class.getName();
 
-  private String status = "stopped";
+  private String status = "initial";
 
   @Override
   public void onReceive(Context context, Intent intent) {
-    String userId = context.getSharedPreferences("UUID", MODE_PRIVATE).getString("UUID", "");
     TripsterDb tDb = TripsterDb.getInstance(context.getApplicationContext());
     AppPreferences pref = new AppPreferences(context.getApplicationContext());
-    String currentTripId = pref.getString(CURR_TRIP, "");
+    String currentTripId = pref.getString(CURR_TRIP_ID, "");
+    String currentTripState = pref.getString(CURR_TRIP_ST, "");
     assertNotNull(currentTripId);
-
-    if(currentTripId.isEmpty()) {
+    assertNotNull(currentTripState);
+    if(currentTripId.isEmpty() || currentTripState.equals(TRIP_PAUSED)) {
       return;
     }
 

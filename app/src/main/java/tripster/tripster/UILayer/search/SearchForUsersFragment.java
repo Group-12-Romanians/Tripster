@@ -84,7 +84,6 @@ public class SearchForUsersFragment extends Fragment {
     usersLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(LiveQuery.ChangeEvent event) {
-        Log.d(TAG, "Got a change in users liveQ");
         List<String> results = new ArrayList<>();
         for (int i = 0; i < event.getRows().getCount(); i++) {
           QueryRow r = event.getRows().getRow(i);
@@ -97,7 +96,6 @@ public class SearchForUsersFragment extends Fragment {
             return o1.compareTo(o2);
           }
         });
-        Log.d(TAG, "Other users are: " + results);
         initSearchableAdapter(results);
       }
     });
