@@ -51,7 +51,6 @@ import static tripster.tripster.Constants.TRIPS_BY_OWNER;
 import static tripster.tripster.Constants.TRIP_NAME_K;
 import static tripster.tripster.Constants.TRIP_OWNER_K;
 import static tripster.tripster.Constants.TRIP_PREVIEW_K;
-import static tripster.tripster.Constants.TRIP_STATUS_K;
 import static tripster.tripster.Constants.TRIP_STOPPED_AT_K;
 import static tripster.tripster.Constants.USERS_BY_ID;
 import static tripster.tripster.Constants.USER_AVATAR_K;
@@ -251,7 +250,6 @@ public class TripsterDb {
       @Override
       public void map(Map<String, Object> document, Emitter emitter) {
         if (document.containsKey(TRIP_OWNER_K)
-            && document.containsKey(TRIP_STATUS_K)
             && document.containsKey(TRIP_NAME_K)
             && document.containsKey(TRIP_PREVIEW_K)
             && document.containsKey(TRIP_STOPPED_AT_K)) {
@@ -259,7 +257,7 @@ public class TripsterDb {
           // Also note that this view does not see changes to trips, but that's never going to be needed (from my plans - Dragos)
         }
       }
-    }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+    }, "668"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 
   private void initFriendsByUserIdView() {
