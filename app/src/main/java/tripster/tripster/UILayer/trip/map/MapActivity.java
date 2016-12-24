@@ -144,14 +144,15 @@ public class MapActivity extends BaseDemoActivity implements
     }
 
     @Override
-    protected void onBeforeClusterItemRendered(PhotoAtLocation photoAtLocation, MarkerOptions markerOptions) {
-      super.onBeforeClusterItemRendered(photoAtLocation, markerOptions);
+    protected void onBeforeClusterItemRendered(final PhotoAtLocation photoAtLocation, MarkerOptions markerOptions) {
+      imageView.setImageResource(R.drawable.amu_bubble_mask); //temp image.
+      Bitmap icon = iconGenerator.makeIcon();
+      markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon));
       markerOptions.title(photoAtLocation.getLocationName());
     }
 
     @Override
-    protected void onClusterItemRendered(final PhotoAtLocation photo, Marker marker) {
-      super.onClusterItemRendered(photo, marker);
+    protected void onClusterItemRendered(final PhotoAtLocation photo, final Marker marker) {
       // Draw a single person.
       // Set the info window to show their name.
       Glide
@@ -163,20 +164,9 @@ public class MapActivity extends BaseDemoActivity implements
             public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> glideAnimation) {
               imageView.setImageDrawable(resource);
               Bitmap icon = iconGenerator.makeIcon();
-              Marker markerToChange = null;
-              for (Marker marker : clusterManager.getMarkerCollection().getMarkers()) {
-                if (marker.getPosition().equals(photo.getPosition())) {
-                  markerToChange = marker;
-                }
-              }
-              // if found - change icon
-              if (markerToChange != null) {
-                markerToChange.setIcon(BitmapDescriptorFactory.fromBitmap(icon));
-              }
+              marker.setIcon(BitmapDescriptorFactory.fromBitmap(icon));
             }
           });
-      Bitmap icon = iconGenerator.makeIcon();
-      marker.setIcon(BitmapDescriptorFactory.fromBitmap(icon));
     }
 
     @Override

@@ -10,5 +10,5 @@
     <dimen name="timeline_cardview_width">300dp</dimen>
     <dimen name="timeline_cardview_height_no_photos">20dp</dimen>
     <dimen name="custom_profile_image">50dp</dimen>
-    <dimen name="custom_profile_padding">2dp</dimen>
+    <dimen name="custom_profile_padding">0dp</dimen>
 </resources>
