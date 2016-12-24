@@ -1,6 +1,7 @@
 package tripster.tripster.UILayer.trip.timeline;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -17,6 +18,7 @@ import static tripster.tripster.Constants.PHOTO_PATH_K;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 class TimeLineViewHolder extends RecyclerView.ViewHolder {
+  private static final String TAG = TimeLineViewHolder.class.getName();
   TextView locationTextView;
   private View itemView;
 
@@ -31,6 +33,7 @@ class TimeLineViewHolder extends RecyclerView.ViewHolder {
   void initView(List<String> photos) {
     LinearLayout layout = (LinearLayout) itemView.findViewById(R.id.linear);
     layout.removeAllViews();
+    Log.d(TAG, "Photos are: " + photos);
     for (String photoId : photos) {
       String photoUri = (String) tDb.getDocumentById(photoId).getProperty(PHOTO_PATH_K);
       ImageView imageView = new ImageView(itemView.getContext());

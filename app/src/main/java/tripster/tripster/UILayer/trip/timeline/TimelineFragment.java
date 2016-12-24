@@ -142,6 +142,7 @@ public class TimelineFragment extends Fragment {
           }
           results.get(results.size() - 1).second.add(r.getDocumentId());
         }
+
         new Handler(Looper.getMainLooper()).post(new Runnable() {
           @Override
           public void run() {

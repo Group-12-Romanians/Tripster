@@ -9,11 +9,22 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.ui.IconGenerator;
+import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.couchbase.lite.Document;
+import com.couchbase.lite.LiveQuery;
+import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryRow;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
@@ -23,25 +34,35 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 
 import tripster.tripster.R;
-import tripster.tripster.UILayer.trip.map.model.Person;
+import tripster.tripster.UILayer.trip.map.model.PhotoAtLocation;
+import tripster.tripster.dataLayer.TripsterDb;
+
+import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_TIME;
+import static tripster.tripster.Constants.PHOTO_PATH_K;
+import static tripster.tripster.Constants.PLACE_LAT_K;
+import static tripster.tripster.Constants.PLACE_LNG_K;
 
 public class MapActivity extends BaseDemoActivity implements
-    ClusterManager.OnClusterClickListener<Person>,
-    ClusterManager.OnClusterInfoWindowClickListener<Person>,
-    ClusterManager.OnClusterItemClickListener<Person>,
-    ClusterManager.OnClusterItemInfoWindowClickListener<Person> {
+    ClusterManager.OnClusterClickListener<PhotoAtLocation>,
+    ClusterManager.OnClusterInfoWindowClickListener<PhotoAtLocation>,
+    ClusterManager.OnClusterItemClickListener<PhotoAtLocation>,
+    ClusterManager.OnClusterItemInfoWindowClickListener<PhotoAtLocation> {
+
+  private static final String TAG = MapActivity.class.getName();
+  private ClusterManager<PhotoAtLocation> clusterManager;
+  private TripsterDb tDb;
+  private LiveQuery imagesLQ;
 
   private String tripId;
 
-  private ClusterManager<Person> mClusterManager;
-  private Random mRandom = new Random(1984);
   /**
    * ATTENTION: This was auto-generated to implement the App Indexing API.
    * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -51,6 +72,9 @@ public class MapActivity extends BaseDemoActivity implements
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    tDb = TripsterDb.getInstance(getApplicationContext());
+    tDb.initAllViews();
+    tDb.startSync();
 
     // ATTENTION: This was auto-generated to implement the App Indexing API.
     // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -97,58 +121,99 @@ public class MapActivity extends BaseDemoActivity implements
    * Draws profile photos inside markers (using IconGenerator).
    * When there are multiple people in the cluster, draw multiple photos (using MultiDrawable).
    */
-  private class PersonRenderer extends DefaultClusterRenderer<Person> {
-    private final IconGenerator mIconGenerator = new IconGenerator(getApplicationContext());
-    private final IconGenerator mClusterIconGenerator = new IconGenerator(getApplicationContext());
-    private final ImageView mImageView;
-    private final ImageView mClusterImageView;
-    private final int mDimension;
+  private class PhotoAtLocationRenderer extends DefaultClusterRenderer<PhotoAtLocation> {
+    private final IconGenerator iconGenerator = new IconGenerator(getApplicationContext());
+    private final IconGenerator clusterIconGenerator = new IconGenerator(getApplicationContext());
+    private final ImageView imageView;
+    private final ImageView clusterImageView;
+    private final int dimension;
 
-    public PersonRenderer() {
-      super(getApplicationContext(), getMap(), mClusterManager);
+    public PhotoAtLocationRenderer() {
+      super(getApplicationContext(), getMap(), clusterManager);
 
       View multiProfile = getLayoutInflater().inflate(R.layout.multi_profile, null);
-      mClusterIconGenerator.setContentView(multiProfile);
-      mClusterImageView = (ImageView) multiProfile.findViewById(R.id.image);
+      clusterIconGenerator.setContentView(multiProfile);
+      clusterImageView = (ImageView) multiProfile.findViewById(R.id.image);
 
-      mImageView = new ImageView(getApplicationContext());
-      mDimension = (int) getResources().getDimension(R.dimen.custom_profile_image);
-      mImageView.setLayoutParams(new ViewGroup.LayoutParams(mDimension, mDimension));
+      imageView = new ImageView(getApplicationContext());
+      dimension = (int) getResources().getDimension(R.dimen.custom_profile_image);
+      imageView.setLayoutParams(new ViewGroup.LayoutParams(dimension, dimension));
       int padding = (int) getResources().getDimension(R.dimen.custom_profile_padding);
-      mImageView.setPadding(padding, padding, padding, padding);
-      mIconGenerator.setContentView(mImageView);
+      imageView.setPadding(padding, padding, padding, padding);
+      iconGenerator.setContentView(imageView);
     }
 
     @Override
-    protected void onBeforeClusterItemRendered(Person person, MarkerOptions markerOptions) {
+    protected void onBeforeClusterItemRendered(PhotoAtLocation photoAtLocation, MarkerOptions markerOptions) {
+      super.onBeforeClusterItemRendered(photoAtLocation, markerOptions);
+      markerOptions.title(photoAtLocation.getLocationName());
+    }
+
+    @Override
+    protected void onClusterItemRendered(final PhotoAtLocation photo, Marker marker) {
+      super.onClusterItemRendered(photo, marker);
       // Draw a single person.
       // Set the info window to show their name.
-      mImageView.setImageResource(person.profilePhoto);
-      Bitmap icon = mIconGenerator.makeIcon();
-      markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon)).title(person.name);
+      Glide
+          .with(getApplicationContext())
+          .load(photo.getPhotoPath())
+          .diskCacheStrategy(DiskCacheStrategy.ALL)
+          .into(new SimpleTarget<GlideDrawable>() {
+            @Override
+            public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> glideAnimation) {
+              imageView.setImageDrawable(resource);
+              Bitmap icon = iconGenerator.makeIcon();
+              Marker markerToChange = null;
+              for (Marker marker : clusterManager.getMarkerCollection().getMarkers()) {
+                if (marker.getPosition().equals(photo.getPosition())) {
+                  markerToChange = marker;
+                }
+              }
+              // if found - change icon
+              if (markerToChange != null) {
+                markerToChange.setIcon(BitmapDescriptorFactory.fromBitmap(icon));
+              }
+            }
+          });
+      Bitmap icon = iconGenerator.makeIcon();
+      marker.setIcon(BitmapDescriptorFactory.fromBitmap(icon));
     }
 
     @Override
-    protected void onBeforeClusterRendered(Cluster<Person> cluster, MarkerOptions markerOptions) {
+    protected void onClusterRendered(final Cluster<PhotoAtLocation> cluster, final Marker marker) {
       // Draw multiple people.
       // Note: this method runs on the UI thread. Don't spend too much time in here (like in this example).
-      List<Drawable> profilePhotos = new ArrayList<Drawable>(Math.min(4, cluster.getSize()));
-      int width = mDimension;
-      int height = mDimension;
+      final List<Drawable> photos = new ArrayList<Drawable>(Math.min(4, cluster.getSize()));
+      final int width = dimension;
+      final int height = dimension;
 
-      for (Person p : cluster.getItems()) {
+      int i = 0;
+
+      for (final PhotoAtLocation p : cluster.getItems()) {
         // Draw 4 at most.
-        if (profilePhotos.size() == 4) break;
-        Drawable drawable = getResources().getDrawable(p.profilePhoto);
-        drawable.setBounds(0, 0, width, height);
-        profilePhotos.add(drawable);
-      }
-      MultiDrawable multiDrawable = new MultiDrawable(profilePhotos);
-      multiDrawable.setBounds(0, 0, width, height);
+        i++;
+        Glide
+            .with(getApplicationContext())
+            .load(p.getPhotoPath())
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .into(new SimpleTarget<GlideDrawable>() {
+              @Override
+              public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> glideAnimation) {
+                resource.setBounds(0, 0, width, height);
+                photos.add(resource);
+                MultiDrawable multiDrawable = new MultiDrawable(photos);
+                multiDrawable.setBounds(0, 0, width, height);
 
-      mClusterImageView.setImageDrawable(multiDrawable);
-      Bitmap icon = mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
-      markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon));
+                clusterImageView.setImageDrawable(multiDrawable);
+                Bitmap icon = clusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
+                marker.setIcon(BitmapDescriptorFactory.fromBitmap(icon));
+              }
+            });
+
+        if (i == 4) break;
+      }
+      Bitmap icon = clusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
+      marker.setIcon(BitmapDescriptorFactory.fromBitmap(icon));
     }
 
     @Override
@@ -159,10 +224,10 @@ public class MapActivity extends BaseDemoActivity implements
   }
 
   @Override
-  public boolean onClusterClick(Cluster<Person> cluster) {
+  public boolean onClusterClick(Cluster<PhotoAtLocation> cluster) {
     // Show a toast with some info when the cluster is clicked.
-    String firstName = cluster.getItems().iterator().next().name;
-    Toast.makeText(this, cluster.getSize() + " (including " + firstName + ")", Toast.LENGTH_SHORT).show();
+    String locationName = cluster.getItems().iterator().next().getLocationName();
+    Toast.makeText(this, cluster.getSize() + " photos at " + locationName, Toast.LENGTH_SHORT).show();
 
     // Zoom in the cluster. Need to create LatLngBounds and including all the cluster items
     // inside of bounds, then animate to center of the bounds.
@@ -186,75 +251,81 @@ public class MapActivity extends BaseDemoActivity implements
   }
 
   @Override
-  public void onClusterInfoWindowClick(Cluster<Person> cluster) {
+  public void onClusterInfoWindowClick(Cluster<PhotoAtLocation> cluster) {
     // Does nothing, but you could go to a list of the users.
   }
 
   @Override
-  public boolean onClusterItemClick(Person item) {
+  public boolean onClusterItemClick(PhotoAtLocation item) {
     // Does nothing, but you could go into the user's profile page, for example.
     return false;
   }
 
   @Override
-  public void onClusterItemInfoWindowClick(Person item) {
+  public void onClusterItemInfoWindowClick(PhotoAtLocation item) {
     // Does nothing, but you could go into the user's profile page, for example.
   }
 
   @Override
   protected void startDemo() {
-    getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(51.503186, -0.126446), 9.5f));
-
-    mClusterManager = new ClusterManager<Person>(this, getMap());
-    mClusterManager.setRenderer(new PersonRenderer());
-    getMap().setOnCameraIdleListener((GoogleMap.OnCameraIdleListener) mClusterManager);
-    getMap().setOnMarkerClickListener(mClusterManager);
-    getMap().setOnInfoWindowClickListener(mClusterManager);
-    mClusterManager.setOnClusterClickListener(this);
-    mClusterManager.setOnClusterInfoWindowClickListener(this);
-    mClusterManager.setOnClusterItemClickListener(this);
-    mClusterManager.setOnClusterItemInfoWindowClickListener(this);
+    Log.d(TAG, "Demo started");
+    clusterManager = new ClusterManager<PhotoAtLocation>(this, getMap());
+    clusterManager.setRenderer(new PhotoAtLocationRenderer());
+    getMap().setOnCameraIdleListener((GoogleMap.OnCameraIdleListener) clusterManager);
+    getMap().setOnMarkerClickListener(clusterManager);
+    getMap().setOnInfoWindowClickListener(clusterManager);
+    clusterManager.setOnClusterClickListener(this);
+    clusterManager.setOnClusterInfoWindowClickListener(this);
+    clusterManager.setOnClusterItemClickListener(this);
+    clusterManager.setOnClusterItemInfoWindowClickListener(this);
 
     addItems();
-    mClusterManager.cluster();
+    clusterManager.cluster();
   }
 
   private void addItems() {
     tripId = getIntent().getStringExtra("tripId");
-
-    // http://www.flickr.com/photos/sdasmarchives/5036248203/
-    mClusterManager.addItem(new Person(position(), "Walter", R.drawable.walter));
-
-    // http://www.flickr.com/photos/usnationalarchives/4726917149/
-    mClusterManager.addItem(new Person(position(), "Gran", R.drawable.gran));
-
-    // http://www.flickr.com/photos/nypl/3111525394/
-    mClusterManager.addItem(new Person(position(), "Ruth", R.drawable.ruth));
-
-    // http://www.flickr.com/photos/smithsonian/2887433330/
-    mClusterManager.addItem(new Person(position(), "Stefan", R.drawable.stefan));
-
-    // http://www.flickr.com/photos/library_of_congress/2179915182/
-    mClusterManager.addItem(new Person(position(), "Mechanic", R.drawable.mechanic));
-
-    // http://www.flickr.com/photos/nationalmediamuseum/7893552556/
-    mClusterManager.addItem(new Person(position(), "Yeats", R.drawable.yeats));
-
-    // http://www.flickr.com/photos/sdasmarchives/5036231225/
-    mClusterManager.addItem(new Person(position(), "John", R.drawable.john));
-
-    // http://www.flickr.com/photos/anmm_thecommons/7694202096/
-    mClusterManager.addItem(new Person(position(), "Trevor the Turtle", R.drawable.turtle));
-
-    // http://www.flickr.com/photos/usnationalarchives/4726892651/
-    mClusterManager.addItem(new Person(position(), "Teach", R.drawable.teacher));
+    restartImagesLiveQuery();
   }
 
-  private LatLng position() {
-    return new LatLng(random(51.6723432, 51.38494009999999), random(0.148271, -0.3514683));
-  }
+  private void restartImagesLiveQuery() {
+    Query q = tDb.getDb().getExistingView(IMAGES_BY_TRIP_AND_TIME).createQuery();
+    List<Object> firstKey = new ArrayList<>();
+    firstKey.add(tripId);
+    firstKey.add((long) 0);
+    List<Object> lastKey = new ArrayList<>();
+    lastKey.add(tripId);
+    lastKey.add(System.currentTimeMillis());
+    q.setStartKey(lastKey);
+    q.setEndKey(firstKey);
+    q.setDescending(true);
+    imagesLQ = q.toLiveQuery();
+    imagesLQ.addChangeListener(new LiveQuery.ChangeListener() {
+      @Override
+      public void changed(LiveQuery.ChangeEvent event) {
+        final List<Pair<LatLng, List<String>>> results = new ArrayList<>();
+        Iterator<QueryRow> it = event.getRows().iterator();
+        String prevPlaceId = null;
+        while (it.hasNext()) {
+          QueryRow r = it.next();
+          String placeId = (String) r.getValue();
+          if (!placeId.equals(prevPlaceId)) {
+            Document placeDoc =  tDb.getDocumentById(placeId);
+            LatLng location = new LatLng((double) placeDoc.getProperty(PLACE_LAT_K), (double) placeDoc.getProperty(PLACE_LNG_K));
+            results.add(new Pair<LatLng, List<String>>(location, new ArrayList<String>()));
+            prevPlaceId = placeId;
+          }
+          results.get(results.size() - 1).second.add((String) r.getDocument().getProperty(PHOTO_PATH_K));
+        }
 
-  private double random(double min, double max) {
-    return mRandom.nextDouble() * (max - min) + min;
+        for (Pair<LatLng, List<String>> result : results) {
+          for (String path : result.second) {
+            clusterManager.addItem(new PhotoAtLocation("NoInfo", path, result.first));
+          }
+        }
+
+      }
+    });
+    imagesLQ.start();
   }
 }

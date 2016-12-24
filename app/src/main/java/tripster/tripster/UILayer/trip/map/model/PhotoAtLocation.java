@@ -16,18 +16,31 @@
 
 package tripster.tripster.UILayer.trip.map.model;
 
-import com.google.android.gms.maps.model.LatLng;
 import android.clustering.ClusterItem;
 
-public class MyItem implements ClusterItem {
-    private final LatLng mPosition;
+import com.google.android.gms.maps.model.LatLng;
 
-    public MyItem(double lat, double lng) {
-        mPosition = new LatLng(lat, lng);
+public class PhotoAtLocation implements ClusterItem {
+    private final String locationName;
+    private final String photoPath;
+    private final LatLng location;
+
+    public PhotoAtLocation(String locationName, String photoPath, LatLng location) {
+        this.locationName = locationName;
+        this.photoPath = photoPath;
+        this.location = location;
     }
 
     @Override
     public LatLng getPosition() {
-        return mPosition;
+        return location;
+    }
+
+    public String getPhotoPath() {
+        return photoPath;
+    }
+
+    public String getLocationName() {
+        return locationName;
     }
 }
