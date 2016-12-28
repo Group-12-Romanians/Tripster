@@ -253,7 +253,7 @@ public class TripsterDb {
           return values.size();
         }
       }
-    }, "667"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+    }, "669"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 
   private void initNotificationsByUser() {
@@ -278,6 +278,6 @@ public class TripsterDb {
           return values.size();
         }
       }
-    }, "667"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+    }, "669"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 }

@@ -81,14 +81,14 @@ class UserTripsAdapter extends ArrayAdapter<String> {
 
       TextView nameView = ((ViewHolder) convertView.getTag()).tripName;
       String name = (String) tripDocument.getProperty(TRIP_NAME_K);
-      if (name != null) {
+      if (name == null) {
         name = DEFAULT_NAME;
       }
       nameView.setText(name);
 
       ImageView previewView = ((ViewHolder) convertView.getTag()).tripPreview;
       String preview = (String) tripDocument.getProperty(TRIP_PREVIEW_K);
-      if (preview != null) {
+      if (preview == null) {
         preview = DEFAULT_PREVIEW;
       }
       new Image(preview).displayIn(previewView);

@@ -14,7 +14,7 @@ import static tripster.tripster.Constants.FOLLOWING_BY_USER;
 import static tripster.tripster.Constants.USER_ID;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
-public class FollowingFragment extends SearchableUsersFragment{
+public class FollowingFragment extends SearchableUsersFragment {
   @Override
   public Query getQuery() {
     String userId = getArguments().getString(USER_ID);

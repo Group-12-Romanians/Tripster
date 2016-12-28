@@ -113,7 +113,7 @@ public abstract class ProfileFragment extends Fragment {
           new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-              noOfFollowingButton.setText(String.valueOf(event.getRows().getRow(0)));
+              noOfFollowingButton.setText(String.valueOf(event.getRows().getRow(0).getValue()));
             }
           });
         } else {
@@ -135,7 +135,7 @@ public abstract class ProfileFragment extends Fragment {
           new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-              noOfFollowersButton.setText(String.valueOf(event.getRows().getRow(0)));
+              noOfFollowersButton.setText(String.valueOf(event.getRows().getRow(0).getValue()));
             }
           });
         } else {

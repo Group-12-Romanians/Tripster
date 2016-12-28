@@ -109,6 +109,7 @@ public class UserProfileFragment extends ProfileFragment {
   }
 
   private void updateFollowerDetails() {
+    followerButton.setVisibility(View.VISIBLE);
     Document d = tDb.getDocumentById(followerId);
     if (d == null || d.isDeleted()) {
       followerLevel = LEVEL_PUBLIC;

@@ -39,7 +39,7 @@
 
                     <Button
                         android:id="@+id/noOfTrips"
-                        android:layout_width="match_parent"
+                        android:layout_width="60dp"
                         android:layout_height="wrap_content"
                         android:background="@color/white"
                         android:clickable="false"
@@ -66,7 +66,7 @@
 
                     <Button
                         android:id="@+id/noOfFollowers"
-                        android:layout_width="match_parent"
+                        android:layout_width="60dp"
                         android:layout_height="wrap_content"
                         android:background="@color/white"
                         android:minHeight="1dp"
@@ -92,7 +92,7 @@
 
                     <Button
                         android:id="@+id/noOfFollowing"
-                        android:layout_width="match_parent"
+                        android:layout_width="60dp"
                         android:layout_height="wrap_content"
                         android:background="@color/white"
                         android:minHeight="1dp"
@@ -116,17 +116,17 @@
                           android:layout_height="0dp"
                           android:layout_weight="30"
                           android:gravity="center_horizontal"
-                          android:orientation="horizontal">
+                          android:orientation="vertical">
 
                 <Button
                     android:id="@+id/followStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
-                    android:background="@color/white"
+                    android:background="@drawable/rounded_button"
                     android:minHeight="1dp"
-                    android:shadowColor="@color/cardview_light_background"
                     android:text="Follow"
+                    android:textColor="@color/white"
                     android:textAlignment="center"
                     android:textAllCaps="false"
                     android:textSize="12sp"
@@ -136,7 +136,6 @@
                     android:id="@+id/followSeek"
                     android:visibility="invisible"
                     android:layout_width="150dp"
-                    android:padding="10dp"
                     android:layout_height="match_parent"/>
             </LinearLayout>
         </LinearLayout>
