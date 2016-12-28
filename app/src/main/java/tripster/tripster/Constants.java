@@ -7,6 +7,7 @@ public class Constants {
   public static final String SERVER_URL = SERVER + ":" + APP_PORT;
   public static final String USER_ID = "userId";
   public static final String TRIP_ID = "tripId";
+  public static final String  LOGIN_PROVIDER = "loginProvider";
 
   //------------------------------------------ SERVICE -------------------------------------------//
   public static final String START_SERVICE = "start";

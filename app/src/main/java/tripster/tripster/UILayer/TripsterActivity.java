@@ -52,6 +52,7 @@ import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static junit.framework.Assert.assertNotNull;
 import static tripster.tripster.Constants.CURR_TRIP_ID;
 import static tripster.tripster.Constants.CURR_TRIP_ST;
+import static tripster.tripster.Constants.LOGIN_PROVIDER;
 import static tripster.tripster.Constants.MY_ID;
 import static tripster.tripster.Constants.PAUSE_SERVICE;
 import static tripster.tripster.Constants.RESUME_SERVICE;
@@ -181,7 +182,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   }
 
   private void recreateLoginSession() {
-    String loginProviderClassName = getIntent().getStringExtra("loginProvider");
+    String loginProviderClassName = getIntent().getStringExtra(LOGIN_PROVIDER);
     Log.d(TAG, "MeUser logged in with: " + loginProviderClassName);
     try {
       Class<?> loginProviderClass = Class.forName(loginProviderClassName);

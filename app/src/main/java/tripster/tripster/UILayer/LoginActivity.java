@@ -13,6 +13,12 @@ import tripster.tripster.account.FacebookProvider;
 import tripster.tripster.account.GoogleProvider;
 import tripster.tripster.account.LoginProvider;
 
+import static tripster.tripster.Constants.LOGIN_PROVIDER;
+import static tripster.tripster.Constants.USER_AVATAR_K;
+import static tripster.tripster.Constants.USER_EMAIL_K;
+import static tripster.tripster.Constants.USER_ID;
+import static tripster.tripster.Constants.USER_NAME_K;
+
 public class LoginActivity extends AppCompatActivity {
 
   private static final String TAG = LoginActivity.class.getName();
@@ -50,16 +56,16 @@ public class LoginActivity extends AppCompatActivity {
 
   public void handleLogin(String loginProviderClassName, String myId, String name, String avatarUrl, String email) {
     Intent i = new Intent(LoginActivity.this, TripsterActivity.class);
-    i.putExtra("loginProvider", loginProviderClassName);
-    i.putExtra("id", myId);
+    i.putExtra(LOGIN_PROVIDER, loginProviderClassName);
+    i.putExtra(USER_ID, myId);
     if (name != null) {
-      i.putExtra("name", name);
+      i.putExtra(USER_NAME_K, name);
     }
     if (avatarUrl != null) {
-      i.putExtra("avatarUrl", avatarUrl);
+      i.putExtra(USER_AVATAR_K, avatarUrl);
     }
     if (email != null) {
-      i.putExtra("email", email);
+      i.putExtra(USER_EMAIL_K, email);
     }
     startActivity(i);
     finish();
