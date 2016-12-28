@@ -178,7 +178,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
     start = (FloatingActionButton) findViewById(R.id.tracking_start);
     pause = (FloatingActionButton) findViewById(R.id.tracking_pause);
     resume = (FloatingActionButton) findViewById(R.id.tracking_resume);
-    stop = (FloatingActionButton)findViewById(R.id.tracking_stop);
+    stop = (FloatingActionButton) findViewById(R.id.tracking_stop);
   }
 
   private void recreateLoginSession() {

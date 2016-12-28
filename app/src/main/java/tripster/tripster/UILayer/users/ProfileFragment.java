@@ -109,12 +109,16 @@ public abstract class ProfileFragment extends Fragment {
     followingNoLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(final LiveQuery.ChangeEvent event) {
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-          @Override
-          public void run() {
-            noOfFollowingButton.setText(String.valueOf(event.getRows().getRow(0)));
-          }
-        });
+        if (event.getRows().getCount() == 1) {
+          new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+              noOfFollowingButton.setText(String.valueOf(event.getRows().getRow(0)));
+            }
+          });
+        } else {
+          Log.e(TAG, "No realtions or some problem: " + event.getRows().getCount());
+        }
       }
     });
     followingNoLQ.start();
@@ -127,12 +131,16 @@ public abstract class ProfileFragment extends Fragment {
     followersNoLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(final LiveQuery.ChangeEvent event) {
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-          @Override
-          public void run() {
-            noOfFollowersButton.setText(String.valueOf(event.getRows().getRow(0)));
-          }
-        });
+        if (event.getRows().getCount() == 1) {
+          new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+              noOfFollowersButton.setText(String.valueOf(event.getRows().getRow(0)));
+            }
+          });
+        } else {
+          Log.e(TAG, "No realtions or some problem: " + event.getRows().getCount());
+        }
       }
     });
     followersNoLQ.start();
