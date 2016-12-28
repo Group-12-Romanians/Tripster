@@ -39,8 +39,8 @@ import tripster.tripster.Image;
 import tripster.tripster.R;
 import tripster.tripster.UILayer.newsfeed.NewsfeedFragment;
 import tripster.tripster.UILayer.notifications.NotificationsFragment;
-import tripster.tripster.UILayer.search.SearchForUsersFragment;
-import tripster.tripster.UILayer.users.UserProfileFragment;
+import tripster.tripster.UILayer.users.AllUsersFragment;
+import tripster.tripster.UILayer.users.MyProfileFragment;
 import tripster.tripster.account.LogoutProvider;
 import tripster.tripster.dataLayer.TripsterDb;
 import tripster.tripster.services.LocationService;
@@ -61,7 +61,7 @@ import static tripster.tripster.Constants.TRIP_PAUSED;
 import static tripster.tripster.Constants.TRIP_RUNNING;
 import static tripster.tripster.Constants.USER_AVATAR_K;
 import static tripster.tripster.Constants.USER_EMAIL_K;
-import static tripster.tripster.Constants.USER_ID_K;
+import static tripster.tripster.Constants.USER_ID;
 import static tripster.tripster.Constants.USER_NAME_K;
 
 public class TripsterActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -149,7 +149,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   protected void onStart() {
     super.onStart();
 
-    String userId = getIntent().getStringExtra(USER_ID_K);
+    String userId = getIntent().getStringExtra(USER_ID);
     String name = getIntent().getStringExtra(USER_NAME_K);
     String email = getIntent().getStringExtra(USER_EMAIL_K);
     String avatarUrl = getIntent().getStringExtra(USER_AVATAR_K);
@@ -262,16 +262,13 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
 
     Fragment frag = null;
     if (id == R.id.nav_camera) {
-      frag = new UserProfileFragment();
+      frag = new MyProfileFragment();
       Bundle args = new Bundle();
-      args.putString("userId", currentUserId);
+      args.putString(USER_ID, currentUserId);
       frag.setArguments(args);
       Log.d(TAG, "I want to switch to MyProfile fragment");
     } else if (id == R.id.nav_slideshow) {
-      frag = new SearchForUsersFragment();
-      Bundle args = new Bundle();
-      args.putString("userId", "none");
-      frag.setArguments(args);
+      frag = new AllUsersFragment();
       Log.d(TAG, "I want to switch to AllUsers fragment");
     } else if (id == R.id.news_feed) {
       frag = new NewsfeedFragment();

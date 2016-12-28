@@ -38,6 +38,8 @@ import static tripster.tripster.Constants.PLACE_LAT_K;
 import static tripster.tripster.Constants.PLACE_LNG_K;
 import static tripster.tripster.Constants.PLACE_TIME_K;
 import static tripster.tripster.Constants.PLACE_TRIP_K;
+import static tripster.tripster.Constants.TRIP_LEVEL_K;
+import static tripster.tripster.Constants.LEVEL_PRIVATE;
 import static tripster.tripster.Constants.TRIP_NAME_K;
 import static tripster.tripster.Constants.TRIP_OWNER_K;
 import static tripster.tripster.Constants.TRIP_PAUSED;
@@ -50,13 +52,14 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
 
   private static final int TRACKING_FREQUENCY = 1000; //ms
   private static final int MIN_DIST = 50; //meters
-  private static final String DEFAULT_PREVIEW = "https://cdn1.tekrevue.com/wp-content/uploads/2015/04/map-location-pin.jpg";
-  private static final String DEFAULT_NAME = "Current Trip";
 
   private GoogleApiClient googleClient;
   private Timer timer;
   private AppPreferences pref;
   private TripsterDb tDb;
+
+  private String currTripId;
+  private String currTripSt;
 
   public LocationService() {
     super();
@@ -99,60 +102,64 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
   }
 
   private void setCurrentTripDetails(String running, String tripId) {
+    currTripId = tripId;
+    currTripSt = running;
     pref.put(CURR_TRIP_ID, tripId);
     pref.put(CURR_TRIP_ST, running);
   }
 
   private String getStatus() {
-    return pref.getString(CURR_TRIP_ST, "");
+    if (currTripSt == null) {
+      currTripSt = pref.getString(CURR_TRIP_ST, "");
+    }
+    return currTripSt;
   }
 
   private String getTripId() {
-    return pref.getString(CURR_TRIP_ID, "");
+    if (currTripId == null) {
+      currTripId = pref.getString(CURR_TRIP_ID, "");
+    }
+    return currTripId;
   }
 
   private void startTrip(String userId) {
     if (getStatus().isEmpty()) {
       String newId = UUID.randomUUID().toString();
       Map<String, Object> props = new HashMap<>();
-      props.put(TRIP_NAME_K, DEFAULT_NAME);
-      props.put(TRIP_PREVIEW_K, DEFAULT_PREVIEW);
       props.put(TRIP_OWNER_K, userId);
+      props.put(TRIP_LEVEL_K, LEVEL_PRIVATE);
       tDb.upsertNewDocById(newId, props);
-      if (tDb.getDocumentById(newId) != null) {
-        setCurrentTripDetails(TRIP_RUNNING, newId);
+      setCurrentTripDetails(TRIP_RUNNING, newId); // to notify the activity
 
-        connectGoogleClient();
-        Log.d(TAG, "Successfully started by app");
-        return;
-      }
+      connectGoogleClient(); // actualy start service
+      Log.d(TAG, "Successfully started by app");
+    } else {
+      Log.e(TAG, "Unsuccessfully started by app");
     }
-    Log.e(TAG, "Unsuccessfully started by app");
   }
 
   private void resumeTrip() {
-    if (!getTripId().isEmpty() && tDb.getDocumentById(getTripId()) != null) {
+    if (!getTripId().isEmpty()) {
       if (getStatus().equals(TRIP_PAUSED)) {
         setCurrentTripDetails(TRIP_RUNNING, getTripId());
       }
 
       connectGoogleClient();
       Log.d(TAG, "Resumed by app");
-      return;
+    } else {
+      Log.e(TAG, "Unsuccessfully resumed by app");
     }
-    Log.e(TAG, "Unsuccessfully resumed by app");
   }
 
   private void pauseTrip() {
-    Log.d(TAG, "Pause info: tripId" + getTripId() + ", status " + getStatus() + "docById" + tDb.getDocumentById(getTripId()));
-    if (!getTripId().isEmpty() && getStatus().equals(TRIP_RUNNING) && tDb.getDocumentById(getTripId()) != null) {
+    if (!getTripId().isEmpty() && getStatus().equals(TRIP_RUNNING)) {
       setCurrentTripDetails(TRIP_PAUSED, getTripId());
 
       stopMonitor();
       Log.d(TAG, "Paused by app");
-      return;
+    } else {
+      Log.e(TAG, "Unsuccessfully paused by app");
     }
-    Log.e(TAG, "Unsuccessfully paused by app");
   }
 
   private void stopTrip() {
@@ -161,18 +168,16 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
       props.put(TRIP_STOPPED_AT_K, System.currentTimeMillis());
       tDb.upsertNewDocById(getTripId(), props);
       Document currTrip = tDb.getDocumentById(getTripId());
-
       dumpTrip(currTrip);
-      //sanity check only
-      if (currTrip != null && currTrip.getProperty(TRIP_STOPPED_AT_K) != null) {
-        setCurrentTripDetails("", "");
-        pref.put(CURR_TRIP_LL, "");
-      }
+
+      setCurrentTripDetails("", "");
+      pref.put(CURR_TRIP_LL, "");
+
       Log.d(TAG, "Stopped by app");
       exit();
-      return;
+    } else {
+      Log.e(TAG, "Unsuccessfully stopped by app");
     }
-    Log.e(TAG, "Unsuccessfully stopped by app");
   }
 
   private void dumpTrip(Document t) {
@@ -246,6 +251,8 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
         Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleClient);
         if (currentLocation != null) {
           addLocation(currentLocation);
+        } else {
+          Log.w(TAG, "Current location is null");
         }
       }
     };

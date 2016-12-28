@@ -77,23 +77,20 @@ class SearchableAdapter extends BaseAdapter implements Filterable {
       final Document userDoc = tDb.getDocumentById(userId);
 
       // Listeners
-      View.OnClickListener userClickListener = new View.OnClickListener() {
+      convertView.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
           tM.accessUser(userId);
         }
-      };
+      });
 
       // Set user name.
       TextView name = ((ViewHolder) convertView.getTag()).text;
-      name.setOnClickListener(userClickListener);
       name.setText((String) userDoc.getProperty(USER_NAME_K));
 
       // Set user picture.
       ImageView requesterPhoto = ((ViewHolder)convertView.getTag()).image;
-      Image image = new Image((String) userDoc.getProperty(USER_AVATAR_K));
-      requesterPhoto.setOnClickListener(userClickListener);
-      image.displayIn(requesterPhoto);
+      new Image((String) userDoc.getProperty(USER_AVATAR_K)).displayIn(requesterPhoto);
     } catch (Exception e) {
       Log.e(TAG, "Cannot display friend request");
       e.printStackTrace();

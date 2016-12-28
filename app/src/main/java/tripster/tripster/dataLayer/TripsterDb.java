@@ -11,7 +11,9 @@ import com.couchbase.lite.Document;
 import com.couchbase.lite.Emitter;
 import com.couchbase.lite.Manager;
 import com.couchbase.lite.Mapper;
+import com.couchbase.lite.Reducer;
 import com.couchbase.lite.UnsavedRevision;
+import com.couchbase.lite.View;
 import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.replicator.Replication;
 import com.couchbase.lite.replicator.ReplicationState;
@@ -26,25 +28,22 @@ import java.util.Map;
 import static tripster.tripster.Constants.DB_NAME;
 import static tripster.tripster.Constants.DB_STORAGE_TYPE;
 import static tripster.tripster.Constants.DB_SYNC_URL;
-import static tripster.tripster.Constants.FRIENDSHIPS_BY_USER;
-import static tripster.tripster.Constants.FRIENDS_BY_USER;
-import static tripster.tripster.Constants.FS_LEVEL_CONFIRMED;
-import static tripster.tripster.Constants.FS_LEVEL_K;
-import static tripster.tripster.Constants.FS_LEVEL_SENT;
-import static tripster.tripster.Constants.FS_RECEIVER_K;
-import static tripster.tripster.Constants.FS_SENDER_K;
-import static tripster.tripster.Constants.FS_TIME_K;
+import static tripster.tripster.Constants.DOC_ID;
+import static tripster.tripster.Constants.FOLLOWERS_BY_USER;
+import static tripster.tripster.Constants.FOLLOWING_BY_USER;
+import static tripster.tripster.Constants.FOL_LEVEL_K;
 import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_TIME;
 import static tripster.tripster.Constants.NOTIFICATIONS_BY_USER;
+import static tripster.tripster.Constants.NOT_RECEIVER_K;
+import static tripster.tripster.Constants.NOT_TIME_K;
+import static tripster.tripster.Constants.NOT_TYPE_K;
 import static tripster.tripster.Constants.PHOTO_PATH_K;
 import static tripster.tripster.Constants.PHOTO_PLACE_K;
 import static tripster.tripster.Constants.PHOTO_TIME_K;
 import static tripster.tripster.Constants.PHOTO_TRIP_K;
 import static tripster.tripster.Constants.TRIPS_BY_OWNER;
-import static tripster.tripster.Constants.TRIP_NAME_K;
+import static tripster.tripster.Constants.TRIP_LEVEL_K;
 import static tripster.tripster.Constants.TRIP_OWNER_K;
-import static tripster.tripster.Constants.TRIP_PREVIEW_K;
-import static tripster.tripster.Constants.TRIP_STOPPED_AT_K;
 import static tripster.tripster.Constants.USERS_BY_ID;
 import static tripster.tripster.Constants.USER_AVATAR_K;
 import static tripster.tripster.Constants.USER_EMAIL_K;
@@ -165,12 +164,12 @@ public class TripsterDb {
   }
 
   public void initAllViews() {
-    initTripsByOwnerIdView();
-    initImagesByTripAndTimeView();
-    initFriendsByUserIdView();
-    initNotificationsByUser();
     initUsersById();
-    initFriendshipsByUser();
+    initImagesByTripAndTimeView();
+    initTripsByOwnerIdView();
+    initFollowingByUser();
+    initFollowersByUser();
+    initNotificationsByUser();
   }
 
   private void initUsersById() {
@@ -180,7 +179,7 @@ public class TripsterDb {
         if (document.containsKey(USER_AVATAR_K)
             && document.containsKey(USER_EMAIL_K)
             && document.containsKey(USER_NAME_K)) {
-          emitter.emit("0", document);
+          emitter.emit("0", null); // we only catch additions here (no need to see changes in users)
         }
       }
     }, "667"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
@@ -203,74 +202,82 @@ public class TripsterDb {
     }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 
-  private void initNotificationsByUser() {
-    db.getView(NOTIFICATIONS_BY_USER).setMap(new Mapper() {
-      @Override
-      public void map(Map<String, Object> document, Emitter emitter) {
-        if (document.containsKey(FS_RECEIVER_K) &&
-            document.containsKey(FS_LEVEL_K) &&
-            document.get(FS_LEVEL_K).equals(FS_LEVEL_SENT)) {
-          List<Object> keys = new ArrayList<>();
-          keys.add(document.get(FS_RECEIVER_K));
-          keys.add(document.get(FS_TIME_K));
-          emitter.emit(keys, document); //NOTICE: I emit the document to catch changes in status
-          //TODO: We might not need to emit document actually.
-        }
-      }
-    }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
-  }
-
-  private void initFriendshipsByUser() {
-    db.getView(FRIENDSHIPS_BY_USER).setMap(new Mapper() {
-      @Override
-      public void map(Map<String, Object> document, Emitter emitter) {
-        if (document.containsKey(FS_RECEIVER_K) &&
-            document.containsKey(FS_LEVEL_K) &&
-            document.containsKey(FS_SENDER_K)) {
-          List<Object> keys = new ArrayList<>();
-          keys.add(document.get(FS_RECEIVER_K));
-          keys.add(document.get(FS_SENDER_K));
-          emitter.emit(keys, document); //NOTICE: I emit the document to catch changes in status
-          //TODO: We might not need to emit document actually.
-        }
-      }
-    }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
-  }
-
   private void initTripsByOwnerIdView() {
     db.getView(TRIPS_BY_OWNER).setMap(new Mapper() {
       @Override
       public void map(Map<String, Object> document, Emitter emitter) {
-        if (document.containsKey(TRIP_OWNER_K)
-            && document.containsKey(TRIP_NAME_K)
-            && document.containsKey(TRIP_PREVIEW_K)
-            && document.containsKey(TRIP_STOPPED_AT_K)) {
-          emitter.emit(document.get(TRIP_OWNER_K), document.get(TRIP_STOPPED_AT_K)); // NOTICE: emit this because we need to sort by it
-          // Also note that this view does not see changes to trips, but that's never going to be needed (from my plans - Dragos)
+        if (document.containsKey(TRIP_OWNER_K) && document.containsKey(TRIP_LEVEL_K)) {
+          emitter.emit(document.get(TRIP_OWNER_K), document.get(TRIP_LEVEL_K)); // emit this because we need to filter by it
+          // This only sees additions and changes in trip levels
         }
       }
-    }, "668"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+    }, "669"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 
-  private void initFriendsByUserIdView() {
-    db.getView(FRIENDS_BY_USER).setMap(new Mapper() {
+  private void initFollowingByUser() {
+    db.getView(FOLLOWING_BY_USER).setMapReduce(new Mapper() {
       @Override
       public void map(Map<String, Object> document, Emitter emitter) {
-        if (document.containsKey(FS_SENDER_K)
-            && document.containsKey(FS_RECEIVER_K)
-            && document.containsKey(FS_LEVEL_K)) {
-          if (document.get(FS_LEVEL_K).equals(FS_LEVEL_CONFIRMED)) {
-            Map<String, Object> receiver = new HashMap<>();
-            receiver.put("_id", document.get(FS_RECEIVER_K));
-            emitter.emit(document.get(FS_SENDER_K), receiver);
-
-            Map<String, Object> sender = new HashMap<>();
-            sender.put("_id", document.get(FS_SENDER_K));
-            emitter.emit(document.get(FS_RECEIVER_K), sender); // NOTICE: I redirect this to point at user rows because that's what we need anyway
-            // Also this doesn't see changes in user docs and not even in friendship docs
-          }
+        String docId = ((String) document.get(DOC_ID)); // The id is of type: followerId:followingId
+        if (document.containsKey(FOL_LEVEL_K) && docId.contains(":")) {
+          emitter.emit(docId.split(":")[0], document.get(FOL_LEVEL_K)); //changes in level
         }
       }
-    }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+    }, new Reducer() {
+      @Override
+      public Object reduce(List<Object> keys, List<Object> values, boolean rereduce) { // count number of subjects
+        if (rereduce) {
+          return View.totalValues(values);
+        } else {
+          return values.size();
+        }
+      }
+    }, "667"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+  }
+
+  private void initFollowersByUser() {
+    db.getView(FOLLOWERS_BY_USER).setMapReduce(new Mapper() {
+      @Override
+      public void map(Map<String, Object> document, Emitter emitter) {
+        String docId = ((String) document.get(DOC_ID)); // The id is of type: followerId:followingId
+        if (document.containsKey(FOL_LEVEL_K) && docId.contains(":")) {
+          emitter.emit(docId.split(":")[1], null); // second part of docId is the subject of the following
+        }
+      }
+    }, new Reducer() {
+      @Override
+      public Object reduce(List<Object> keys, List<Object> values, boolean rereduce) { //count number of followers
+        if (rereduce) {
+          return View.totalValues(values);
+        } else {
+          return values.size();
+        }
+      }
+    }, "667"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+  }
+
+  private void initNotificationsByUser() {
+    db.getView(NOTIFICATIONS_BY_USER).setMapReduce(new Mapper() {
+      @Override
+      public void map(Map<String, Object> document, Emitter emitter) {
+        if (document.containsKey(NOT_RECEIVER_K)
+            && document.containsKey(NOT_TIME_K)
+            && document.containsKey(NOT_TYPE_K)) {
+          List<Object> keys = new ArrayList<>();
+          keys.add(document.get(NOT_RECEIVER_K));
+          keys.add(document.get(NOT_TIME_K));
+          emitter.emit(keys, null);
+        }
+      }
+    }, new Reducer() {
+      @Override
+      public Object reduce(List<Object> keys, List<Object> values, boolean rereduce) { //count number of followers
+        if (rereduce) {
+          return View.totalValues(values);
+        } else {
+          return values.size();
+        }
+      }
+    }, "667"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 }

@@ -5,6 +5,8 @@ public class Constants {
   public static final String SERVER = "http://146.169.46.142";
   public static final String APP_PORT = "8081";
   public static final String SERVER_URL = SERVER + ":" + APP_PORT;
+  public static final String USER_ID = "userId";
+  public static final String TRIP_ID = "tripId";
 
   //------------------------------------------ SERVICE -------------------------------------------//
   public static final String START_SERVICE = "start";
@@ -21,10 +23,13 @@ public class Constants {
   //------------------------------------------- VIEWS --------------------------------------------//
   public static final String TRIPS_BY_OWNER = "trips/byOwner";
   public static final String IMAGES_BY_TRIP_AND_TIME = "images/byTripAndTime";
-  public static final String FRIENDS_BY_USER = "friends/byUser";
+  public static final String FOLLOWING_BY_USER = "follow/followingByUser";
   public static final String USERS_BY_ID = "users/byId";
   public static final String NOTIFICATIONS_BY_USER = "notifications/byUser";
-  public static final String FRIENDSHIPS_BY_USER = "friendships/byUser";
+  public static final String FOLLOWERS_BY_USER = "follow/followersByUser";
+
+  // GENERAL
+  public static final String DOC_ID = "_id";
 
   // TRIP
   public static final String TRIP_OWNER_K = "ownerId";
@@ -33,9 +38,12 @@ public class Constants {
   public static final String TRIP_STOPPED_AT_K = "stoppedAt";
   public static final String TRIP_DESCRIPTION_K = "description";
   public static final String TRIP_VIDEO_K = "video";
+  public static final String TRIP_LEVEL_K = "tripLevel";
+  // 10 is private trip (this is also the deafult)
+  // 5 is friend trip
+  // 1 is public trip
 
   // USER
-  public static final String USER_ID_K = "id";
   public static final String USER_ABOUT_K = "about";
   public static final String USER_NAME_K = "name";
   public static final String USER_EMAIL_K = "email";
@@ -48,28 +56,30 @@ public class Constants {
   public static final String PLACE_TRIP_K = "tripId";
   public static final String PLACE_NAME_K = "name";
 
-  //PHOTO
+  // PHOTO
   public static final String PHOTO_PLACE_K = "placeId";
   public static final String PHOTO_PATH_K = "path";
   public static final String PHOTO_TRIP_K = "tripId";
   public static final String PHOTO_TIME_K = "time";
+  public static final String PHOTO_DESCRIPTION_K = "description";
   public static final int SCALED_WIDTH = 640;
   public static final int SCALED_HEIGHT = 440;
 
-  //FS (FRIENDSHIP)
-  public static final String FS_SENDER_K = "sender";
-  public static final String FS_RECEIVER_K = "receiver";
-  public static final String FS_LEVEL_K = "level";
-  public static final String FS_TIME_K = "time";
+  // FOL (FOLLOWERS) The id is: <followerId>:<folowingId> ie. 1234:5678 means (1234 follows 5678)
+  public static final String FOL_LEVEL_K = "folLevel";
+  // 1 can see public trips
+  // 5 can see friend trips
+  // 10 can see private trips
 
-  public static final String FS_LEVEL_CONFIRMED = "confirmed";
-  public static final String FS_LEVEL_SENT = "sent";
-  public static final String FS_LEVEL_DECLINED = "declined";
-  
-  //NOTIFICATIONS
-  
+  // NOTIFICATIONS
+  public static final String NOT_TIME_K = "time";
+  public static final String NOT_RECEIVER_K = "receiver";
+  public static final String NOT_FOLLOWER_K = "other";
+  public static final String NOT_TYPE_K = "type";
+  public static final String NOT_FOLLOWER = "follower";
+  public static final String NOT_SUGGESTION = "suggestion";
 
-  // SPREF
+  //------------------------------------------- SPREF --------------------------------------------//
   public static final String MY_ID = "myId";
   public static final String CURR_TRIP_ID = "currTripId";
   public static final String CURR_TRIP_ST = "currTripSt";
@@ -78,5 +88,14 @@ public class Constants {
   // CURRENT TRIP
   public static final String TRIP_RUNNING = "running";
   public static final String TRIP_PAUSED = "paused";
+  public static final String DEFAULT_PREVIEW = "https://cdn1.tekrevue.com/wp-content/uploads/2015/04/map-location-pin.jpg";
+  public static final String DEFAULT_NAME = "Current Trip";
 
+  // LEVELS
+  public static final int LEVEL_PRIVATE = 10;
+  public static final int LEVEL_BRO = 8;
+  public static final int LEVEL_CLOSE_FRIEND = 6;
+  public static final int LEVEL_FRIEND = 4;
+  public static final int LEVEL_ACQUINTANCE = 2;
+  public static final int LEVEL_PUBLIC = 0;
 }

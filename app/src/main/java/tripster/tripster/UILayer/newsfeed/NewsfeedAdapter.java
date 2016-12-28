@@ -1,10 +1,7 @@
 package tripster.tripster.UILayer.newsfeed;
 
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,10 +30,11 @@ import static tripster.tripster.R.id.userName;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 class NewsfeedAdapter extends ArrayAdapter<String> {
-
   private static final String TAG = NewsfeedAdapter.class.getName();
   private static final int TRANSPARENCY = 90;
+
   private List<String> friendsTrips;
+
   private TransactionManager tM;
   private LayoutInflater inflater;
 
@@ -91,9 +89,9 @@ class NewsfeedAdapter extends ArrayAdapter<String> {
     }
 
     try {
-
       final String tripId = friendsTrips.get(position);
       final Document tripDoc = tDb.getDocumentById(tripId);
+      final String videoUrl = (String) tripDoc.getProperty(TRIP_VIDEO_K);
       final String userId = (String) tripDoc.getProperty(TRIP_OWNER_K);
       Document userDoc = tDb.getDocumentById(userId);
 
@@ -139,24 +137,11 @@ class NewsfeedAdapter extends ArrayAdapter<String> {
 
       // Set trip preview
       ImageView tripPreview = ((ViewHolder) convertView.getTag()).tripPreview;
-      Image image = new Image((String) tripDoc.getProperty(TRIP_PREVIEW_K));
-      image.displayIn(tripPreview);
-
-      // Set play button image view listener
-      ((ViewHolder) convertView.getTag()).playBtnImg.setOnClickListener(new View.OnClickListener() {
+      new Image((String) tripDoc.getProperty(TRIP_PREVIEW_K)).displayIn(tripPreview);
+      ((ViewHolder) convertView.getTag()).playBtnImg
+          .setOnClickListener(new View.OnClickListener() {
         @Override
-        public void onClick(View v) {
-          Intent intent = new Intent(Intent.ACTION_VIEW);
-          String videoUrl = (String) tripDoc.getProperty(TRIP_VIDEO_K);
-          Log.d(TAG, "Video url is " + videoUrl );
-          if (videoUrl != null) {
-            intent.setDataAndType(Uri.parse(videoUrl), "video/*");
-            if (getContext() instanceof AppCompatActivity) {
-              AppCompatActivity activity = (AppCompatActivity) getContext();
-              activity.startActivity(Intent.createChooser(intent, "Complete action using"));
-            }
-          }
-        }
+        public void onClick(View v) { tM.accessVideo(videoUrl); }
       });
     } catch (Exception e) {
       Log.e(TAG, "Cannot display trip story");

@@ -40,7 +40,7 @@ public class ImageUploader extends AsyncTask<String, Void, String> {
   protected String doInBackground(String... params) {
     String response = "NO RESPONSE";
 
-    HttpURLConnection httpUrlConnection = null;
+    HttpURLConnection httpUrlConnection;
     String photoId = params[0];
     String photoPath = params[1];
     URL url = null;

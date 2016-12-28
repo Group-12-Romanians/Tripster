@@ -18,6 +18,8 @@ import tripster.tripster.Image;
 import tripster.tripster.R;
 import tripster.tripster.UILayer.TransactionManager;
 
+import static tripster.tripster.Constants.DEFAULT_NAME;
+import static tripster.tripster.Constants.DEFAULT_PREVIEW;
 import static tripster.tripster.Constants.TRIP_NAME_K;
 import static tripster.tripster.Constants.TRIP_PREVIEW_K;
 import static tripster.tripster.R.id.tripName;
@@ -70,20 +72,26 @@ class UserTripsAdapter extends ArrayAdapter<String> {
       final String tripId = trips.get(position);
       Document tripDocument = tDb.getDocumentById(tripId);
 
-      View.OnClickListener tripClickListener = new View.OnClickListener() {
+      convertView.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
           tM.accessTrip(tripId);
         }
-      };
+      });
 
       TextView nameView = ((ViewHolder) convertView.getTag()).tripName;
-      nameView.setText((String) tripDocument.getProperty(TRIP_NAME_K));
-      nameView.setOnClickListener(tripClickListener);
+      String name = (String) tripDocument.getProperty(TRIP_NAME_K);
+      if (name != null) {
+        name = DEFAULT_NAME;
+      }
+      nameView.setText(name);
 
       ImageView previewView = ((ViewHolder) convertView.getTag()).tripPreview;
-      new Image((String) tripDocument.getProperty(TRIP_PREVIEW_K)).displayIn(previewView);
-      previewView.setOnClickListener(tripClickListener);
+      String preview = (String) tripDocument.getProperty(TRIP_PREVIEW_K);
+      if (preview != null) {
+        preview = DEFAULT_PREVIEW;
+      }
+      new Image(preview).displayIn(previewView);
     } catch (Exception e) {
       Log.e(TAG, "Cannot display trip");
       e.printStackTrace();

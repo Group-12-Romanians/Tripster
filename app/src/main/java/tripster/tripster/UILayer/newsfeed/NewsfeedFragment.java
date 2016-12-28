@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import com.couchbase.lite.Document;
 import com.couchbase.lite.LiveQuery;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryRow;
@@ -19,28 +20,26 @@ import com.couchbase.lite.QueryRow;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import tripster.tripster.R;
 
-import static junit.framework.Assert.assertNotNull;
-import static tripster.tripster.Constants.FRIENDS_BY_USER;
+import static tripster.tripster.Constants.FOLLOWING_BY_USER;
 import static tripster.tripster.Constants.TRIPS_BY_OWNER;
+import static tripster.tripster.Constants.TRIP_STOPPED_AT_K;
 import static tripster.tripster.UILayer.TripsterActivity.currentUserId;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 public class NewsfeedFragment extends Fragment {
   private static final String TAG = NewsfeedFragment.class.getName();
 
-  private LiveQuery friendsLQ;
+  private ListView stories;
+
+  private LiveQuery followingLQ;
   private LiveQuery fTripsLQ;
 
-  private ListView stories;
-  private Set<String> friends = new HashSet<>();
-
-  @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     View v = inflater.inflate(R.layout.fragment_newsfeed, container, false);
@@ -51,32 +50,33 @@ public class NewsfeedFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
-    restartFriendsLiveQuery();
+    restartFollowingLiveQuery();
   }
 
-  private void restartFriendsLiveQuery() {
-    Query q = tDb.getDb().getExistingView(FRIENDS_BY_USER).createQuery();
+  private void restartFollowingLiveQuery() {
+    Query q = tDb.getDb().getExistingView(FOLLOWING_BY_USER).createQuery();
     q.setKeys(Collections.singletonList((Object) currentUserId));
-    friendsLQ = q.toLiveQuery();
-    friendsLQ.addChangeListener(new LiveQuery.ChangeListener() {
+    q.setMapOnly(true);
+
+    followingLQ = q.toLiveQuery();
+    followingLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(LiveQuery.ChangeEvent event) {
-        boolean changed = false;
+        Map<String, Integer> followingLevels = new HashMap<>();
         for (int i = 0; i < event.getRows().getCount(); i++) {
           QueryRow r = event.getRows().getRow(i);
-          changed = changed || friends.add(r.getDocumentId());
+          String followingId = r.getDocumentId().split(":")[1];
+          followingLevels.put(followingId, (Integer) r.getValue());
         }
-        if (changed) {
-          restartTripsLiveQuery();
-        }
+        restartTripsLiveQuery(followingLevels);
       }
     });
-    friendsLQ.start();
+    followingLQ.start();
   }
 
-  private void restartTripsLiveQuery() {
+  private void restartTripsLiveQuery(final Map<String, Integer> followingLevels) {
     Query q = tDb.getDb().getExistingView(TRIPS_BY_OWNER).createQuery();
-    q.setKeys(new ArrayList<Object>(friends));
+    q.setKeys(new ArrayList<Object>(followingLevels.keySet()));
     fTripsLQ = q.toLiveQuery();
     fTripsLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
@@ -84,8 +84,15 @@ public class NewsfeedFragment extends Fragment {
         final List<Pair<Long, String>> results = new ArrayList<>();
         for (int i = 0; i < event.getRows().getCount(); i++) {
           QueryRow r = event.getRows().getRow(i);
-          Pair<Long, String> p = new Pair<>((Long) r.getValue(), r.getDocumentId());
-          results.add(p);
+          if ((Integer) r.getValue() <= followingLevels.get(r.getDocumentId())) {
+            Document d = r.getDocument();
+            Long stoppedAt = (Long) d.getProperty(TRIP_STOPPED_AT_K);
+            if (stoppedAt != null) {
+              results.add(new Pair<>(stoppedAt, d.getId()));
+            } else {
+              results.add(new Pair<>(Long.MAX_VALUE, d.getId()));
+            }
+          }
         }
         Collections.sort(results, new Comparator<Pair<Long, String>>() {
           @Override
@@ -107,7 +114,7 @@ public class NewsfeedFragment extends Fragment {
   @Override
   public void onPause() {
     try {
-      friendsLQ.stop();
+      followingLQ.stop();
       fTripsLQ.stop();
     } catch (NullPointerException e) {
       Log.e(TAG, "Something failed");
@@ -117,17 +124,14 @@ public class NewsfeedFragment extends Fragment {
 
   private void initItemListAdapter(List<Pair<Long, String>> results) {
     List<String> userStories = new ArrayList<>();
-
     for (Pair<Long, String> p : results) {
       userStories.add(p.second);
     }
-
     NewsfeedAdapter newsfeedAdapter = new NewsfeedAdapter(
         getActivity(),
         R.layout.user_story,
         R.id.tripDescription,
         userStories);
-    assertNotNull(getView());
     stories.setAdapter(newsfeedAdapter);
   }
 }

@@ -13,7 +13,6 @@ import android.widget.ListView;
 
 import com.couchbase.lite.LiveQuery;
 import com.couchbase.lite.Query;
-import com.couchbase.lite.QueryRow;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +26,7 @@ import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 public class NotificationsFragment extends Fragment {
   private static final String TAG = NotificationsFragment.class.getName();
+
   LiveQuery notificationsLQ;
 
   private ListView notifications;
@@ -56,16 +56,15 @@ public class NotificationsFragment extends Fragment {
     q.setStartKey(lastKey);
     q.setEndKey(firstKey);
     q.setDescending(true);
+    q.setMapOnly(true);
+
     notificationsLQ = q.toLiveQuery();
     notificationsLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(LiveQuery.ChangeEvent event) {
-        Log.d(TAG, "This is a change");
         final List<String> results = new ArrayList<>();
         for (int i = 0; i < event.getRows().getCount(); i++) {
-          QueryRow r = event.getRows().getRow(i);
-          Log.d(TAG, "This is a request: " + r.getDocumentId());
-          results.add(r.getDocumentId());
+          results.add(event.getRows().getRow(i).getDocumentId());
         }
         new Handler(Looper.getMainLooper()).post(new Runnable() {
           @Override
@@ -88,11 +87,11 @@ public class NotificationsFragment extends Fragment {
     super.onPause();
   }
 
-  private void initNotificationsAdapter(final List<String> friendRequests) {
+  private void initNotificationsAdapter(final List<String> nots) {
     NotificationsAdapter notificationsAdapter = new NotificationsAdapter(getContext(),
         R.layout.fragment_requests,
         R.id.notification_text,
-        friendRequests);
+        nots);
     assertNotNull(getView());
     notifications.setAdapter(notificationsAdapter);
   }
