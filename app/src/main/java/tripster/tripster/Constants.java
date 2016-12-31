@@ -1,5 +1,8 @@
 package tripster.tripster;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Constants {
   public static final String APP_NAME = "Tripster";
   public static final String SERVER = "http://146.169.46.142";
@@ -56,22 +59,35 @@ public class Constants {
   public static final String PLACE_TIME_K = "time";
   public static final String PLACE_TRIP_K = "tripId";
   public static final String PLACE_NAME_K = "name";
+  public static final String PLACE_DESC_K = "description";
 
   // PHOTO
   public static final String PHOTO_PLACE_K = "placeId";
   public static final String PHOTO_PATH_K = "path";
   public static final String PHOTO_TRIP_K = "tripId";
   public static final String PHOTO_TIME_K = "time";
-  public static final String PHOTO_DESCRIPTION_K = "description";
-  public static final int SCALED_WIDTH = 640;
-  public static final int SCALED_HEIGHT = 440;
+  public static final int MAX_SIZE = 600;
 
   // FOL (FOLLOWERS) The id is: <followerId>:<folowingId> ie. 1234:5678 means (1234 follows 5678)
   public static final String FOL_LEVEL_K = "folLevel";
-  // 1 can see public trips
-  // 5 can see friend trips
-  // 10 can see private trips
 
+  public static final int LEVEL_PRIVATE = 4;
+  public static final int LEVEL_BRO = 3;
+  public static final int LEVEL_CLOSE_FRIEND = 2;
+  public static final int LEVEL_FRIEND = 1;
+  public static final int LEVEL_PUBLIC = 0;
+  public static final int LEVEL_PUBLIC_DEFAULT = -1;
+
+
+  public static Map<Integer, String> levels = new HashMap<>();
+  static {
+    levels.put(LEVEL_PRIVATE, "private");
+    levels.put(LEVEL_BRO, "bro");
+    levels.put(LEVEL_CLOSE_FRIEND, "close friend");
+    levels.put(LEVEL_FRIEND, "friend");
+    levels.put(LEVEL_PUBLIC, "public");
+    levels.put(LEVEL_PUBLIC_DEFAULT, "public");
+  }
   // NOTIFICATIONS
   public static final String NOT_TIME_K = "time";
   public static final String NOT_RECEIVER_K = "receiver";
@@ -89,14 +105,6 @@ public class Constants {
   // CURRENT TRIP
   public static final String TRIP_RUNNING = "running";
   public static final String TRIP_PAUSED = "paused";
-  public static final String DEFAULT_PREVIEW = "https://cdn1.tekrevue.com/wp-content/uploads/2015/04/map-location-pin.jpg";
+  public static final String DEFAULT_PREVIEW = SERVER_URL + "/default_preview.jpg";
   public static final String DEFAULT_NAME = "Current Trip";
-
-  // LEVELS
-  public static final int LEVEL_PRIVATE = 10;
-  public static final int LEVEL_BRO = 8;
-  public static final int LEVEL_CLOSE_FRIEND = 6;
-  public static final int LEVEL_FRIEND = 4;
-  public static final int LEVEL_ACQUINTANCE = 2;
-  public static final int LEVEL_PUBLIC = 0;
 }

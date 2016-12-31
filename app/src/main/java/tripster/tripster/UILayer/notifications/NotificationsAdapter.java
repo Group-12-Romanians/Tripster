@@ -66,7 +66,7 @@ class NotificationsAdapter extends ArrayAdapter<String> {
     if (convertView == null) {
       convertView = inflater.inflate(R.layout.notifications_list_item, null);
       ViewHolder holder = new ViewHolder();
-      holder.notificationPhoto = (ImageView) convertView.findViewById(R.id.userPhoto);
+      holder.notificationPhoto = (ImageView) convertView.findViewById(R.id.notification_photo);
       holder.notificationText = (TextView) convertView.findViewById(R.id.notification_text);
       convertView.setTag(holder);
     }
@@ -103,7 +103,7 @@ class NotificationsAdapter extends ArrayAdapter<String> {
 
     // Set user name.
     TextView notText = ((ViewHolder) convertView.getTag()).notificationText;
-    String text = userDoc.getProperty(USER_NAME_K) + " started to follow you. Check out his profile to set a level for him!";
+    String text = userDoc.getProperty(USER_NAME_K) + " started to follow you.\nClick to set a visibility level!";
     notText.setText(text);
 
     // Set user picture.

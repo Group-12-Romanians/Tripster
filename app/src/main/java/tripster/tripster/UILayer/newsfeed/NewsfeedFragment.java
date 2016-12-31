@@ -28,6 +28,7 @@ import tripster.tripster.R;
 
 import static tripster.tripster.Constants.FOLLOWING_BY_USER;
 import static tripster.tripster.Constants.TRIPS_BY_OWNER;
+import static tripster.tripster.Constants.TRIP_OWNER_K;
 import static tripster.tripster.Constants.TRIP_STOPPED_AT_K;
 import static tripster.tripster.UILayer.TripsterActivity.currentUserId;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
@@ -68,7 +69,9 @@ public class NewsfeedFragment extends Fragment {
           String followingId = r.getDocumentId().split(":")[1];
           followingLevels.put(followingId, (Integer) r.getValue());
         }
-        restartTripsLiveQuery(followingLevels);
+        if (followingLevels.size() > 0) {
+          restartTripsLiveQuery(followingLevels);
+        }
       }
     });
     followingLQ.start();
@@ -84,7 +87,8 @@ public class NewsfeedFragment extends Fragment {
         final List<Pair<Long, String>> results = new ArrayList<>();
         for (int i = 0; i < event.getRows().getCount(); i++) {
           QueryRow r = event.getRows().getRow(i);
-          if ((Integer) r.getValue() <= followingLevels.get(r.getDocumentId())) {
+          Log.e(TAG, r.getValue().toString() + " and " + followingLevels.get((String) tDb.getDocumentById(r.getDocumentId()).getProperty(TRIP_OWNER_K)));
+          if ((Integer) r.getValue() <= followingLevels.get((String) tDb.getDocumentById(r.getDocumentId()).getProperty(TRIP_OWNER_K))) {
             Document d = r.getDocument();
             Long stoppedAt = (Long) d.getProperty(TRIP_STOPPED_AT_K);
             if (stoppedAt != null) {

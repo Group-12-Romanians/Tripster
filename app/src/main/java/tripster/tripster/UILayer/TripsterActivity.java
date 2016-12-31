@@ -15,6 +15,8 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -22,6 +24,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.couchbase.lite.Document;
+import com.couchbase.lite.LiveQuery;
+import com.couchbase.lite.Query;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
@@ -31,8 +35,10 @@ import net.grandcentrix.tray.core.TrayItem;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import tripster.tripster.Image;
@@ -54,6 +60,7 @@ import static tripster.tripster.Constants.CURR_TRIP_ID;
 import static tripster.tripster.Constants.CURR_TRIP_ST;
 import static tripster.tripster.Constants.LOGIN_PROVIDER;
 import static tripster.tripster.Constants.MY_ID;
+import static tripster.tripster.Constants.NOTIFICATIONS_BY_USER;
 import static tripster.tripster.Constants.PAUSE_SERVICE;
 import static tripster.tripster.Constants.RESUME_SERVICE;
 import static tripster.tripster.Constants.START_SERVICE;
@@ -75,6 +82,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
 
   private AppPreferences pref;
   private LogoutProvider accountProvider;
+  private LiveQuery notificationsNoLQ;
 
   private DrawerLayout drawer;
   private View header;
@@ -90,6 +98,10 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   private FloatingActionButton pause;
   private FloatingActionButton resume;
   private FloatingActionButton stop;
+
+  // New Notifications
+  private MenuItem notifier;
+  private int notificationsNo = 0;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -291,13 +303,76 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
     return true;
   }
 
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.tripster, menu);
+    notifier = menu.findItem(R.id.notificationsButton);
+    updateNotButton();
+    return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    // Handle item selection
+    switch (item.getItemId()) {
+      case R.id.notificationsButton:
+        getSupportFragmentManager().beginTransaction().replace(R.id.main_content, new NotificationsFragment()).commit();
+        return true;
+      default:
+        return super.onOptionsItemSelected(item);
+    }
+  }
+
   //----------------------------------------- LISTENERS ------------------------------------------//
   @Override
   protected void onResume() {
     super.onResume();
     initializeHeader();
     tDb.getDocumentById(currentUserId).addChangeListener(currentUserChangeListener);
+    restartNotificationsNoLiveQuery();
     pref.registerOnTrayPreferenceChangeListener(currentTripChangeListener);
+  }
+
+  private void restartNotificationsNoLiveQuery() {
+    Query q = tDb.getDb().getExistingView(NOTIFICATIONS_BY_USER).createQuery();
+    List<Object> firstKey = new ArrayList<>();
+    firstKey.add(currentUserId);
+    firstKey.add((long) 0);
+    List<Object> lastKey = new ArrayList<>();
+    lastKey.add(currentUserId);
+    lastKey.add(Long.MAX_VALUE);
+    q.setStartKey(lastKey);
+    q.setEndKey(firstKey);
+    q.setDescending(true);
+    notificationsNoLQ = q.toLiveQuery();
+    notificationsNoLQ.addChangeListener(new LiveQuery.ChangeListener() {
+      @Override
+      public void changed(final LiveQuery.ChangeEvent event) {
+        if (event.getRows().getCount() > 0) {
+          notificationsNo = (int) event.getRows().getRow(0).getValue();
+        } else {
+          notificationsNo = 0;
+        }
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+          @Override
+          public void run() {
+            updateNotButton();
+          }
+        });
+      }
+    });
+    notificationsNoLQ.start();
+  }
+
+  private void updateNotButton() {
+    if (notifier != null) {
+      if (notificationsNo > 0) {
+        notifier.setIcon(R.drawable.notifier_on);
+      } else {
+        notifier.setIcon(R.drawable.notifier_off);
+      }
+    }
   }
 
   OnTrayPreferenceChangeListener currentTripChangeListener = new OnTrayPreferenceChangeListener() {
@@ -336,6 +411,9 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   @Override
   protected void onPause() {
     try {
+      if (notificationsNoLQ != null) {
+        notificationsNoLQ.stop();
+      }
       tDb.getDocumentById(currentUserId).removeChangeListener(currentUserChangeListener);
       pref.unregisterOnTrayPreferenceChangeListener(currentTripChangeListener);
     } catch (NullPointerException e) {

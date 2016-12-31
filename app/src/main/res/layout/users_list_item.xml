@@ -2,11 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:orientation="horizontal">
 
-    <ImageView
+    <com.mikhaellopez.circularimageview.CircularImageView
         android:layout_width="50dp"
         android:layout_height="50dp"
+        app:civ_border="false"
+        android:padding="5dp"
         android:id="@+id/friend_pic"/>
 
     <TextView xmlns:android="http://schemas.android.com/apk/res/android"

@@ -18,6 +18,7 @@ import tripster.tripster.Image;
 import tripster.tripster.R;
 import tripster.tripster.UILayer.TransactionManager;
 
+import static tripster.tripster.Constants.DEFAULT_PREVIEW;
 import static tripster.tripster.Constants.TRIP_DESCRIPTION_K;
 import static tripster.tripster.Constants.TRIP_NAME_K;
 import static tripster.tripster.Constants.TRIP_OWNER_K;
@@ -137,7 +138,11 @@ class NewsfeedAdapter extends ArrayAdapter<String> {
 
       // Set trip preview
       ImageView tripPreview = ((ViewHolder) convertView.getTag()).tripPreview;
-      new Image((String) tripDoc.getProperty(TRIP_PREVIEW_K)).displayIn(tripPreview);
+      String tripPrev = (String) tripDoc.getProperty(TRIP_PREVIEW_K);
+      if (tripPrev == null) {
+        tripPrev = DEFAULT_PREVIEW;
+      }
+      new Image(tripPrev).displayIn(tripPreview);
       ((ViewHolder) convertView.getTag()).playBtnImg
           .setOnClickListener(new View.OnClickListener() {
         @Override

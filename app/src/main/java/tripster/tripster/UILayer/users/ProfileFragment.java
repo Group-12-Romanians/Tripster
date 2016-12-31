@@ -61,7 +61,7 @@ public abstract class ProfileFragment extends Fragment {
   @Nullable
   @Override
   public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-    View view = inflater.inflate(R.layout.fragment_trips, container, false);
+    View view = inflater.inflate(getLayoutRes(), container, false);
     userId = getArguments().getString(USER_ID);
     tM = new TransactionManager(getContext());
 
@@ -88,6 +88,8 @@ public abstract class ProfileFragment extends Fragment {
     return view;
   }
 
+  protected abstract int getLayoutRes();
+
   @Override
   public void onResume() {
     super.onResume();
@@ -109,38 +111,38 @@ public abstract class ProfileFragment extends Fragment {
     followingNoLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(final LiveQuery.ChangeEvent event) {
-        if (event.getRows().getCount() == 1) {
-          new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+          @Override
+          public void run() {
+            if (event.getRows().getCount() == 1) {
               noOfFollowingButton.setText(String.valueOf(event.getRows().getRow(0).getValue()));
+            } else {
+              noOfFollowingButton.setText("0");
             }
-          });
-        } else {
-          Log.e(TAG, "No realtions or some problem: " + event.getRows().getCount());
-        }
+          }
+        });
       }
     });
     followingNoLQ.start();
   }
 
-  private void restartFollowersNoLiveQuery() {
+  public void restartFollowersNoLiveQuery() {
     Query q = tDb.getDb().getExistingView(FOLLOWERS_BY_USER).createQuery();
     q.setKeys(Collections.<Object>singletonList(userId));
     followersNoLQ = q.toLiveQuery();
     followersNoLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(final LiveQuery.ChangeEvent event) {
-        if (event.getRows().getCount() == 1) {
-          new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+          @Override
+          public void run() {
+            if (event.getRows().getCount() == 1) {
               noOfFollowersButton.setText(String.valueOf(event.getRows().getRow(0).getValue()));
+            } else {
+              noOfFollowersButton.setText("0");
             }
-          });
-        } else {
-          Log.e(TAG, "No realtions or some problem: " + event.getRows().getCount());
-        }
+          }
+        });
       }
     });
     followersNoLQ.start();

@@ -2,9 +2,8 @@ package tripster.tripster.services;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.graphics.Paint;
+import android.media.ExifInterface;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -22,8 +21,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import static junit.framework.Assert.assertNotNull;
-import static tripster.tripster.Constants.SCALED_HEIGHT;
-import static tripster.tripster.Constants.SCALED_WIDTH;
+import static tripster.tripster.Constants.MAX_SIZE;
 import static tripster.tripster.Constants.SERVER_URL;
 
 public class ImageUploader extends AsyncTask<String, Void, String> {
@@ -64,13 +62,10 @@ public class ImageUploader extends AsyncTask<String, Void, String> {
       request.writeBytes("Content-Disposition: form-data; name=\"photo\"; filename=\"" + photoId + ".jpg" + "\"" + CRLF);
       request.writeBytes(CRLF);
 
-      File imageFile = new File(photoPath);
-      FileInputStream fis = new FileInputStream(imageFile);
+      Bitmap bm = getCorrectedBitmap(photoPath);
 
-      Bitmap bm = BitmapFactory.decodeStream(fis);
-      Bitmap resizedBitmap = bitmapResize(bm, SCALED_WIDTH, SCALED_HEIGHT);
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+      bm.compress(Bitmap.CompressFormat.JPEG, 100, baos);
       byte[] bytes = baos.toByteArray();
       request.write(bytes);
 
@@ -104,23 +99,45 @@ public class ImageUploader extends AsyncTask<String, Void, String> {
     return response;
   }
 
+  private Bitmap getCorrectedBitmap(String photoPath) throws IOException{
+    File imageFile = new File(photoPath);
+    FileInputStream fis = new FileInputStream(imageFile);
 
-  private Bitmap bitmapResize(Bitmap bitmap, int newWidth, int newHeight) {
-    Bitmap scaledBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
+    Bitmap bm = BitmapFactory.decodeStream(fis);
+    ExifInterface exif = new ExifInterface(photoPath);
+    int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
 
-    float ratioX = newWidth / (float) bitmap.getWidth();
-    float ratioY = newHeight / (float) bitmap.getHeight();
-    float middleX = newWidth / 2.0f;
-    float middleY = newHeight / 2.0f;
+    int rotate = 0;
+    switch (orientation) {
+      case ExifInterface.ORIENTATION_ROTATE_270:
+        rotate = 270;
+        break;
+      case ExifInterface.ORIENTATION_ROTATE_180:
+        rotate = 180;
+        break;
+      case ExifInterface.ORIENTATION_ROTATE_90:
+        rotate = 90;
+        break;
+    }
+    Matrix matrix = new Matrix();
+    matrix.postRotate(rotate);
+    Bitmap rBm = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), matrix, true);
+    return bitmapResize(rBm, MAX_SIZE);
+  }
 
-    Matrix scaleMatrix = new Matrix();
-    scaleMatrix.setScale(ratioX, ratioY, middleX, middleY);
+  private Bitmap bitmapResize(Bitmap bitmap, int maxSize) {
+      int width = bitmap.getWidth();
+      int height = bitmap.getHeight();
+      float ratioBitmap = (float) width / (float) height;
 
-    Canvas canvas = new Canvas(scaledBitmap);
-    canvas.setMatrix(scaleMatrix);
-    canvas.drawBitmap(bitmap, middleX - bitmap.getWidth() / 2, middleY - bitmap.getHeight() / 2, new Paint(Paint.FILTER_BITMAP_FLAG));
-
-    return scaledBitmap;
-
+      int finalWidth = maxSize;
+      int finalHeight = maxSize;
+      if (ratioBitmap > 1) {
+        finalHeight = (int) ((float) finalWidth / ratioBitmap);
+      } else {
+        finalWidth = (int) ((float) finalHeight * ratioBitmap);
+      }
+      bitmap = Bitmap.createScaledBitmap(bitmap, finalWidth, finalHeight, true);
+      return bitmap;
   }
 }
