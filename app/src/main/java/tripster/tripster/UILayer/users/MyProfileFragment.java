@@ -8,7 +8,9 @@ import android.view.ViewGroup;
 
 import tripster.tripster.R;
 
+import static junit.framework.Assert.assertNotNull;
 import static tripster.tripster.Constants.LEVEL_PRIVATE;
+import static tripster.tripster.R.id.settings;
 
 public class MyProfileFragment extends ProfileFragment {
 
@@ -16,6 +18,13 @@ public class MyProfileFragment extends ProfileFragment {
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     View view = super.onCreateView(inflater, container, savedInstanceState);
+    assertNotNull(view);
+    view.findViewById(settings).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        tM.accessSettings();
+      }
+    });
     return view;
   }
 

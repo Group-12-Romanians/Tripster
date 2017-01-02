@@ -42,7 +42,7 @@ import static tripster.tripster.UILayer.TripsterActivity.tDb;
 public abstract class ProfileFragment extends Fragment {
   private static final String TAG = ProfileFragment.class.getName();
 
-  private TransactionManager tM;
+  protected TransactionManager tM;
   protected String userId;
 
   private LiveQuery tripsLQ;

@@ -14,6 +14,7 @@ import tripster.tripster.UILayer.users.FollowersFragment;
 import tripster.tripster.UILayer.users.FollowingFragment;
 import tripster.tripster.UILayer.users.MyProfileFragment;
 import tripster.tripster.UILayer.users.ProfileFragment;
+import tripster.tripster.UILayer.settings.SettingsFragment;
 import tripster.tripster.UILayer.users.UserProfileFragment;
 
 import static tripster.tripster.Constants.TRIP_ID;
@@ -80,6 +81,12 @@ public class TransactionManager {
 
   private void accessFragment(Fragment frag) {
     FragmentTransaction trans = context.getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag);
+    trans.addToBackStack("");
+    trans.commit();
+  }
+
+  public void accessSettings() {
+    FragmentTransaction trans = context.getSupportFragmentManager().beginTransaction().replace(R.id.main_content, new SettingsFragment());
     trans.addToBackStack("");
     trans.commit();
   }
