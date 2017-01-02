@@ -144,11 +144,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+
         <TextView
             android:id="@+id/levelHint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="This user has visibility: public"/>
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="30dp"

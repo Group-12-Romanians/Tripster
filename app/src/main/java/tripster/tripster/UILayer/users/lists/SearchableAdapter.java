@@ -1,4 +1,4 @@
-package tripster.tripster.UILayer.search;
+package tripster.tripster.UILayer.users.lists;
 
 import android.app.Activity;
 import android.content.Context;

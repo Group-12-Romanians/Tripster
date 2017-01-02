@@ -68,7 +68,6 @@ public class TimelineFragment extends Fragment {
   private LinearLayout levelInfo;
   private RangeSliderView levelSeek;
 
-
   @Nullable
   @Override
   public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {

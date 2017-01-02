@@ -1,4 +1,4 @@
-package tripster.tripster.UILayer.users;
+package tripster.tripster.UILayer.users.profile;
 
 import android.content.Context;
 import android.support.annotation.NonNull;

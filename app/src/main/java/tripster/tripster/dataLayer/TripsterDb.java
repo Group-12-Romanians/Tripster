@@ -182,7 +182,7 @@ public class TripsterDb {
           emitter.emit("0", null); // we only catch additions here (no need to see changes in users)
         }
       }
-    }, "667"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+    }, "700"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 
   private void initImagesByTripAndTimeView() {
@@ -199,7 +199,7 @@ public class TripsterDb {
           emitter.emit(keys, document.get(PHOTO_PLACE_K));
         }
       }
-    }, "666"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+    }, "700"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 
   private void initTripsByOwnerIdView() {
@@ -211,7 +211,7 @@ public class TripsterDb {
           // This only sees additions and changes in trip levels
         }
       }
-    }, "669"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+    }, "700"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 
   private void initFollowingByUser() {
@@ -232,7 +232,7 @@ public class TripsterDb {
           return values.size();
         }
       }
-    }, "667"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+    }, "700"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 
   private void initFollowersByUser() {
@@ -253,7 +253,7 @@ public class TripsterDb {
           return values.size();
         }
       }
-    }, "669"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+    }, "700"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 
   private void initNotificationsByUser() {
@@ -278,6 +278,6 @@ public class TripsterDb {
           return values.size();
         }
       }
-    }, "669"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
+    }, "700"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 }

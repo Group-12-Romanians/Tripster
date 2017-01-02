@@ -1,4 +1,4 @@
-package tripster.tripster.UILayer.users;
+package tripster.tripster.UILayer.users.lists;
 
 import com.couchbase.lite.LiveQuery;
 import com.couchbase.lite.Query;
@@ -6,8 +6,6 @@ import com.couchbase.lite.QueryRow;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import tripster.tripster.UILayer.search.SearchableUsersFragment;
 
 import static tripster.tripster.Constants.USERS_BY_ID;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
