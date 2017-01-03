@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <PreferenceCategory
+        android:title="Your profile">
+
+        <EditTextPreference
+            android:dialogTitle="Let people know who you are"
+            android:key="aboutPreference"
+            android:summary="Say something about yourself"
+            android:title="About"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Photos">
+
+        <CheckBoxPreference
+            android:key="photoUpload"
+            android:title="Mobile data upload"
+            android:summary="Upload photos when mobile data"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Location">
+
+        <CheckBoxPreference
+            android:key="ble"
+            android:summary="Improve indoors location tracking."
+            android:title="BLE tracking"/>
+
+        <ListPreference
+            android:dialogTitle="Tracking distance preferences"
+            android:entries="@array/MetersTracking"
+            android:entryValues="@array/MetersTrackingValues"
+            android:key="metersTracking"
+            android:summary="Set the distance used by the app to scan for places. %s"
+            android:title="Set tracking distance"/>
+
+        <ListPreference
+            android:dialogTitle="Tracking frequency preferences"
+            android:entries="@array/TrackingTime"
+            android:entryValues="@array/TrackingTimeValues"
+            android:key="trackingTime"
+            android:summary="Set scan for places frequency. This will affect your battery life. %s"
+            android:title="Set tracking distance"/>
+
+        <CheckBoxPreference
+            android:key="smart"
+            android:summary="Reduce battery consumption. Might cause some location mismatches."
+            android:title="Smart tracking"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Notifications">
+
+
+        <CheckBoxPreference
+            android:key="notifications"
+            android:summary="Get notified every time you get followed"
+            android:title="New follower notification"/>
+
+        <CheckBoxPreference
+            android:key="suggestions"
+            android:summary="Get notified about places you might be interested to go to"
+            android:title="Suggestions for places"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>

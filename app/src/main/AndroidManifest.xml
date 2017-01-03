@@ -67,5 +67,8 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
+
+        <uses-sdk xmlns:tools="http://schemas.android.com/tools"
+                  tools:overrideLibrary="android.support.v14.preference" />
     </application>
 </manifest>

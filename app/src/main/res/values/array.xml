@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="MetersTrackingValues">
+        <item>50</item>
+        <item>250</item>
+        <item>500</item>
+        <item>1000</item>
+        <item>3000</item>
+        <item>10000</item>
+    </string-array>
+
+    <string-array name="MetersTracking">
+        <item>50m</item>
+        <item>250m</item>
+        <item>500m</item>
+        <item>1km</item>
+        <item>3km</item>
+        <item>10km</item>
+    </string-array>
+
+    <string-array name="TrackingTimeValues">
+        <item>1000</item>
+        <item>30000</item>
+        <item>60000</item>
+        <item>300000</item>
+        <item>600000</item>
+        <item>900000</item>
+    </string-array>
+
+    <string-array name="TrackingTime">
+        <item>1s</item>
+        <item>30s</item>
+        <item>1min</item>
+        <item>5min</item>
+        <item>10min</item>
+        <item>15min</item>
+    </string-array>
+</resources>
