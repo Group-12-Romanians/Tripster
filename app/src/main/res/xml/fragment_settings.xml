@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
 
@@ -20,6 +21,7 @@
         <CheckBoxPreference
             android:key="photoUpload"
             android:title="Mobile data upload"
+            android:defaultValue="true"
             android:summary="Upload photos when on mobile data"/>
     </PreferenceCategory>
 
@@ -28,12 +30,14 @@
 
         <CheckBoxPreference
             android:key="ble"
+            android:defaultValue="true"
             android:summary="Improve indoors location tracking."
             android:title="BLE tracking"/>
 
         <ListPreference
             android:dialogTitle="Tracking distance preferences"
             android:entries="@array/MetersTracking"
+            android:defaultValue="50"
             android:entryValues="@array/MetersTrackingValues"
             android:key="metersTracking"
             android:summary="Set the distance for which locations are considered the same. Choose a higher value if you are only interested in cities."
@@ -42,6 +46,7 @@
         <ListPreference
             android:dialogTitle="Tracking frequency preferences"
             android:entries="@array/TrackingTime"
+            android:defaultValue="1000"
             android:entryValues="@array/TrackingTimeValues"
             android:key="trackingTime"
             android:summary="Set the frequency for getting your location."
@@ -57,7 +62,7 @@
     <PreferenceCategory
         android:title="Notifications">
         <CheckBoxPreference
-            android:defaultValue=""
+            android:defaultValue="true"
             android:key="notifications"
             android:summary="Get notified every time you get followed"
             android:title="New follower notification"/>

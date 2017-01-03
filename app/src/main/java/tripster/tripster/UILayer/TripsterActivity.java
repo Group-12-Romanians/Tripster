@@ -13,6 +13,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -112,6 +113,7 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
     tDb.startSync();
 
     pref = new AppPreferences(getApplicationContext());
+    PreferenceManager.setDefaultValues(this, R.xml.fragment_settings, false);
 
     setContentView(R.layout.activity_tripster);
     askForPermissions();
