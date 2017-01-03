@@ -10,12 +10,12 @@ import android.support.v7.app.AppCompatActivity;
 
 import tripster.tripster.R;
 import tripster.tripster.UILayer.trip.timeline.TimelineFragment;
-import tripster.tripster.UILayer.users.FollowersFragment;
-import tripster.tripster.UILayer.users.FollowingFragment;
-import tripster.tripster.UILayer.users.MyProfileFragment;
-import tripster.tripster.UILayer.users.ProfileFragment;
+import tripster.tripster.UILayer.users.lists.FollowersFragment;
+import tripster.tripster.UILayer.users.lists.FollowingFragment;
+import tripster.tripster.UILayer.users.profile.MyProfileFragment;
+import tripster.tripster.UILayer.users.profile.ProfileFragment;
 import tripster.tripster.UILayer.settings.SettingsFragment;
-import tripster.tripster.UILayer.users.UserProfileFragment;
+import tripster.tripster.UILayer.users.profile.UserProfileFragment;
 
 import static tripster.tripster.Constants.TRIP_ID;
 import static tripster.tripster.Constants.USER_ID;

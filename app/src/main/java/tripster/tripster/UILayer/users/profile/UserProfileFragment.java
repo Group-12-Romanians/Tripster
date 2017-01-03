@@ -1,4 +1,4 @@
-package tripster.tripster.UILayer.users;
+package tripster.tripster.UILayer.users.profile;
 
 import android.os.Bundle;
 import android.os.Handler;

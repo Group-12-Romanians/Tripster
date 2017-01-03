@@ -1,4 +1,4 @@
-package tripster.tripster.UILayer.search;
+package tripster.tripster.UILayer.users.lists;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -34,8 +34,8 @@ public abstract class SearchableUsersFragment extends Fragment {
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-    View view = inflater.inflate(R.layout.fragment_search_friends, container, false);
-    usersList = (ListView) view.findViewById(R.id.friends_list);
+    View view = inflater.inflate(R.layout.fragment_search_users, container, false);
+    usersList = (ListView) view.findViewById(R.id.users_list);
     EditText searchBar = (EditText) view.findViewById(R.id.search);
 
     searchBar.addTextChangedListener(new TextWatcher() {
