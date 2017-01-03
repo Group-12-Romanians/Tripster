@@ -2,6 +2,7 @@ package tripster.tripster.UILayer.settings;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v7.preference.CheckBoxPreference;
 import android.support.v7.preference.EditTextPreference;
 import android.support.v7.preference.ListPreference;
 import android.support.v7.preference.Preference;
@@ -19,12 +20,11 @@ import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-  private static final String TAG = SettingsFragment.class.getName();
   private SharedPreferences sharedPreferences;
 
   @Override
   public void onCreatePreferences(Bundle bundle, String s) {
-    //add xml
+    // Add xml
     addPreferencesFromResource(R.xml.fragment_settings);
 
     sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
@@ -37,7 +37,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
   @Override
   public void onResume() {
     super.onResume();
-    //unregister the preferenceChange listener
+    // Unregister the preferenceChange listener
     getPreferenceScreen().getSharedPreferences()
         .registerOnSharedPreferenceChangeListener(this);
 
@@ -48,10 +48,11 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     Preference preference = findPreference(key);
     if (preference instanceof ListPreference) {
       updateListPreference(sharedPreferences, key, preference);
-    } else if (preference instanceof EditTextPreference){
+    } else if (preference instanceof EditTextPreference) {
       updateEditPreference((EditTextPreference) preference);
-      } else {
-      preference.setSummary(sharedPreferences.getString(key, ""));
+      } else if (preference instanceof CheckBoxPreference) {
+      CheckBoxPreference checkBox = (CheckBoxPreference) preference;
+      checkBox.setChecked(checkBox.isChecked());
     }
   }
 
@@ -59,9 +60,9 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     EditTextPreference editTextPreference = preference;
     if (editTextPreference.getText() != null && editTextPreference.getText().trim().length() > 0) {
       String aboutText = editTextPreference.getText();
+
       Map<String, Object> properties = new HashMap<>();
       properties.put(USER_ABOUT_K, aboutText);
-
       tDb.upsertNewDocById(currentUserId, properties);
 
       editTextPreference.setSummary(aboutText);
@@ -78,11 +79,10 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     }
   }
 
-
   @Override
   public void onPause() {
     super.onPause();
-    //unregister the preference change listener
+    // Unregister the preference change listener
     getPreferenceScreen().getSharedPreferences()
         .unregisterOnSharedPreferenceChangeListener(this);
   }
