@@ -37,10 +37,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
   @Override
   public void onResume() {
     super.onResume();
-    // Unregister the preferenceChange listener
-    getPreferenceScreen().getSharedPreferences()
-        .registerOnSharedPreferenceChangeListener(this);
-
+    // Register the preferenceChange listener
+    getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
   }
 
   @Override
@@ -57,17 +55,16 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
   }
 
   private void updateEditPreference(EditTextPreference preference) {
-    EditTextPreference editTextPreference = preference;
-    if (editTextPreference.getText() != null && editTextPreference.getText().trim().length() > 0) {
-      String aboutText = editTextPreference.getText();
+    if (preference.getText() != null && preference.getText().trim().length() > 0) {
+      String aboutText = preference.getText();
 
       Map<String, Object> properties = new HashMap<>();
       properties.put(USER_ABOUT_K, aboutText);
       tDb.upsertNewDocById(currentUserId, properties);
 
-      editTextPreference.setSummary(aboutText);
+      preference.setSummary(aboutText);
     } else {
-      editTextPreference.setSummary("Say something about yourself.");
+      preference.setSummary("Say something about yourself.");
     }
   }
 
@@ -83,7 +80,6 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
   public void onPause() {
     super.onPause();
     // Unregister the preference change listener
-    getPreferenceScreen().getSharedPreferences()
-        .unregisterOnSharedPreferenceChangeListener(this);
+    getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
   }
 }

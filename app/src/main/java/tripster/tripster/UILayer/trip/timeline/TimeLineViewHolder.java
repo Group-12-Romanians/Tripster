@@ -7,7 +7,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 
 import java.util.List;
 
@@ -39,11 +39,10 @@ class TimeLineViewHolder extends RecyclerView.ViewHolder {
       ImageView imageView = new ImageView(itemView.getContext());
       imageView.setLayoutParams(new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
       imageView.setPadding(10, 10, 0, 0);
-      Picasso
-          .with(imageView.getContext())
+      Glide.with(imageView.getContext())
           .load(photoUri)
-          .resize(600, 600)
-          .centerInside()
+          .override(600, 600)
+          .fitCenter()
           .into(imageView);
       layout.addView(imageView);
     }

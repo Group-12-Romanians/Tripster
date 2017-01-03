@@ -20,7 +20,7 @@
         <CheckBoxPreference
             android:key="photoUpload"
             android:title="Mobile data upload"
-            android:summary="Upload photos when mobile data"/>
+            android:summary="Upload photos when on mobile data"/>
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -36,37 +36,38 @@
             android:entries="@array/MetersTracking"
             android:entryValues="@array/MetersTrackingValues"
             android:key="metersTracking"
-            android:summary="Set the distance used by the app to scan for places. %s"
-            android:title="Set tracking distance"/>
+            android:summary="Set the distance for which locations are considered the same. Choose a higher value if you are only interested in cities."
+            android:title="Set tracking precision"/>
 
         <ListPreference
             android:dialogTitle="Tracking frequency preferences"
             android:entries="@array/TrackingTime"
             android:entryValues="@array/TrackingTimeValues"
             android:key="trackingTime"
-            android:summary="Set scan for places frequency. This will affect your battery life. %s"
-            android:title="Set tracking distance"/>
+            android:summary="Set the frequency for getting your location."
+            android:title="Set tracking frequency"/>
 
         <CheckBoxPreference
             android:key="smart"
-            android:summary="Reduce battery consumption. Might cause some location mismatches."
+            android:summary="This will reduce battery consumption but might cause the loss of some trip events."
             android:title="Smart tracking"/>
 
     </PreferenceCategory>
 
     <PreferenceCategory
         android:title="Notifications">
-
-
         <CheckBoxPreference
+            android:defaultValue=""
             android:key="notifications"
             android:summary="Get notified every time you get followed"
             android:title="New follower notification"/>
 
         <CheckBoxPreference
             android:key="suggestions"
-            android:summary="Get notified about places you might be interested to go to"
-            android:title="Suggestions for places"/>
+            android:summary="Get notified about restaurants/attractions in your area."
+            android:title="Suggestions"/>
     </PreferenceCategory>
+
+    <Preference android:layout="@layout/settings_bottom_pad"/>
 
 </PreferenceScreen>

@@ -3,7 +3,7 @@ package tripster.tripster;
 import android.util.Log;
 import android.widget.ImageView;
 
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 
 public class Image {
   private static final String TAG = Image.class.getName();
@@ -16,10 +16,9 @@ public class Image {
 
   public void displayIn(ImageView imageView) {
     if (photoUri != null) {
-      Picasso.with(imageView.getContext())
+      Glide.with(imageView.getContext())
           .load(photoUri)
-          .fit()
-          .centerInside()
+          .fitCenter()
           .into(imageView);
     } else {
       Log.e(TAG, "no Image URI");
