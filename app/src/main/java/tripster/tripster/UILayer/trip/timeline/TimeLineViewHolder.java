@@ -1,5 +1,7 @@
 package tripster.tripster.UILayer.trip.timeline;
 
+import android.app.Activity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.Pair;
@@ -13,6 +15,8 @@ import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
+import com.mzelzoghbi.zgallery.ZGallery;
+import com.mzelzoghbi.zgallery.entities.ZColor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,11 +32,14 @@ import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 class TimeLineViewHolder extends RecyclerView.ViewHolder {
   private static final String TAG = TimeLineViewHolder.class.getName();
+
+  private Activity activity;
   TextView locationTextView;
   private View itemView;
 
-  TimeLineViewHolder(View itemView, int viewType) {
+  TimeLineViewHolder(View itemView, int viewType, AppCompatActivity activity) {
     super(itemView);
+    this.activity = activity;
     this.itemView = itemView;
     locationTextView = (TextView) itemView.findViewById(R.id.tx_name);
     TimelineView timelineView = (TimelineView) itemView.findViewById(R.id.time_marker);
@@ -60,15 +67,27 @@ class TimeLineViewHolder extends RecyclerView.ViewHolder {
           return o2.first.compareTo(o1.first);
         }
       });
-      List<String> photos = new ArrayList<>();
+      final ArrayList<String> photos = new ArrayList<>();
       for (Pair<Long, String> result : results) {
         photos.add(result.second);
       }
       Log.d(TAG, "Photos are: " + photos);
-      for (String photoUri : photos) {
+      for (int i = 0; i < photos.size(); i++) {
+        String photoUri = photos.get(i);
         ImageView imageView = new ImageView(itemView.getContext());
         imageView.setLayoutParams(new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
         imageView.setPadding(10, 10, 0, 0);
+        final int finalI = i;
+        imageView.setOnClickListener(new View.OnClickListener() {
+          @Override
+          public void onClick(View view) {
+            ZGallery.with(activity, photos)
+                .setGalleryBackgroundColor(ZColor.WHITE) // activity background color
+                .setToolbarColorResId(R.color.colorPrimary) // toolbar color
+                .setSelectedImgPosition(finalI)
+                .show();
+          }
+        });
         Glide.with(imageView.getContext())
             .load(photoUri)
             .override(600, 600)

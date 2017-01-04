@@ -108,15 +108,9 @@ public class TripFragment extends Fragment {
             photos.add(result.second);
           }
           Log.d(TAG, "All Photos by time are: " + photos);
-          String title = (String) tDb.getDocumentById(tripId).getProperty(TRIP_NAME_K);
-          if (title == null) {
-            title = DEFAULT_NAME;
-          }
           ZGallery.with(getActivity(), photos)
-              .setToolbarTitleColor(ZColor.WHITE) // toolbar title color
               .setGalleryBackgroundColor(ZColor.WHITE) // activity background color
               .setToolbarColorResId(R.color.colorPrimary) // toolbar color
-              .setTitle(title) // toolbar title
               .show();
         } catch (CouchbaseLiteException e) {
           Log.e(TAG, "Could not run images query.");

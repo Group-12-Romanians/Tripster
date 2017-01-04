@@ -1,5 +1,6 @@
 package tripster.tripster.UILayer.trip.timeline;
 
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +31,7 @@ class TimeLineAdapter extends RecyclerView.Adapter<TimeLineViewHolder> {
   @Override
   public TimeLineViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
     View view = View.inflate(parent.getContext(), R.layout.item_timeline, null);
-    return new TimeLineViewHolder(view, viewType);
+    return new TimeLineViewHolder(view, viewType, (AppCompatActivity) parent.getContext());
   }
 
   @Override
