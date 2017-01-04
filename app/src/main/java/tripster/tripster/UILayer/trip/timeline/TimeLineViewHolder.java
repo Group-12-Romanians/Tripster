@@ -1,6 +1,5 @@
 package tripster.tripster.UILayer.trip.timeline;
 
-import android.app.Activity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -33,15 +32,15 @@ import static tripster.tripster.UILayer.TripsterActivity.tDb;
 class TimeLineViewHolder extends RecyclerView.ViewHolder {
   private static final String TAG = TimeLineViewHolder.class.getName();
 
-  private Activity activity;
-  TextView locationTextView;
-  private View itemView;
+  TextView nameTextView;
+  View itemView;
+  TextView descriptionTextView;
 
-  TimeLineViewHolder(View itemView, int viewType, AppCompatActivity activity) {
+  TimeLineViewHolder(View itemView, int viewType) {
     super(itemView);
-    this.activity = activity;
     this.itemView = itemView;
-    locationTextView = (TextView) itemView.findViewById(R.id.tx_name);
+    nameTextView = (TextView) itemView.findViewById(R.id.place_name);
+    descriptionTextView = (TextView) itemView.findViewById(R.id.place_description);
     TimelineView timelineView = (TimelineView) itemView.findViewById(R.id.time_marker);
     timelineView.initLine(viewType);
   }
@@ -59,7 +58,7 @@ class TimeLineViewHolder extends RecyclerView.ViewHolder {
       final List<Pair<Long, String>> results = new ArrayList<>();
       for (int i = 0; i < rows.getCount(); i++) {
         QueryRow r = rows.getRow(i);
-        results.add(new Pair<>((long) r.getValue(), Constants.getPath(r.getDocumentId())));
+        results.add(new Pair<>((long) r.getValue(), r.getDocumentId()));
       }
       Collections.sort(results, new Comparator<Pair<Long, String>>() {
         @Override
@@ -73,32 +72,35 @@ class TimeLineViewHolder extends RecyclerView.ViewHolder {
       }
       Log.d(TAG, "Photos are: " + photos);
       for (int i = 0; i < photos.size(); i++) {
-        String photoUri = photos.get(i);
-        ImageView imageView = new ImageView(itemView.getContext());
-        imageView.setLayoutParams(new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
-        imageView.setPadding(10, 10, 0, 0);
-        final int finalI = i;
-        imageView.setOnClickListener(new View.OnClickListener() {
-          @Override
-          public void onClick(View view) {
-            ZGallery.with(activity, photos)
-                .setGalleryBackgroundColor(ZColor.WHITE) // activity background color
-                .setToolbarColorResId(R.color.colorPrimary) // toolbar color
-                .setSelectedImgPosition(finalI)
-                .show();
-          }
-        });
-        Glide.with(imageView.getContext())
-            .load(photoUri)
-            .override(600, 600)
-            .fitCenter()
-            .into(imageView);
-        layout.addView(imageView);
+        layout.addView(getView(itemView, photos.get(i), photos, i));
       }
     } catch (CouchbaseLiteException e) {
       Log.e(TAG, "Could not run images query.");
       e.printStackTrace();
     }
+  }
+
+  View getView(View itemView, String photoId, final ArrayList<String> photos, final int i) {
+    String photoUri = Constants.getPath(photoId);
+    final ImageView imageView = new ImageView(itemView.getContext());
+    imageView.setLayoutParams(new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+    imageView.setPadding(10, 10, 0, 0);
+    imageView.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        ZGallery.with((AppCompatActivity) imageView.getContext(), photos)
+            .setGalleryBackgroundColor(ZColor.WHITE) // activity background color
+            .setToolbarColorResId(R.color.colorPrimary) // toolbar color
+            .setSelectedImgPosition(i)
+            .show();
+      }
+    });
+    Glide.with(imageView.getContext())
+        .load(photoUri)
+        .override(600, 600)
+        .fitCenter()
+        .into(imageView);
+    return imageView;
   }
 }
 
