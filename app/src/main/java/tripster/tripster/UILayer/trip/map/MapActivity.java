@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.ui.IconGenerator;
 import android.util.Log;
-import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -21,9 +20,10 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Document;
-import com.couchbase.lite.LiveQuery;
 import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
@@ -38,17 +38,19 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
 
+import tripster.tripster.Constants;
 import tripster.tripster.R;
 import tripster.tripster.UILayer.trip.map.model.PhotoAtLocation;
 import tripster.tripster.dataLayer.TripsterDb;
 
-import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_TIME;
-import static tripster.tripster.Constants.PHOTO_PATH_K;
+import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_PLACE;
 import static tripster.tripster.Constants.PLACE_LAT_K;
 import static tripster.tripster.Constants.PLACE_LNG_K;
+import static tripster.tripster.Constants.PLACE_NAME_K;
+import static tripster.tripster.Constants.TRIP_ID;
 
 public class MapActivity extends BaseDemoActivity implements
     ClusterManager.OnClusterClickListener<PhotoAtLocation>,
@@ -59,7 +61,6 @@ public class MapActivity extends BaseDemoActivity implements
   private static final String TAG = MapActivity.class.getName();
   private ClusterManager<PhotoAtLocation> clusterManager;
   private TripsterDb tDb;
-  private LiveQuery imagesLQ;
 
   private String tripId;
 
@@ -274,48 +275,31 @@ public class MapActivity extends BaseDemoActivity implements
   }
 
   private void addItems() {
-    tripId = getIntent().getStringExtra("tripId");
-    restartImagesLiveQuery();
+    tripId = getIntent().getStringExtra(TRIP_ID);
+    startImagesQuery();
   }
 
-  private void restartImagesLiveQuery() {
-    Query q = tDb.getDb().getExistingView(IMAGES_BY_TRIP_AND_TIME).createQuery();
+  private void startImagesQuery() {
+    Query q = tDb.getDb().getExistingView(IMAGES_BY_TRIP_AND_PLACE).createQuery();
     List<Object> firstKey = new ArrayList<>();
     firstKey.add(tripId);
-    firstKey.add((long) 0);
     List<Object> lastKey = new ArrayList<>();
     lastKey.add(tripId);
-    lastKey.add(System.currentTimeMillis());
-    q.setStartKey(lastKey);
-    q.setEndKey(firstKey);
-    q.setDescending(true);
-    imagesLQ = q.toLiveQuery();
-    imagesLQ.addChangeListener(new LiveQuery.ChangeListener() {
-      @Override
-      public void changed(LiveQuery.ChangeEvent event) {
-        final List<Pair<LatLng, List<String>>> results = new ArrayList<>();
-        Iterator<QueryRow> it = event.getRows().iterator();
-        String prevPlaceId = null;
-        while (it.hasNext()) {
-          QueryRow r = it.next();
-          String placeId = (String) r.getValue();
-          if (!placeId.equals(prevPlaceId)) {
-            Document placeDoc =  tDb.getDocumentById(placeId);
-            LatLng location = new LatLng((double) placeDoc.getProperty(PLACE_LAT_K), (double) placeDoc.getProperty(PLACE_LNG_K));
-            results.add(new Pair<LatLng, List<String>>(location, new ArrayList<String>()));
-            prevPlaceId = placeId;
-          }
-          results.get(results.size() - 1).second.add((String) r.getDocument().getProperty(PHOTO_PATH_K));
-        }
-
-        for (Pair<LatLng, List<String>> result : results) {
-          for (String path : result.second) {
-            clusterManager.addItem(new PhotoAtLocation("NoInfo", path, result.first));
-          }
-        }
-
+    lastKey.add(new HashMap<>());
+    q.setStartKey(firstKey);
+    q.setEndKey(lastKey);
+    try {
+      QueryEnumerator rows = q.run();
+      for (int i = 0; i < rows.getCount(); i++) {
+        QueryRow r = rows.getRow(i);
+        String placeId = ((List<String>) r.getKey()).get(1); // get the placeId from the key
+        Document placeDoc =  tDb.getDocumentById(placeId);
+        LatLng location = new LatLng((double) placeDoc.getProperty(PLACE_LAT_K), (double) placeDoc.getProperty(PLACE_LNG_K));
+        clusterManager.addItem(new PhotoAtLocation((String) placeDoc.getProperty(PLACE_NAME_K), Constants.getPath(r.getDocumentId()), location));
       }
-    });
-    imagesLQ.start();
+    } catch (CouchbaseLiteException e) {
+      Log.e(TAG, "Cannot run images live query.");
+      e.printStackTrace();
+    }
   }
 }

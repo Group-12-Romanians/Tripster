@@ -9,7 +9,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 
 import tripster.tripster.R;
-import tripster.tripster.UILayer.trip.timeline.TimelineFragment;
+import tripster.tripster.UILayer.trip.timeline.TripFragment;
 import tripster.tripster.UILayer.users.lists.FollowersFragment;
 import tripster.tripster.UILayer.users.lists.FollowingFragment;
 import tripster.tripster.UILayer.users.profile.MyProfileFragment;
@@ -31,7 +31,7 @@ public class TransactionManager {
 
   public void accessTrip(String tripId) {
     // Change to the corresponding TripFragment.
-    TimelineFragment frag = new TimelineFragment();
+    TripFragment frag = new TripFragment();
     Bundle arguments = new Bundle();
     arguments.putString(TRIP_ID, tripId);
     frag.setArguments(arguments);

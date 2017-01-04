@@ -19,7 +19,6 @@ import java.util.List;
 
 import tripster.tripster.R;
 
-import static junit.framework.Assert.assertNotNull;
 import static tripster.tripster.Constants.NOTIFICATIONS_BY_USER;
 import static tripster.tripster.UILayer.TripsterActivity.currentUserId;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
@@ -34,7 +33,7 @@ public class NotificationsFragment extends Fragment {
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-    View v = inflater.inflate(R.layout.fragment_requests, container, false);
+    View v = inflater.inflate(R.layout.fragment_notifications, container, false);
     notifications = (ListView) v.findViewById(R.id.notifications_list);
     return v;
   }
@@ -52,7 +51,7 @@ public class NotificationsFragment extends Fragment {
     firstKey.add((long) 0);
     List<Object> lastKey = new ArrayList<>();
     lastKey.add(currentUserId);
-    lastKey.add(System.currentTimeMillis());
+    lastKey.add(Long.MAX_VALUE);
     q.setStartKey(lastKey);
     q.setEndKey(firstKey);
     q.setDescending(true);
@@ -89,10 +88,9 @@ public class NotificationsFragment extends Fragment {
 
   private void initNotificationsAdapter(final List<String> nots) {
     NotificationsAdapter notificationsAdapter = new NotificationsAdapter(getContext(),
-        R.layout.fragment_requests,
+        R.layout.fragment_notifications,
         R.id.notification_text,
         nots);
-    assertNotNull(getView());
     notifications.setAdapter(notificationsAdapter);
   }
 }

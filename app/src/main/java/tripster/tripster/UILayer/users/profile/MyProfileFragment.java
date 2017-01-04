@@ -30,7 +30,7 @@ public class MyProfileFragment extends ProfileFragment {
 
   @Override
   protected int getLayoutRes() {
-    return R.layout.my_profile;
+    return R.layout.fragment_profile_mine;
   }
 
   @Override

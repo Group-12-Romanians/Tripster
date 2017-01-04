@@ -26,7 +26,8 @@ public class Constants {
 
   //------------------------------------------- VIEWS --------------------------------------------//
   public static final String TRIPS_BY_OWNER = "trips/byOwner";
-  public static final String IMAGES_BY_TRIP_AND_TIME = "images/byTripAndTime";
+  public static final String IMAGES_BY_TRIP_AND_PLACE = "images/byTripAndTime";
+  public static final String PLACES_BY_TRIP_AND_TIME = "places/byTripAndTime";
   public static final String FOLLOWING_BY_USER = "follow/followingByUser";
   public static final String USERS_BY_ID = "users/byId";
   public static final String NOTIFICATIONS_BY_USER = "notifications/byUser";
@@ -63,7 +64,6 @@ public class Constants {
 
   // PHOTO
   public static final String PHOTO_PLACE_K = "placeId";
-  public static final String PHOTO_PATH_K = "path";
   public static final String PHOTO_TRIP_K = "tripId";
   public static final String PHOTO_TIME_K = "time";
   public static final int MAX_SIZE = 600;
@@ -107,4 +107,8 @@ public class Constants {
   public static final String TRIP_PAUSED = "paused";
   public static final String DEFAULT_PREVIEW = SERVER_URL + "/default_preview.jpg";
   public static final String DEFAULT_NAME = "Current Trip";
+
+  public static String getPath(String photoId) {
+    return SERVER_URL + "/" + photoId + ".jpg";
+  }
 }

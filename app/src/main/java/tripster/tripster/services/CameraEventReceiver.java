@@ -21,11 +21,9 @@ import static junit.framework.Assert.assertNotNull;
 import static tripster.tripster.Constants.CURR_TRIP_ID;
 import static tripster.tripster.Constants.CURR_TRIP_LL;
 import static tripster.tripster.Constants.CURR_TRIP_ST;
-import static tripster.tripster.Constants.PHOTO_PATH_K;
 import static tripster.tripster.Constants.PHOTO_PLACE_K;
 import static tripster.tripster.Constants.PHOTO_TIME_K;
 import static tripster.tripster.Constants.PHOTO_TRIP_K;
-import static tripster.tripster.Constants.SERVER_URL;
 import static tripster.tripster.Constants.TRIP_PAUSED;
 
 public class CameraEventReceiver extends BroadcastReceiver {
@@ -69,7 +67,6 @@ public class CameraEventReceiver extends BroadcastReceiver {
       Log.d(TAG, "got last location: " + lastLocationId);
       Map<String, Object> props = new HashMap<>();
       props.put(PHOTO_PLACE_K, lastLocationId);
-      props.put(PHOTO_PATH_K, SERVER_URL + "/" + photoId + ".jpg");
       props.put(PHOTO_TRIP_K, currentTripId);
       props.put(PHOTO_TIME_K, System.currentTimeMillis());
       tDb.upsertNewDocById(photoId, props);

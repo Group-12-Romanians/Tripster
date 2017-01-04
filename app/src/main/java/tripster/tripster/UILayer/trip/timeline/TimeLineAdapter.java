@@ -1,7 +1,6 @@
 package tripster.tripster.UILayer.trip.timeline;
 
 import android.support.v7.widget.RecyclerView;
-import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -12,13 +11,14 @@ import java.util.List;
 import tripster.tripster.R;
 
 import static tripster.tripster.Constants.PLACE_NAME_K;
+import static tripster.tripster.Constants.PLACE_TRIP_K;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 class TimeLineAdapter extends RecyclerView.Adapter<TimeLineViewHolder> {
 
-  private List<Pair<String, List<String>>> events;
+  private List<String> events;
 
-  TimeLineAdapter(List<Pair<String, List<String>>> events) {
+  TimeLineAdapter(List<String> events) {
     this.events = events;
   }
 
@@ -35,12 +35,10 @@ class TimeLineAdapter extends RecyclerView.Adapter<TimeLineViewHolder> {
 
   @Override
   public void onBindViewHolder(final TimeLineViewHolder holder, int position) {
-    Pair<String, List<String>> timeLineEvent = events.get(position);
-
-    String placeId = timeLineEvent.first;
+    String placeId = events.get(position);
     Document placeDoc = tDb.getDocumentById(placeId);
     holder.locationTextView.setText((String) placeDoc.getProperty(PLACE_NAME_K));
-    holder.initView(timeLineEvent.second);
+    holder.initView((String) placeDoc.getProperty(PLACE_TRIP_K), placeId);
   }
 
   @Override

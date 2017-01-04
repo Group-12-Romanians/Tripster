@@ -15,74 +15,62 @@ import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.LiveQuery;
 import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
-import com.github.channguyen.rsv.RangeSliderView;
+import com.mzelzoghbi.zgallery.ZGallery;
+import com.mzelzoghbi.zgallery.entities.ZColor;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
+import tripster.tripster.Constants;
 import tripster.tripster.Image;
 import tripster.tripster.R;
 import tripster.tripster.UILayer.trip.map.MapActivity;
 
 import static tripster.tripster.Constants.DEFAULT_NAME;
 import static tripster.tripster.Constants.DEFAULT_PREVIEW;
-import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_TIME;
+import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_PLACE;
+import static tripster.tripster.Constants.PLACES_BY_TRIP_AND_TIME;
 import static tripster.tripster.Constants.TRIP_DESCRIPTION_K;
 import static tripster.tripster.Constants.TRIP_ID;
-import static tripster.tripster.Constants.TRIP_LEVEL_K;
 import static tripster.tripster.Constants.TRIP_NAME_K;
-import static tripster.tripster.Constants.TRIP_OWNER_K;
 import static tripster.tripster.Constants.TRIP_PREVIEW_K;
 import static tripster.tripster.Constants.TRIP_VIDEO_K;
-import static tripster.tripster.Constants.levels;
-import static tripster.tripster.UILayer.TripsterActivity.currentUserId;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
-public class TimelineFragment extends Fragment {
-  private static final String TAG = TimelineFragment.class.getName();
+public class TripFragment extends Fragment {
+  private static final String TAG = TripFragment.class.getName();
 
   private String tripId;
-  private LiveQuery imagesLQ;
+  private LiveQuery placesLQ;
 
   private RecyclerView timeline;
 
-  private Button editButton;
-  private Button locationButton;
   private TextView name;
   private TextView description;
   private ImageView preview;
 
-  private TextView levelHint;
-  private LinearLayout levelInfo;
-  private RangeSliderView levelSeek;
-
   @Nullable
   @Override
   public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-    View view = inflater.inflate(R.layout.fragment_timeline, container, false);
+    View view = inflater.inflate(R.layout.fragment_trip, container, false);
     tripId = this.getArguments().getString(TRIP_ID);
     timeline = (RecyclerView) view.findViewById(R.id.recyclerView);
     timeline.setLayoutManager(new LinearLayoutManager(getContext()));
     timeline.setHasFixedSize(true);
 
-    locationButton = (Button) view.findViewById(R.id.noOfLocations);
-    name = (TextView) view.findViewById(R.id.tripName);
-    description = (TextView) view.findViewById(R.id.tripDesc);
-    preview = (ImageView) view.findViewById(R.id.preview);
-
-    locationButton.setOnClickListener(new View.OnClickListener() {
+    view.findViewById(R.id.mapButton).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         Intent intent = new Intent(getActivity(), MapActivity.class);
@@ -91,39 +79,63 @@ public class TimelineFragment extends Fragment {
       }
     });
 
-    levelInfo = (LinearLayout) view.findViewById(R.id.levelInfo);
-    levelHint = (TextView) view.findViewById(R.id.levelHint);
-    levelSeek = (RangeSliderView) view.findViewById(R.id.levelSeek);
-    updateLevelDetails();
+    view.findViewById(R.id.gallery).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        Query q = tDb.getDb().getExistingView(IMAGES_BY_TRIP_AND_PLACE).createQuery();
+        List<Object> firstKey = new ArrayList<>();
+        firstKey.add(tripId);
+        List<Object> lastKey = new ArrayList<>();
+        lastKey.add(tripId);
+        lastKey.add(new HashMap<>());
+        q.setStartKey(firstKey);
+        q.setEndKey(lastKey);
+        try {
+          QueryEnumerator rows = q.run();
+          final List<Pair<Long, String>> results = new ArrayList<>();
+          for (int i = 0; i < rows.getCount(); i++) {
+            QueryRow r = rows.getRow(i);
+            results.add(new Pair<>((long) r.getValue(), Constants.getPath(r.getDocumentId())));
+          }
+          Collections.sort(results, new Comparator<Pair<Long, String>>() {
+            @Override
+            public int compare(Pair<Long, String> o1, Pair<Long, String> o2) {
+              return o2.first.compareTo(o1.first);
+            }
+          });
+          ArrayList<String> photos = new ArrayList<>();
+          for (Pair<Long, String> result : results) {
+            photos.add(result.second);
+          }
+          Log.d(TAG, "All Photos by time are: " + photos);
+          String title = (String) tDb.getDocumentById(tripId).getProperty(TRIP_NAME_K);
+          if (title == null) {
+            title = DEFAULT_NAME;
+          }
+          ZGallery.with(getActivity(), photos)
+              .setToolbarTitleColor(ZColor.WHITE) // toolbar title color
+              .setGalleryBackgroundColor(ZColor.WHITE) // activity background color
+              .setToolbarColorResId(R.color.colorPrimary) // toolbar color
+              .setTitle(title) // toolbar title
+              .show();
+        } catch (CouchbaseLiteException e) {
+          Log.e(TAG, "Could not run images query.");
+          e.printStackTrace();
+        }
+      }
+    });
+
+    name = (TextView) view.findViewById(R.id.tripName);
+    description = (TextView) view.findViewById(R.id.tripDesc);
+    preview = (ImageView) view.findViewById(R.id.preview);
 
     return view;
-  }
-
-  private void updateLevelDetails() {
-    Document d = tDb.getDocumentById(tripId);
-    if (d.getProperty(TRIP_OWNER_K).equals(currentUserId)) {
-      int level = (Integer) d.getProperty(TRIP_LEVEL_K);
-      levelHint.setText("This trip has visibility: " + levels.get(level));
-      levelSeek.setInitialIndex(level);
-      levelSeek.setOnSlideListener(new RangeSliderView.OnSlideListener() {
-        @Override
-        public void onSlide(int index) {
-          Map<String, Object> props = new HashMap<>();
-          props.put(TRIP_LEVEL_K, index);
-          tDb.upsertNewDocById(tripId, props);
-          updateLevelDetails();
-        }
-      });
-    } else {
-      levelInfo.setVisibility(View.GONE);
-    }
-
   }
 
   @Override
   public void onResume() {
     super.onResume();
-    restartImagesLiveQuery();
+    restartImportantPlacesLiveQuery();
     setGeneralDetails();
   }
 
@@ -167,60 +179,49 @@ public class TimelineFragment extends Fragment {
         }
       }
     });
-
   }
 
-  private void restartImagesLiveQuery() {
-    Query q = tDb.getDb().getExistingView(IMAGES_BY_TRIP_AND_TIME).createQuery();
+  private void restartImportantPlacesLiveQuery() {
+    Query q = tDb.getDb().getExistingView(PLACES_BY_TRIP_AND_TIME).createQuery();
     List<Object> firstKey = new ArrayList<>();
     firstKey.add(tripId);
     firstKey.add((long) 0);
     List<Object> lastKey = new ArrayList<>();
     lastKey.add(tripId);
-    lastKey.add(System.currentTimeMillis());
+    lastKey.add(Long.MAX_VALUE);
     q.setStartKey(lastKey);
     q.setEndKey(firstKey);
     q.setDescending(true);
-    imagesLQ = q.toLiveQuery();
-    imagesLQ.addChangeListener(new LiveQuery.ChangeListener() {
+    placesLQ = q.toLiveQuery();
+    placesLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(LiveQuery.ChangeEvent event) {
-        final List<Pair<String, List<String>>> results = new ArrayList<>();
-        Iterator<QueryRow> it = event.getRows().iterator();
-        String prevPlaceId = null;
-        while (it.hasNext()) {
-          QueryRow r = it.next();
-          String placeId = (String) r.getValue();
-          if (!placeId.equals(prevPlaceId)) {
-            results.add(new Pair<String, List<String>>(placeId, new ArrayList<String>()));
-            prevPlaceId = placeId;
-          }
-          results.get(results.size() - 1).second.add(r.getDocumentId());
+        final List<String> results = new ArrayList<>();
+        for (int i = 0; i < event.getRows().getCount(); i++) {
+          results.add(event.getRows().getRow(i).getDocumentId());
         }
-
         new Handler(Looper.getMainLooper()).post(new Runnable() {
           @Override
           public void run() {
-            locationButton.setText(String.valueOf(results.size()));
             initListAdapter(results);
           }
         });
       }
     });
-    imagesLQ.start();
+    placesLQ.start();
   }
 
   @Override
   public void onPause() {
     try {
-      imagesLQ.stop();
+      placesLQ.stop();
     } catch (NullPointerException e) {
     Log.e(TAG, "Something failed");
   }
     super.onPause();
   }
 
-  private void initListAdapter(List<Pair<String, List<String>>> events) {
+  private void initListAdapter(List<String> events) {
     TimeLineAdapter timeLineAdapter = new TimeLineAdapter(events);
     timeline.setAdapter(timeLineAdapter);
   }

@@ -107,7 +107,7 @@ public class UserProfileFragment extends ProfileFragment {
 
   @Override
   protected int getLayoutRes() {
-    return R.layout.user_profile;
+    return R.layout.fragment_profile_user;
   }
 
   @Override

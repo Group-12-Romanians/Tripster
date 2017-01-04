@@ -32,15 +32,20 @@ import static tripster.tripster.Constants.DOC_ID;
 import static tripster.tripster.Constants.FOLLOWERS_BY_USER;
 import static tripster.tripster.Constants.FOLLOWING_BY_USER;
 import static tripster.tripster.Constants.FOL_LEVEL_K;
-import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_TIME;
+import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_PLACE;
 import static tripster.tripster.Constants.NOTIFICATIONS_BY_USER;
 import static tripster.tripster.Constants.NOT_RECEIVER_K;
 import static tripster.tripster.Constants.NOT_TIME_K;
 import static tripster.tripster.Constants.NOT_TYPE_K;
-import static tripster.tripster.Constants.PHOTO_PATH_K;
 import static tripster.tripster.Constants.PHOTO_PLACE_K;
 import static tripster.tripster.Constants.PHOTO_TIME_K;
 import static tripster.tripster.Constants.PHOTO_TRIP_K;
+import static tripster.tripster.Constants.PLACES_BY_TRIP_AND_TIME;
+import static tripster.tripster.Constants.PLACE_LAT_K;
+import static tripster.tripster.Constants.PLACE_LNG_K;
+import static tripster.tripster.Constants.PLACE_NAME_K;
+import static tripster.tripster.Constants.PLACE_TIME_K;
+import static tripster.tripster.Constants.PLACE_TRIP_K;
 import static tripster.tripster.Constants.TRIPS_BY_OWNER;
 import static tripster.tripster.Constants.TRIP_LEVEL_K;
 import static tripster.tripster.Constants.TRIP_OWNER_K;
@@ -165,11 +170,30 @@ public class TripsterDb {
 
   public void initAllViews() {
     initUsersById();
-    initImagesByTripAndTimeView();
+    initImagesByTripAndPlace();
     initTripsByOwnerIdView();
+    initImportantPlacesByTripAndTime();
     initFollowingByUser();
     initFollowersByUser();
     initNotificationsByUser();
+  }
+
+  private void initImportantPlacesByTripAndTime() {
+    db.getView(PLACES_BY_TRIP_AND_TIME).setMap(new Mapper() {
+      @Override
+      public void map(Map<String, Object> document, Emitter emitter) {
+        if (document.containsKey(PLACE_LAT_K)
+            && document.containsKey(PLACE_LNG_K)
+            && document.containsKey(PLACE_TIME_K)
+            && document.containsKey(PLACE_TRIP_K)
+            && document.containsKey(PLACE_NAME_K)) {
+          List<Object> keys = new ArrayList<>();
+          keys.add(document.get(PLACE_TRIP_K));
+          keys.add(document.get(PLACE_TIME_K));
+          emitter.emit(keys, null);
+        }
+      }
+    }, "700"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 
   private void initUsersById() {
@@ -185,18 +209,17 @@ public class TripsterDb {
     }, "700"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
   }
 
-  private void initImagesByTripAndTimeView() {
-    db.getView(IMAGES_BY_TRIP_AND_TIME).setMap(new Mapper() {
+  private void initImagesByTripAndPlace() {
+    db.getView(IMAGES_BY_TRIP_AND_PLACE).setMap(new Mapper() {
       @Override
       public void map(Map<String, Object> document, Emitter emitter) {
         if (document.containsKey(PHOTO_TRIP_K)
             && document.containsKey(PHOTO_TIME_K)
-            && document.containsKey(PHOTO_PLACE_K)
-            && document.containsKey(PHOTO_PATH_K)) {
+            && document.containsKey(PHOTO_PLACE_K)) {
           List<Object> keys = new ArrayList<>();
           keys.add(document.get(PHOTO_TRIP_K));
-          keys.add(document.get(PHOTO_TIME_K));
-          emitter.emit(keys, document.get(PHOTO_PLACE_K));
+          keys.add(document.get(PHOTO_PLACE_K));
+          emitter.emit(keys, document.get(PHOTO_TIME_K)); // we need to sort by it
         }
       }
     }, "700"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.
@@ -220,7 +243,7 @@ public class TripsterDb {
       public void map(Map<String, Object> document, Emitter emitter) {
         String docId = ((String) document.get(DOC_ID)); // The id is of type: followerId:followingId
         if (document.containsKey(FOL_LEVEL_K) && docId.contains(":")) {
-          emitter.emit(docId.split(":")[0], document.get(FOL_LEVEL_K)); //changes in level
+          emitter.emit(docId.split(":")[0], document.get(FOL_LEVEL_K)); //changes in level for newsfeed
         }
       }
     }, new Reducer() {
