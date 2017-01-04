@@ -19,7 +19,7 @@ public class Constants {
   public static final String STOP_SERVICE = "stop";
 
   //------------------------------------------ DATABASE ------------------------------------------//
-  public static final String DB_NAME = "tripster";
+  public static final String DB_NAME = "tripster01";
   public static final String DB_PORT = "5984";
   public static final String DB_SYNC_URL = SERVER + ":" + DB_PORT + "/" + DB_NAME;
   public static final String DB_STORAGE_TYPE = "ForestDB";
