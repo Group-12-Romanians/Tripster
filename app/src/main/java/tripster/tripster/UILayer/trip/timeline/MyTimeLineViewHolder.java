@@ -31,12 +31,13 @@ public class MyTimeLineViewHolder extends TimeLineViewHolder {
   }
 
   @Override
-  View getView(View itemView, final String photoId, final ArrayList<String> photos, final int i) {
+  View getView(View itemView, final String photoId, final ArrayList<String> photoUris, final int i) {
     String photoUri = Constants.getPath(photoId);
 
     final ImageWindow imageWindow = new ImageWindow(itemView.getContext());
     imageWindow.setLayoutParams(new RelativeLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
     imageWindow.setCloseButtonSize(80);
+    imageWindow.setPadding(10, 10, 0, 0);
     imageWindow.setOnCloseListener(new ImageWindow.OnCloseListener() {
       @Override
       public void onCloseClick(View view) {
@@ -47,7 +48,7 @@ public class MyTimeLineViewHolder extends TimeLineViewHolder {
             try {
               tDb.getDocumentById(photoId).delete();
             } catch (CouchbaseLiteException e) {
-              Log.e(TAG, "Could nto remove photo");
+              Log.e(TAG, "Could not remove photo");
             }
           }
         }).start();
@@ -59,7 +60,7 @@ public class MyTimeLineViewHolder extends TimeLineViewHolder {
     imageView.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        ZGallery.with((AppCompatActivity) imageView.getContext(), photos)
+        ZGallery.with((AppCompatActivity) imageView.getContext(), photoUris)
             .setGalleryBackgroundColor(ZColor.WHITE) // activity background color
             .setToolbarColorResId(R.color.colorPrimary) // toolbar color
             .setSelectedImgPosition(i)

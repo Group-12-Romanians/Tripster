@@ -27,6 +27,7 @@ import tripster.tripster.R;
 
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_PLACE;
+import static tripster.tripster.Constants.getPath;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 class TimeLineViewHolder extends RecyclerView.ViewHolder {
@@ -66,13 +67,18 @@ class TimeLineViewHolder extends RecyclerView.ViewHolder {
           return o2.first.compareTo(o1.first);
         }
       });
-      final ArrayList<String> photos = new ArrayList<>();
+      List<String> photos = new ArrayList<>();
       for (Pair<Long, String> result : results) {
         photos.add(result.second);
       }
-      Log.d(TAG, "Photos are: " + photos);
+
+      ArrayList<String> photoUris = new ArrayList<>();
+      for (String photo : photos) {
+        photoUris.add(getPath(photo));
+      }
+
       for (int i = 0; i < photos.size(); i++) {
-        layout.addView(getView(itemView, photos.get(i), photos, i));
+        layout.addView(getView(itemView, photos.get(i), photoUris, i));
       }
     } catch (CouchbaseLiteException e) {
       Log.e(TAG, "Could not run images query.");
@@ -80,7 +86,7 @@ class TimeLineViewHolder extends RecyclerView.ViewHolder {
     }
   }
 
-  View getView(View itemView, String photoId, final ArrayList<String> photos, final int i) {
+  View getView(View itemView, String photoId, final ArrayList<String> photoUris, final int i) {
     String photoUri = Constants.getPath(photoId);
     final ImageView imageView = new ImageView(itemView.getContext());
     imageView.setLayoutParams(new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
@@ -88,7 +94,7 @@ class TimeLineViewHolder extends RecyclerView.ViewHolder {
     imageView.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        ZGallery.with((AppCompatActivity) imageView.getContext(), photos)
+        ZGallery.with((AppCompatActivity) imageView.getContext(), photoUris)
             .setGalleryBackgroundColor(ZColor.WHITE) // activity background color
             .setToolbarColorResId(R.color.colorPrimary) // toolbar color
             .setSelectedImgPosition(i)
