@@ -5,9 +5,12 @@ import android.clustering.ClusterItem;
 import android.clustering.ClusterManager;
 import android.clustering.view.DefaultClusterRenderer;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.ui.IconGenerator;
 import android.util.Log;
 import android.view.View;
@@ -22,6 +25,7 @@ import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Document;
+import com.couchbase.lite.LiveQuery;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
@@ -36,8 +40,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -47,6 +54,7 @@ import tripster.tripster.UILayer.trip.map.model.PhotoAtLocation;
 import tripster.tripster.dataLayer.TripsterDb;
 
 import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_PLACE;
+import static tripster.tripster.Constants.LOCATIONS_BY_TRIP;
 import static tripster.tripster.Constants.PLACE_LAT_K;
 import static tripster.tripster.Constants.PLACE_LNG_K;
 import static tripster.tripster.Constants.PLACE_NAME_K;
@@ -257,9 +265,19 @@ public class MapActivity extends BaseDemoActivity implements
     // Does nothing, but you could go into the user's profile page, for example.
   }
 
+
+
+  private ArrayList<LatLng> points; //added
+  private Polyline line; //added
+
+  private LiveQuery locationsLQ;
+
   @Override
   protected void startDemo() {
     Log.d(TAG, "Demo started");
+    tripId = getIntent().getStringExtra(TRIP_ID);
+
+
     clusterManager = new ClusterManager<PhotoAtLocation>(this, getMap());
     clusterManager.setRenderer(new PhotoAtLocationRenderer());
     getMap().setOnCameraIdleListener((GoogleMap.OnCameraIdleListener) clusterManager);
@@ -270,12 +288,45 @@ public class MapActivity extends BaseDemoActivity implements
     clusterManager.setOnClusterItemClickListener(this);
     clusterManager.setOnClusterItemInfoWindowClickListener(this);
 
-    addItems();
+    addImages();
     clusterManager.cluster();
+
+    addPolyLine();
   }
 
-  private void addItems() {
-    tripId = getIntent().getStringExtra(TRIP_ID);
+  private void addPolyLine() {
+    startPlacesLiveQuery();
+  }
+
+  private void startPlacesLiveQuery() {
+    Query q = tDb.getDb().getExistingView(LOCATIONS_BY_TRIP).createQuery();
+    q.setKeys(Collections.<Object>singletonList(tripId));
+    locationsLQ = q.toLiveQuery();
+    locationsLQ.addChangeListener(new LiveQuery.ChangeListener() {
+      @Override
+      public void changed(LiveQuery.ChangeEvent event) {
+        final PolylineOptions options = new PolylineOptions().width(4).color(Color.BLUE).geodesic(true);
+        for (int i = 0; i < event.getRows().getCount(); i++) {
+          QueryRow r = event.getRows().getRow(i);
+          Document locDoc = r.getDocument();
+          LatLng point = new LatLng((double) locDoc.getProperty(PLACE_LAT_K), (double) locDoc.getProperty(PLACE_LNG_K));
+          options.add(point);
+        }
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+          @Override
+          public void run() {
+            if (line != null) {
+              line.remove();
+            }
+            line = getMap().addPolyline(options); //add Polyline
+          }
+        });
+      }
+    });
+    locationsLQ.start();
+  }
+
+  private void addImages() {
     startImagesQuery();
   }
 

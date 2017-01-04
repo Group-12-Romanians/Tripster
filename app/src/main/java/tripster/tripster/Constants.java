@@ -28,6 +28,7 @@ public class Constants {
   public static final String TRIPS_BY_OWNER = "trips/byOwner";
   public static final String IMAGES_BY_TRIP_AND_PLACE = "images/byTripAndTime";
   public static final String PLACES_BY_TRIP_AND_TIME = "places/byTripAndTime";
+  public static final String LOCATIONS_BY_TRIP = "locations/byTrip";
   public static final String FOLLOWING_BY_USER = "follow/followingByUser";
   public static final String USERS_BY_ID = "users/byId";
   public static final String NOTIFICATIONS_BY_USER = "notifications/byUser";
