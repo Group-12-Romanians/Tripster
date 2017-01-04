@@ -2,6 +2,7 @@ package tripster.tripster.UILayer.newsfeed;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +24,7 @@ import static tripster.tripster.Constants.TRIP_DESCRIPTION_K;
 import static tripster.tripster.Constants.TRIP_NAME_K;
 import static tripster.tripster.Constants.TRIP_OWNER_K;
 import static tripster.tripster.Constants.TRIP_PREVIEW_K;
+import static tripster.tripster.Constants.TRIP_STOPPED_AT_K;
 import static tripster.tripster.Constants.TRIP_VIDEO_K;
 import static tripster.tripster.Constants.USER_AVATAR_K;
 import static tripster.tripster.Constants.USER_NAME_K;
@@ -39,8 +41,8 @@ class NewsfeedAdapter extends ArrayAdapter<String> {
   private TransactionManager tM;
   private LayoutInflater inflater;
 
-   NewsfeedAdapter(Context context, int resource, int textViewResourceId, List<String> userStories) {
-     super(context, resource, textViewResourceId, userStories);
+   NewsfeedAdapter(Context context,  List<String> userStories) {
+     super(context, R.layout.user_story, userStories);
      this.friendsTrips = userStories;
      inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
      tM = new TransactionManager(getContext());
@@ -55,6 +57,7 @@ class NewsfeedAdapter extends ArrayAdapter<String> {
     ImageView playBtnImg;
     TextView tripName;
     TextView tripDescription;
+    TextView tripTime;
   }
 
   @Override
@@ -86,6 +89,7 @@ class NewsfeedAdapter extends ArrayAdapter<String> {
       holder.tripPreview = (ImageView) convertView.findViewById(R.id.tripPreview);
       holder.playBtnImg = (ImageView) convertView.findViewById(R.id.playBtImg);
       holder.playBtnImg.setImageAlpha(TRANSPARENCY);
+      holder.tripTime = (TextView) convertView.findViewById(R.id.tripTime);
       convertView.setTag(holder);
     }
 
@@ -109,24 +113,32 @@ class NewsfeedAdapter extends ArrayAdapter<String> {
         }
       };
 
+      ViewHolder holder = (ViewHolder) convertView.getTag();
+
       // Set username
-      TextView userNameView = ((ViewHolder) convertView.getTag()).userName;
+      TextView userNameView = holder.userName;
       userNameView.setOnClickListener(userClickListener);
       userNameView.setText((String) userDoc.getProperty(USER_NAME_K));
 
       // Set avatar
-      ImageView userAvatarView = ((ViewHolder) convertView.getTag()).userAvatar;
+      ImageView userAvatarView = holder.userAvatar;
       userAvatarView.setOnClickListener(userClickListener);
       Image avatar = new Image((String) userDoc.getProperty(USER_AVATAR_K));
       avatar.displayIn(userAvatarView);
 
       // Set trip name
-      TextView tripNameView = ((ViewHolder) convertView.getTag()).tripName;
+      TextView tripNameView = holder.tripName;
       tripNameView.setOnClickListener(tripClickListener);
       tripNameView.setText((String) tripDoc.getProperty(TRIP_NAME_K));
 
+      // Set trip time
+      CharSequence timeAgo = DateUtils.getRelativeTimeSpanString(
+          (Long) tripDoc.getProperty(TRIP_STOPPED_AT_K),
+          System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS);
+      holder.tripTime.setText(timeAgo);
+
       // Set trip description
-      TextView tripDescriptionView = ((ViewHolder) convertView.getTag()).tripDescription;
+      TextView tripDescriptionView = holder.tripDescription;
       String tripDescription = (String) tripDoc.getProperty(TRIP_DESCRIPTION_K);
       if (tripDescription == null) {
         tripDescriptionView.setVisibility(View.GONE);
@@ -137,14 +149,13 @@ class NewsfeedAdapter extends ArrayAdapter<String> {
       }
 
       // Set trip preview
-      ImageView tripPreview = ((ViewHolder) convertView.getTag()).tripPreview;
+      ImageView tripPreview = holder.tripPreview;
       String tripPrev = (String) tripDoc.getProperty(TRIP_PREVIEW_K);
       if (tripPrev == null) {
         tripPrev = DEFAULT_PREVIEW;
       }
       new Image(tripPrev).displayIn(tripPreview);
-      ((ViewHolder) convertView.getTag()).playBtnImg
-          .setOnClickListener(new View.OnClickListener() {
+      holder.playBtnImg.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) { tM.accessVideo(videoUrl); }
       });

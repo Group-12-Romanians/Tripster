@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -37,6 +38,8 @@ import tripster.tripster.R;
 import tripster.tripster.UILayer.TransactionManager;
 import tripster.tripster.UILayer.trip.map.MapActivity;
 
+import static java.text.DateFormat.MEDIUM;
+import static java.text.DateFormat.SHORT;
 import static tripster.tripster.Constants.DEFAULT_NAME;
 import static tripster.tripster.Constants.DEFAULT_PREVIEW;
 import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_PLACE;
@@ -45,6 +48,7 @@ import static tripster.tripster.Constants.TRIP_DESCRIPTION_K;
 import static tripster.tripster.Constants.TRIP_ID;
 import static tripster.tripster.Constants.TRIP_NAME_K;
 import static tripster.tripster.Constants.TRIP_PREVIEW_K;
+import static tripster.tripster.Constants.TRIP_STOPPED_AT_K;
 import static tripster.tripster.Constants.TRIP_VIDEO_K;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
@@ -60,12 +64,13 @@ public class TripFragment extends Fragment {
 
   TextView name;
   TextView description;
+  TextView time;
   private ImageView preview;
 
   @Nullable
   @Override
   public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-    View view = inflater.inflate(R.layout.fragment_trip, container, false);
+    View view = inflater.inflate(getFragmentLayout(), container, false);
     tripId = this.getArguments().getString(TRIP_ID);
     timeline = (RecyclerView) view.findViewById(R.id.recyclerView);
     timeline.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -107,6 +112,10 @@ public class TripFragment extends Fragment {
             }
           });
           ArrayList<String> photos = new ArrayList<>();
+          String previewUrl = (String) tDb.getDocumentById(tripId).getProperty(TRIP_PREVIEW_K);
+          if (previewUrl != null) {
+            photos.add(previewUrl);
+          }
           for (Pair<Long, String> result : results) {
             photos.add(result.second);
           }
@@ -125,8 +134,13 @@ public class TripFragment extends Fragment {
     name = (TextView) view.findViewById(R.id.tripName);
     description = (TextView) view.findViewById(R.id.tripDesc);
     preview = (ImageView) view.findViewById(R.id.preview);
+    time = (TextView) view.findViewById(R.id.tripTime);
 
     return view;
+  }
+
+  protected int getFragmentLayout() {
+    return R.layout.fragment_trip;
   }
 
   @Override
@@ -176,6 +190,13 @@ public class TripFragment extends Fragment {
         tM.accessVideo((String) tripDoc.getProperty(TRIP_VIDEO_K));
       }
     });
+
+    Long t = (Long) tripDoc.getProperty(TRIP_STOPPED_AT_K);
+    CharSequence timeText = "in progress";
+    if (t != null) {
+      timeText = DateUtils.formatSameDayTime(t, System.currentTimeMillis(), MEDIUM, SHORT);
+    }
+    time.setText(timeText);
   }
 
   private void restartImportantPlacesLiveQuery() {

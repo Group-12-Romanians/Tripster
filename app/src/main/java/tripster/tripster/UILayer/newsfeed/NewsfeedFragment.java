@@ -28,7 +28,6 @@ import tripster.tripster.R;
 
 import static tripster.tripster.Constants.FOLLOWING_BY_USER;
 import static tripster.tripster.Constants.TRIPS_BY_OWNER;
-import static tripster.tripster.Constants.TRIP_OWNER_K;
 import static tripster.tripster.Constants.TRIP_STOPPED_AT_K;
 import static tripster.tripster.UILayer.TripsterActivity.currentUserId;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
@@ -56,7 +55,7 @@ public class NewsfeedFragment extends Fragment {
 
   private void restartFollowingLiveQuery() {
     Query q = tDb.getDb().getExistingView(FOLLOWING_BY_USER).createQuery();
-    q.setKeys(Collections.singletonList((Object) currentUserId));
+    q.setKeys(Collections.<Object>singletonList(currentUserId));
     q.setMapOnly(true);
 
     followingLQ = q.toLiveQuery();
@@ -80,6 +79,7 @@ public class NewsfeedFragment extends Fragment {
   private void restartTripsLiveQuery(final Map<String, Integer> followingLevels) {
     Query q = tDb.getDb().getExistingView(TRIPS_BY_OWNER).createQuery();
     q.setKeys(new ArrayList<Object>(followingLevels.keySet()));
+
     fTripsLQ = q.toLiveQuery();
     fTripsLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
@@ -87,14 +87,12 @@ public class NewsfeedFragment extends Fragment {
         final List<Pair<Long, String>> results = new ArrayList<>();
         for (int i = 0; i < event.getRows().getCount(); i++) {
           QueryRow r = event.getRows().getRow(i);
-          Log.e(TAG, r.getValue().toString() + " and " + followingLevels.get((String) tDb.getDocumentById(r.getDocumentId()).getProperty(TRIP_OWNER_K)));
-          if ((Integer) r.getValue() <= followingLevels.get((String) tDb.getDocumentById(r.getDocumentId()).getProperty(TRIP_OWNER_K))) {
+          String ownerId = (String) r.getKey();
+          if ((Integer) r.getValue() <= followingLevels.get(ownerId)) {
             Document d = r.getDocument();
             Long stoppedAt = (Long) d.getProperty(TRIP_STOPPED_AT_K);
             if (stoppedAt != null) {
               results.add(new Pair<>(stoppedAt, d.getId()));
-            } else {
-              results.add(new Pair<>(Long.MAX_VALUE, d.getId()));
             }
           }
         }
@@ -131,11 +129,7 @@ public class NewsfeedFragment extends Fragment {
     for (Pair<Long, String> p : results) {
       userStories.add(p.second);
     }
-    NewsfeedAdapter newsfeedAdapter = new NewsfeedAdapter(
-        getActivity(),
-        R.layout.user_story,
-        R.id.tripDescription,
-        userStories);
+    NewsfeedAdapter newsfeedAdapter = new NewsfeedAdapter(getActivity(), userStories);
     stories.setAdapter(newsfeedAdapter);
   }
 }

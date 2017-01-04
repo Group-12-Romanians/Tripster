@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/redoPrev"
+        android:title="Recreate preview"/>
+
+    <item
+        android:id="@+id/redoVideo"
+        android:title="Recreate video"/>
+
+    <item
+        android:id="@+id/deleteTrip"
+        android:title="Delete trip and all its data"/>
+
+</menu>

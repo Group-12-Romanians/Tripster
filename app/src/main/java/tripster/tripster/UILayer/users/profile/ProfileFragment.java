@@ -191,7 +191,12 @@ public abstract class ProfileFragment extends Fragment {
   private Document.ChangeListener userChangeListener = new Document.ChangeListener() {
     @Override
     public void changed(Document.ChangeEvent event) {
-      updateUserDetails();
+      new Handler(Looper.getMainLooper()).post(new Runnable() {
+        @Override
+        public void run() {
+          updateUserDetails();
+        }
+      });
     }
   };
 
