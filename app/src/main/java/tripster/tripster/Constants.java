@@ -19,7 +19,7 @@ public class Constants {
   public static final String STOP_SERVICE = "stop";
 
   //------------------------------------------ DATABASE ------------------------------------------//
-  public static final String DB_NAME = "tripster";
+  public static final String DB_NAME = "tripster01";
   public static final String DB_PORT = "5984";
   public static final String DB_SYNC_URL = SERVER + ":" + DB_PORT + "/" + DB_NAME;
   public static final String DB_STORAGE_TYPE = "ForestDB";
@@ -28,7 +28,7 @@ public class Constants {
   public static final String TRIPS_BY_OWNER = "trips/byOwner";
   public static final String IMAGES_BY_TRIP_AND_PLACE = "images/byTripAndTime";
   public static final String PLACES_BY_TRIP_AND_TIME = "places/byTripAndTime";
-  public static final String LOCATIONS_BY_TRIP = "locations/byTrip";
+  public static final String LOCATIONS_BY_TRIP_AND_TIME = "locations/byTripAndTime";
   public static final String FOLLOWING_BY_USER = "follow/followingByUser";
   public static final String USERS_BY_ID = "users/byId";
   public static final String NOTIFICATIONS_BY_USER = "notifications/byUser";

@@ -154,7 +154,12 @@ public class TripFragment extends Fragment {
   private Document.ChangeListener tripChangeListener = new Document.ChangeListener() {
     @Override
     public void changed(Document.ChangeEvent event) {
-      updateGeneralDetails();
+      new Handler(Looper.getMainLooper()).post(new Runnable() {
+        @Override
+        public void run() {
+          updateGeneralDetails();
+        }
+      });
     }
   };
 

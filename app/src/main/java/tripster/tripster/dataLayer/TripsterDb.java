@@ -33,7 +33,7 @@ import static tripster.tripster.Constants.FOLLOWERS_BY_USER;
 import static tripster.tripster.Constants.FOLLOWING_BY_USER;
 import static tripster.tripster.Constants.FOL_LEVEL_K;
 import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_PLACE;
-import static tripster.tripster.Constants.LOCATIONS_BY_TRIP;
+import static tripster.tripster.Constants.LOCATIONS_BY_TRIP_AND_TIME;
 import static tripster.tripster.Constants.NOTIFICATIONS_BY_USER;
 import static tripster.tripster.Constants.NOT_RECEIVER_K;
 import static tripster.tripster.Constants.NOT_TIME_K;
@@ -181,14 +181,17 @@ public class TripsterDb {
   }
 
   private void initLocationsByTrip() {
-    db.getView(LOCATIONS_BY_TRIP).setMap(new Mapper() {
+    db.getView(LOCATIONS_BY_TRIP_AND_TIME).setMap(new Mapper() {
       @Override
       public void map(Map<String, Object> document, Emitter emitter) {
         if (document.containsKey(PLACE_TIME_K)
             && document.containsKey(PLACE_LNG_K)
             && document.containsKey(PLACE_LAT_K)
             && document.containsKey(PLACE_TRIP_K)) {
-          emitter.emit(document.get(PLACE_TRIP_K), null); // we need to sort by it
+          List<Object> keys = new ArrayList<>();
+          keys.add(document.get(PLACE_TRIP_K));
+          keys.add(document.get(PLACE_TIME_K));
+          emitter.emit(keys, null); // we need to sort by it
         }
       }
     }, "700"); //ATTENTION!!!!!!!!!!!!!!! When changing the code of map also increment this number.

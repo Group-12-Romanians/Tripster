@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/addPlaceAfter"
+        android:title="Add place with description after"/>
+
+    <item
+        android:id="@+id/addPlaceBefore"
+        android:title="Add place with description before"/>
+
+    <item
+        android:id="@+id/deleteFullPlace"
+        android:title="Delete place and connecting routes"/>
+
+    <item
+        android:id="@+id/deletePlace"
+        android:title="Delete only place"/>
+
+</menu>

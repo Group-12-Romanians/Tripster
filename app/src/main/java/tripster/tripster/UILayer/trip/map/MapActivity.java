@@ -44,7 +44,6 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -54,7 +53,7 @@ import tripster.tripster.UILayer.trip.map.model.PhotoAtLocation;
 import tripster.tripster.dataLayer.TripsterDb;
 
 import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_PLACE;
-import static tripster.tripster.Constants.LOCATIONS_BY_TRIP;
+import static tripster.tripster.Constants.LOCATIONS_BY_TRIP_AND_TIME;
 import static tripster.tripster.Constants.PLACE_LAT_K;
 import static tripster.tripster.Constants.PLACE_LNG_K;
 import static tripster.tripster.Constants.PLACE_NAME_K;
@@ -299,8 +298,14 @@ public class MapActivity extends BaseDemoActivity implements
   }
 
   private void startPlacesLiveQuery() {
-    Query q = tDb.getDb().getExistingView(LOCATIONS_BY_TRIP).createQuery();
-    q.setKeys(Collections.<Object>singletonList(tripId));
+    Query q = tDb.getDb().getExistingView(LOCATIONS_BY_TRIP_AND_TIME).createQuery();
+    List<Object> firstKey = new ArrayList<>();
+    firstKey.add(tripId);
+    List<Object> lastKey = new ArrayList<>();
+    lastKey.add(tripId);
+    lastKey.add(new HashMap<>());
+    q.setStartKey(firstKey);
+    q.setEndKey(lastKey);
     locationsLQ = q.toLiveQuery();
     locationsLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override

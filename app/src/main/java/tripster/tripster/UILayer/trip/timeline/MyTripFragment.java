@@ -6,7 +6,6 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
 import android.text.InputType;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,12 +13,17 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +32,8 @@ import tripster.tripster.R;
 
 import static junit.framework.Assert.assertNotNull;
 import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_PLACE;
-import static tripster.tripster.Constants.LOCATIONS_BY_TRIP;
+import static tripster.tripster.Constants.LOCATIONS_BY_TRIP_AND_TIME;
+import static tripster.tripster.Constants.SERVER_URL;
 import static tripster.tripster.Constants.TRIP_DESCRIPTION_K;
 import static tripster.tripster.Constants.TRIP_NAME_K;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
@@ -136,8 +141,14 @@ public class MyTripFragment extends  TripFragment {
     getFragmentManager().popBackStack();
     try {
       // remove all places
-      Query q = tDb.getDb().getExistingView(LOCATIONS_BY_TRIP).createQuery();
-      q.setKeys(Collections.<Object>singletonList(tripId));
+      Query q = tDb.getDb().getExistingView(LOCATIONS_BY_TRIP_AND_TIME).createQuery();
+      List<Object> firstKey = new ArrayList<>();
+      firstKey.add(tripId);
+      List<Object> lastKey = new ArrayList<>();
+      lastKey.add(tripId);
+      lastKey.add(new HashMap<>());
+      q.setStartKey(firstKey);
+      q.setEndKey(lastKey);
       QueryEnumerator rows = q.run();
       for (int i = 0; i < rows.getCount(); i++) {
         rows.getRow(i).getDocument().delete();
@@ -145,9 +156,9 @@ public class MyTripFragment extends  TripFragment {
 
       // remove all photos
       q = tDb.getDb().getExistingView(IMAGES_BY_TRIP_AND_PLACE).createQuery();
-      List<Object> firstKey = new ArrayList<>();
+      firstKey = new ArrayList<>();
       firstKey.add(tripId);
-      List<Object> lastKey = new ArrayList<>();
+      lastKey = new ArrayList<>();
       lastKey.add(tripId);
       lastKey.add(new HashMap<>());
       q.setStartKey(firstKey);
@@ -165,11 +176,35 @@ public class MyTripFragment extends  TripFragment {
   }
 
   private void redoVideo() {
-    Log.e("MyTrip", "Not implemented redoVideo yet");
+    RequestQueue queue = Volley.newRequestQueue(getContext());
+    String url = SERVER_URL + "/updateVideo?tripId=" + tripId;
+    StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+        new Response.Listener<String>() {
+          @Override
+          public void onResponse(String response) {
+          }
+        }, new Response.ErrorListener() {
+      @Override
+      public void onErrorResponse(VolleyError error) {
+      }
+    });
+    queue.add(stringRequest);
   }
 
   private void redoPreview() {
-    Log.e("MyTrip", "Not implemented redoPreview yet");
+    RequestQueue queue = Volley.newRequestQueue(getContext());
+    String url = SERVER_URL + "/updatePreview?tripId=" + tripId;
+    StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+        new Response.Listener<String>() {
+          @Override
+          public void onResponse(String response) {
+          }
+        }, new Response.ErrorListener() {
+      @Override
+      public void onErrorResponse(VolleyError error) {
+      }
+    });
+    queue.add(stringRequest);
   }
 
   @Override

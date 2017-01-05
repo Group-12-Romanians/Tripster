@@ -19,6 +19,7 @@ import tripster.tripster.Image;
 import tripster.tripster.R;
 import tripster.tripster.UILayer.TransactionManager;
 
+import static tripster.tripster.Constants.DEFAULT_NAME;
 import static tripster.tripster.Constants.DEFAULT_PREVIEW;
 import static tripster.tripster.Constants.TRIP_DESCRIPTION_K;
 import static tripster.tripster.Constants.TRIP_NAME_K;
@@ -129,7 +130,11 @@ class NewsfeedAdapter extends ArrayAdapter<String> {
       // Set trip name
       TextView tripNameView = holder.tripName;
       tripNameView.setOnClickListener(tripClickListener);
-      tripNameView.setText((String) tripDoc.getProperty(TRIP_NAME_K));
+      String tripName = (String) tripDoc.getProperty(TRIP_NAME_K);
+      if (tripName ==  null) {
+        tripName = DEFAULT_NAME;
+      }
+      tripNameView.setText(tripName);
 
       // Set trip time
       CharSequence timeAgo = DateUtils.getRelativeTimeSpanString(

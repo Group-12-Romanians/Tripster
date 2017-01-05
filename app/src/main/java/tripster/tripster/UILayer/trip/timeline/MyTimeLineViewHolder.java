@@ -31,7 +31,7 @@ public class MyTimeLineViewHolder extends TimeLineViewHolder {
   }
 
   @Override
-  View getView(View itemView, final String photoId, final ArrayList<String> photoUris, final int i) {
+  View getView(final View itemView, final String photoId, final ArrayList<String> photoUris, final int i) {
     String photoUri = Constants.getPath(photoId);
 
     final ImageWindow imageWindow = new ImageWindow(itemView.getContext());
