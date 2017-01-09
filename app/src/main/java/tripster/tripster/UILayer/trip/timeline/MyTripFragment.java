@@ -12,6 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -20,8 +22,10 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.couchbase.lite.CouchbaseLiteException;
+import com.couchbase.lite.Document;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
+import com.github.channguyen.rsv.RangeSliderView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,17 +38,27 @@ import static junit.framework.Assert.assertNotNull;
 import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_PLACE;
 import static tripster.tripster.Constants.LOCATIONS_BY_TRIP_AND_TIME;
 import static tripster.tripster.Constants.SERVER_URL;
+import static tripster.tripster.Constants.TRIP_LEVEL_K;
+import static tripster.tripster.Constants.levels;
 import static tripster.tripster.Constants.TRIP_DESCRIPTION_K;
 import static tripster.tripster.Constants.TRIP_NAME_K;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 public class MyTripFragment extends  TripFragment {
 
+  private TextView levelHint;
+  private LinearLayout levelInfo;
+  private RangeSliderView levelSeek;
+
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     View view = super.onCreateView(inflater, container, savedInstanceState);
     assertNotNull(view);
+    levelInfo = (LinearLayout) view.findViewById(R.id.levelInfo);
+    levelHint = (TextView) view.findViewById(R.id.levelHint);
+    levelSeek = (RangeSliderView) view.findViewById(R.id.levelSeek);
+    updateLevelDetails();
     name.setOnLongClickListener(new View.OnLongClickListener() {
       @Override
       public boolean onLongClick(View view) {
@@ -135,6 +149,22 @@ public class MyTripFragment extends  TripFragment {
       }
     });
     return view;
+  }
+
+  private void updateLevelDetails() {
+    Document d = tDb.getDocumentById(tripId);
+    int level = (Integer) d.getProperty(TRIP_LEVEL_K);
+    levelHint.setText("This trip has visibility: " + levels.get(level));
+    levelSeek.setInitialIndex(level);
+    levelSeek.setOnSlideListener(new RangeSliderView.OnSlideListener() {
+      @Override
+      public void onSlide(int index) {
+        Map<String, Object> props = new HashMap<>();
+        props.put(TRIP_LEVEL_K, index);
+        tDb.upsertNewDocById(tripId, props);
+        updateLevelDetails();
+      }
+    });
   }
 
   private void deleteTrip() {

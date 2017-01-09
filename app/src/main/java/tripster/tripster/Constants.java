@@ -94,7 +94,10 @@ public class Constants {
   public static final String NOT_RECEIVER_K = "receiver";
   public static final String NOT_FOLLOWER_K = "other";
   public static final String NOT_TYPE_K = "type";
+  public static final String NOT_RESTAURANT_PIC_K = "restaurant_pic";
   public static final String NOT_FOLLOWER = "follower";
+  public static final String NOT_RESTAURANT_K = "restLink";
+  public static final String NOT_RESTAURANT = "restaurant";
   public static final String NOT_SUGGESTION = "suggestion";
 
   //------------------------------------------- SPREF --------------------------------------------//

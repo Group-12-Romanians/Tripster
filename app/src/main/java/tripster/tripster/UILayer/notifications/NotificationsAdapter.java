@@ -1,6 +1,8 @@
 package tripster.tripster.UILayer.notifications;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,6 +23,9 @@ import tripster.tripster.UILayer.TransactionManager;
 
 import static tripster.tripster.Constants.NOT_FOLLOWER;
 import static tripster.tripster.Constants.NOT_FOLLOWER_K;
+import static tripster.tripster.Constants.NOT_RESTAURANT;
+import static tripster.tripster.Constants.NOT_RESTAURANT_K;
+import static tripster.tripster.Constants.NOT_RESTAURANT_PIC_K;
 import static tripster.tripster.Constants.NOT_TYPE_K;
 import static tripster.tripster.Constants.USER_AVATAR_K;
 import static tripster.tripster.Constants.USER_NAME_K;
@@ -75,6 +80,8 @@ class NotificationsAdapter extends ArrayAdapter<String> {
       final Document notDoc = tDb.getDocumentById(notId);
       if (notDoc.getProperty(NOT_TYPE_K).equals(NOT_FOLLOWER)) {
         handleFollowRequest(convertView, notDoc);
+      } else if (notDoc.getProperty(NOT_TYPE_K).equals(NOT_RESTAURANT)) {
+        handleRestaurantNotification(convertView, notDoc);
       }
 
     } catch (Exception e) {
@@ -82,6 +89,34 @@ class NotificationsAdapter extends ArrayAdapter<String> {
       e.printStackTrace();
     }
     return convertView;
+  }
+
+  private View handleRestaurantNotification(final View convertView, final Document notDoc) {
+    final String restaurantLink = (String) notDoc.getProperty(NOT_RESTAURANT_K);
+
+    // Listeners
+    convertView.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        try {
+          notDoc.delete();
+        } catch (CouchbaseLiteException e) {
+          Log.e(TAG, "Could not delete doc.");
+        }
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(restaurantLink));
+        convertView.getContext().startActivity(browserIntent);
+      }
+    });
+
+    // Set user name.
+    TextView notText = ((ViewHolder) convertView.getTag()).notificationText;
+    String text = "How about some food?\nCheck out this restaurant.";
+    notText.setText(text);
+
+    // Set user picture.
+    ImageView notPhoto = ((ViewHolder)convertView.getTag()).notificationPhoto;
+    new Image((String) notDoc.getProperty(NOT_RESTAURANT_PIC_K)).displayIn(notPhoto);
+    return  convertView;
   }
 
   private View handleFollowRequest(View convertView, final Document notDoc) {
