@@ -288,9 +288,6 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
     } else if (id == R.id.news_feed) {
       frag = new NewsfeedFragment();
       Log.d(TAG, "I want to switch to NewsFeed fragment");
-    } else if (id == R.id.nav_send) {
-      frag = new NotificationsFragment();
-      Log.d(TAG, "I want to switch to Notifications fragment");
     } else if (id == R.id.nav_logout) {
       Log.d(TAG, "I want to switch to logout");
       accountProvider.logOut();
