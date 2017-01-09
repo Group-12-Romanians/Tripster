@@ -168,7 +168,7 @@ public class MyTripFragment extends  TripFragment {
   }
 
   private void deleteTrip() {
-    getFragmentManager().popBackStack();
+    onPause();
     try {
       // remove all places
       Query q = tDb.getDb().getExistingView(LOCATIONS_BY_TRIP_AND_TIME).createQuery();
@@ -203,6 +203,7 @@ public class MyTripFragment extends  TripFragment {
     } catch (CouchbaseLiteException e) {
       e.printStackTrace();
     }
+    getFragmentManager().popBackStack();
   }
 
   private void redoVideo() {

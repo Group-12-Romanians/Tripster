@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,6 +27,7 @@ import static tripster.tripster.Constants.NOT_FOLLOWER_K;
 import static tripster.tripster.Constants.NOT_RESTAURANT;
 import static tripster.tripster.Constants.NOT_RESTAURANT_K;
 import static tripster.tripster.Constants.NOT_RESTAURANT_PIC_K;
+import static tripster.tripster.Constants.NOT_TIME_K;
 import static tripster.tripster.Constants.NOT_TYPE_K;
 import static tripster.tripster.Constants.USER_AVATAR_K;
 import static tripster.tripster.Constants.USER_NAME_K;
@@ -49,6 +51,7 @@ class NotificationsAdapter extends ArrayAdapter<String> {
   private class ViewHolder {
     ImageView notificationPhoto;
     TextView notificationText;
+    TextView notificationTime;
   }
 
   @Override
@@ -73,17 +76,23 @@ class NotificationsAdapter extends ArrayAdapter<String> {
       ViewHolder holder = new ViewHolder();
       holder.notificationPhoto = (ImageView) convertView.findViewById(R.id.notification_photo);
       holder.notificationText = (TextView) convertView.findViewById(R.id.notification_text);
+      holder.notificationTime = (TextView) convertView.findViewById(R.id.notification_time);
       convertView.setTag(holder);
     }
     try {
       final String notId = notifications.get(position);
       final Document notDoc = tDb.getDocumentById(notId);
+
       if (notDoc.getProperty(NOT_TYPE_K).equals(NOT_FOLLOWER)) {
         handleFollowRequest(convertView, notDoc);
       } else if (notDoc.getProperty(NOT_TYPE_K).equals(NOT_RESTAURANT)) {
         handleRestaurantNotification(convertView, notDoc);
       }
-
+      TextView notTime = ((ViewHolder) convertView.getTag()).notificationTime;
+      CharSequence timeAgo = DateUtils.getRelativeTimeSpanString(
+          (Long) notDoc.getProperty(NOT_TIME_K),
+          System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS);
+      notTime.setText(timeAgo);
     } catch (Exception e) {
       Log.e(TAG, "Cannot display friend request");
       e.printStackTrace();
@@ -110,7 +119,7 @@ class NotificationsAdapter extends ArrayAdapter<String> {
 
     // Set user name.
     TextView notText = ((ViewHolder) convertView.getTag()).notificationText;
-    String text = "How about some food?\nCheck out this restaurant.";
+    String text = "How about some food?\n Click to check out this restaurant.";
     notText.setText(text);
 
     // Set user picture.

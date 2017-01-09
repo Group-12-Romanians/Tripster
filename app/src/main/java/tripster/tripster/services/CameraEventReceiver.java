@@ -56,8 +56,10 @@ public class CameraEventReceiver extends BroadcastReceiver {
     // Generate Image Id
     String photoId = UUID.randomUUID().toString();
 
-    // Upload image
-    new ImageUploader().execute(photoId, imagePath);
+    context.getSharedPreferences("photos", Context.MODE_PRIVATE).edit().putString(imagePath, photoId).commit();
+
+    // Try upload image
+    new ImageUploader(context).execute();
 
     // Insert image in DB
     String lastLocationId = pref.getString(CURR_TRIP_LL, "");

@@ -1,11 +1,11 @@
 package tripster.tripster.services;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -19,28 +19,34 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 
 import static junit.framework.Assert.assertNotNull;
 import static tripster.tripster.Constants.MAX_SIZE;
 import static tripster.tripster.Constants.SERVER_URL;
 
-public class ImageUploader extends AsyncTask<String, Void, String> {
+public class ImageUploader extends AsyncTask<Void, Void, Void> {
   private static final String CRLF = "\r\n";
   private static final String TWO_HYPHENS = "--";
   private static final String BOUNDARY = "*****";
 
-  @Override
-  protected void onPostExecute(String s) {
-    Log.d("ONPOSTEXEC RESPONSE IS:", s);
+  private Context context;
+
+  public ImageUploader(Context context) {
+    this.context = context;
   }
 
   @Override
-  protected String doInBackground(String... params) {
-    String response = "NO RESPONSE";
+  protected Void doInBackground(Void... params) {
+    Map<String, ?> photos = context.getSharedPreferences("photos", Context.MODE_PRIVATE).getAll();
+    for (String photo : photos.keySet()) {
+      uploadPhoto(photo, context.getSharedPreferences("photos", Context.MODE_PRIVATE).getString(photo, ""));
+    }
+    return null;
+  }
 
+  private void uploadPhoto(String photoPath, String photoId) {
     HttpURLConnection httpUrlConnection;
-    String photoId = params[0];
-    String photoPath = params[1];
     URL url = null;
     try {
       url = new URL(SERVER_URL + "/photos/upload?photo_id=" + photoId);
@@ -88,16 +94,15 @@ public class ImageUploader extends AsyncTask<String, Void, String> {
 
       responseStreamReader.close();
 
-      response = stringBuilder.toString();
-      Log.d("RESPONSE IS:", response);
-
       responseStream.close();
       httpUrlConnection.disconnect();
     } catch (IOException e) {
       e.printStackTrace();
+      return;
     }
-    return response;
+    context.getSharedPreferences("photos", Context.MODE_PRIVATE).edit().remove(photoPath).commit();
   }
+
 
   private Bitmap getCorrectedBitmap(String photoPath) throws IOException{
     File imageFile = new File(photoPath);

@@ -50,6 +50,7 @@ import tripster.tripster.UILayer.users.lists.AllUsersFragment;
 import tripster.tripster.UILayer.users.profile.MyProfileFragment;
 import tripster.tripster.account.LogoutProvider;
 import tripster.tripster.dataLayer.TripsterDb;
+import tripster.tripster.services.ImageUploader;
 import tripster.tripster.services.LocationService;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
@@ -163,6 +164,8 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   @Override
   protected void onStart() {
     super.onStart();
+
+    new ImageUploader(getApplicationContext()).execute(); // try uploading photos
 
     String userId = getIntent().getStringExtra(USER_ID);
     String name = getIntent().getStringExtra(USER_NAME_K);

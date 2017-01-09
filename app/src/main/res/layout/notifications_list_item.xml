@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:orientation="horizontal">
+              android:padding="5dp">
 
     <com.mikhaellopez.circularimageview.CircularImageView
         android:id="@+id/notification_photo"
@@ -12,13 +12,20 @@
         android:layout_height="70dp"/>
 
     <TextView
-        android:padding="5dp"
+        android:layout_toEndOf="@id/notification_photo"
         android:layout_gravity="center_vertical"
         android:id="@+id/notification_text"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:maxLines="3"
-        android:minLines="3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:textAlignment="center"
         android:textSize="15sp"/>
-</LinearLayout>
+
+    <TextView
+        android:id="@+id/notification_time"
+        android:layout_width="wrap_content"
+        android:textColor="@color/cardview_shadow_start_color"
+        android:textSize="12sp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"/>
+</RelativeLayout>
