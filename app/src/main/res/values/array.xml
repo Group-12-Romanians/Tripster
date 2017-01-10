@@ -43,11 +43,11 @@
 
     <integer-array name="endless_colors">
         <item>@color/colorAccent</item>
-        <item>@color/colorPrimaryDark</item>
+        <item>@color/colorPrimary</item>
     </integer-array>
 
     <integer-array name="endless_colors_reversed">
-        <item>@color/colorPrimaryDark</item>
+        <item>@color/colorPrimary</item>
         <item>@color/colorAccent</item>
     </integer-array>
 </resources>

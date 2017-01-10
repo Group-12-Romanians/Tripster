@@ -66,14 +66,14 @@
         android:layout_marginBottom="20dp"
         app:animatedSvgFillColors="@array/endless_colors"
         app:animatedSvgTraceColors="@array/endless_colors_reversed"
-        app:animatedSvgTraceResidueColors="@array/endless_colors_reversed"
+        app:animatedSvgTraceResidueColors="@array/endless_colors"
         app:animatedSvgGlyphStrings="@array/endless_paths"
-        app:animatedSvgFillStart="2800"
+        app:animatedSvgFillStart="4800"
         app:animatedSvgTraceMarkerLength="60"
-        app:animatedSvgFillTime="1000"
+        app:animatedSvgFillTime="2000"
         app:animatedSvgImageSizeX="710"
         app:animatedSvgImageSizeY="600"
-        app:animatedSvgTraceTime="4000"
-        app:animatedSvgTraceTimePerGlyph="4000"/>
+        app:animatedSvgTraceTime="5000"
+        app:animatedSvgTraceTimePerGlyph="5000"/>
 
 </RelativeLayout>

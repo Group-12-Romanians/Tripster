@@ -64,7 +64,7 @@ public class LoginActivity extends AppCompatActivity {
       public void run() {
         logo.start();
       }
-    }, 1000);
+    }, 2000);
   }
 
   @Override
