@@ -1,5 +1,7 @@
 package tripster.tripster.UILayer;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -62,9 +64,16 @@ public class LoginActivity extends AppCompatActivity {
     logo.postDelayed(new Runnable() {
       @Override
       public void run() {
-        logo.start();
+        logo.animate().alpha(0.05f).setDuration(1000).setListener(new AnimatorListenerAdapter() {
+          @Override
+          public void onAnimationEnd(Animator animation) {
+            logo.start();
+            logo.animate().setListener(null);
+            logo.animate().alpha(1).setDuration(1000).start();
+          }
+        }).start();
       }
-    }, 2000);
+    }, 1000);
   }
 
   @Override
