@@ -127,7 +127,7 @@ public class TripFragment extends Fragment {
           Log.d(TAG, "All Photos by time are: " + photos);
           ZGallery.with(getActivity(), photos)
               .setGalleryBackgroundColor(ZColor.WHITE) // activity background color
-              .setToolbarColorResId(R.color.colorPrimary) // toolbar color
+              .setToolbarColorResId(R.color.colorPrimary)// toolbar color
               .show();
         } catch (CouchbaseLiteException e) {
           Log.e(TAG, "Could not run images query.");

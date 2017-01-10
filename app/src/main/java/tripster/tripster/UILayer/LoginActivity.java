@@ -35,6 +35,8 @@ public class LoginActivity extends AppCompatActivity {
 
     setContentView(R.layout.activity_login);
 
+    getSupportActionBar().hide();
+
     final AnimatedSvgView logo = (AnimatedSvgView) findViewById(R.id.animated_svg_view);
     logo.start();
     logo.setOnStateChangeListener(new AnimatedSvgView.OnStateChangeListener() {

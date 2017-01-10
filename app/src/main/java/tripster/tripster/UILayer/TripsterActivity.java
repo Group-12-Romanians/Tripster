@@ -157,6 +157,8 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
 
   private void initializeDrawer() {
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+    toolbar.setLogo(R.drawable.ic_name_styled);
+    toolbar.setTitle("");
     setSupportActionBar(toolbar);
     drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
     ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
