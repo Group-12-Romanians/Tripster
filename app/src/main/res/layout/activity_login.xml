@@ -8,18 +8,6 @@
                 android:background="#FFFFFF"
                 tools:context=".UILayer.LoginActivity">
 
-    <!--<TextView-->
-        <!--android:text="T"-->
-        <!--android:textSize="300dp"-->
-        <!--android:textColor="@color/colorPrimaryDark"-->
-        <!--android:textStyle="bold"-->
-        <!--android:gravity="center"-->
-        <!--android:layout_width="300dp"-->
-        <!--android:layout_height="300dp"-->
-        <!--android:layout_margin="50dp"-->
-        <!--android:layout_centerHorizontal="true"-->
-        <!--android:id="@+id/logo" />-->
-
     <LinearLayout
         android:id="@+id/signins"
         android:orientation="vertical"
@@ -27,35 +15,26 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true">
 
-        <TextView
-            android:text="Sign in with"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:textColor="#000000"
-            android:textSize="20dp"
+        <Button
+            android:id="@+id/btn_fb_login"
             android:layout_width="match_parent"
-            android:layout_height="50dp"/>
-
+            android:text="Facebook"
+            android:textStyle="bold"
+            android:textColor="@color/com_facebook_blue"
+            android:textSize="20dp"
+            android:background="@color/white"
+            android:layout_weight="1"
+            android:layout_height="0dp" />
         <Button
             android:id="@+id/sign_in_button"
             android:layout_width="match_parent"
             android:layout_weight="1"
             android:text="Google"
-            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textColor="#dd4b39"
             android:textSize="20dp"
-            android:background="#dd4b39"
+            android:background="@color/white"
             android:layout_height="0dp" />
-
-        <Button
-            android:id="@+id/btn_fb_login"
-            android:layout_width="match_parent"
-            android:text="Facebook"
-            android:textColor="#FFFFFF"
-            android:textSize="20dp"
-            android:background="@color/com_facebook_blue"
-            android:layout_weight="1"
-            android:layout_height="0dp" />
-
     </LinearLayout>
 
     <com.jrummyapps.android.widget.AnimatedSvgView
@@ -63,7 +42,7 @@
         android:layout_above="@+id/signins"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="40dp"
         app:animatedSvgFillColors="@array/endless_colors"
         app:animatedSvgTraceColors="@array/endless_colors_reversed"
         app:animatedSvgTraceResidueColors="@array/endless_colors"
@@ -76,4 +55,9 @@
         app:animatedSvgTraceTime="5000"
         app:animatedSvgTraceTimePerGlyph="5000"/>
 
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="30dp"
+        android:src="@drawable/ic_name_styled_green"/>
 </RelativeLayout>
