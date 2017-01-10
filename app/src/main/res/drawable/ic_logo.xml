@@ -9,6 +9,12 @@
                 />
         </shape>
     </item>
-    <item android:drawable="@drawable/ic_directions_walk_black_24dp">
+
+    <item>
+        <inset android:drawable="@drawable/logo_no_back"
+            android:insetTop="5dp"
+            android:insetRight="5dp"
+            android:insetBottom="5dp"
+            android:insetLeft="5dp" />
     </item>
 </layer-list>
