@@ -66,16 +66,16 @@ public class LoginActivity extends AppCompatActivity {
     logo.postDelayed(new Runnable() {
       @Override
       public void run() {
-        logo.animate().alpha(0.05f).setDuration(1000).setListener(new AnimatorListenerAdapter() {
+        logo.animate().alpha(0.05f).setDuration(2000).setListener(new AnimatorListenerAdapter() {
           @Override
           public void onAnimationEnd(Animator animation) {
             logo.start();
             logo.animate().setListener(null);
-            logo.animate().alpha(1).setDuration(1000).start();
+            logo.animate().alpha(1).setDuration(2000).start();
           }
         }).start();
       }
-    }, 1000);
+    }, 2000);
   }
 
   @Override
