@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -197,6 +198,15 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
 
   private void initializeTrackingButtons() {
     menu = (FloatingActionMenu) findViewById(R.id.tracking_menu);
+    menu.setOnMenuToggleListener(new FloatingActionMenu.OnMenuToggleListener() {
+
+      @Override
+      public void onMenuToggle(boolean opened) {
+        if (opened) {
+          updateFabState();
+        }
+      }
+    });
 
     start = (FloatingActionButton) findViewById(R.id.tracking_start);
     pause = (FloatingActionButton) findViewById(R.id.tracking_pause);
@@ -245,27 +255,26 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
     assertNotNull(currentTripState);
     Log.d(TAG, "Called this with: " + currentTripId + " and " + currentTripState);
 
-    if (!menu.isOpened()) {
-      menu.open(false);
-    }
-    if (currentTripId.isEmpty()) {
-      //start button only
-      start.showButtonInMenu(true);
-      pause.hideButtonInMenu(true);
-      resume.hideButtonInMenu(true);
-      stop.hideButtonInMenu(true);
-    } else if (currentTripState.equals(TRIP_PAUSED)) {
-      //resume and stop buttons
-      start.hideButtonInMenu(true);
-      pause.hideButtonInMenu(true);
-      resume.showButtonInMenu(true);
-      stop.showButtonInMenu(true);
-    } else if (currentTripState.equals(TRIP_RUNNING)) {
-      //pause and stop buttons
-      start.hideButtonInMenu(true);
-      resume.hideButtonInMenu(true);
-      pause.showButtonInMenu(true);
-      stop.showButtonInMenu(true);
+    if (menu.isOpened()) {
+      if (currentTripId.isEmpty()) {
+        //start button only
+        start.showButtonInMenu(true);
+        pause.hideButtonInMenu(true);
+        resume.hideButtonInMenu(true);
+        stop.hideButtonInMenu(true);
+      } else if (currentTripState.equals(TRIP_PAUSED)) {
+        //resume and stop buttons
+        start.hideButtonInMenu(true);
+        pause.hideButtonInMenu(true);
+        resume.showButtonInMenu(true);
+        stop.showButtonInMenu(true);
+      } else if (currentTripState.equals(TRIP_RUNNING)) {
+        //pause and stop buttons
+        start.hideButtonInMenu(true);
+        resume.hideButtonInMenu(true);
+        pause.showButtonInMenu(true);
+        stop.showButtonInMenu(true);
+      }
     }
   }
 
@@ -311,7 +320,9 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
     }
 
     if (frag != null) {
-      getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag).commit();
+      FragmentTransaction t = getSupportFragmentManager().beginTransaction().replace(R.id.main_content, frag);
+      t.addToBackStack("");
+      t.commit();
     }
 
     drawer.closeDrawer(GravityCompat.START);
@@ -332,7 +343,9 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
     // Handle item selection
     switch (item.getItemId()) {
       case R.id.notificationsButton:
-        getSupportFragmentManager().beginTransaction().replace(R.id.main_content, new NotificationsFragment()).commit();
+        FragmentTransaction t = getSupportFragmentManager().beginTransaction().replace(R.id.main_content, new NotificationsFragment());
+        t.addToBackStack("");
+        t.commit();
         return true;
       default:
         return super.onOptionsItemSelected(item);
@@ -383,9 +396,9 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   private void updateNotButton() {
     if (notifier != null) {
       if (notificationsNo > 0) {
-        notifier.setIcon(R.drawable.notifier_on);
+        notifier.setIcon(R.drawable.ic_notifications_on);
       } else {
-        notifier.setIcon(R.drawable.notifier_off);
+        notifier.setIcon(R.drawable.ic_notifications_off);
       }
     }
   }
