@@ -58,6 +58,7 @@ dependencies {
 
     compile 'com.github.mzelzoghbi:zgallery:0.1'
     compile 'com.github.kanytu:ImageWindow:v1.0'
+    compile 'com.jrummyapps:animated-svg-view:1.0.1'
 
     testCompile 'junit:junit:4.12'
 }

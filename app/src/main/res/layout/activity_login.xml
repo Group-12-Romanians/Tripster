@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#FFFFFF"
-    tools:context=".UILayer.LoginActivity">
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:orientation="vertical"
+                android:background="#FFFFFF"
+                tools:context=".UILayer.LoginActivity">
 
     <!--<TextView-->
         <!--android:text="T"-->
@@ -19,16 +20,6 @@
         <!--android:layout_centerHorizontal="true"-->
         <!--android:id="@+id/logo" />-->
 
-    <TextView
-        android:text="Sign in with"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:textColor="#000000"
-        android:textSize="20dp"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_above="@+id/signins"/>
-
     <LinearLayout
         android:id="@+id/signins"
         android:orientation="vertical"
@@ -36,10 +27,19 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true">
 
+        <TextView
+            android:text="Sign in with"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:textColor="#000000"
+            android:textSize="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"/>
+
         <Button
             android:id="@+id/sign_in_button"
             android:layout_width="match_parent"
-            android:layout_weight=".5"
+            android:layout_weight="1"
             android:text="Google"
             android:textColor="#FFFFFF"
             android:textSize="20dp"
@@ -53,21 +53,27 @@
             android:textColor="#FFFFFF"
             android:textSize="20dp"
             android:background="@color/com_facebook_blue"
-            android:layout_weight=".5"
+            android:layout_weight="1"
             android:layout_height="0dp" />
 
     </LinearLayout>
 
-    <ImageView
-        android:id="@+id/logo"
-        android:gravity="center"
-        android:layout_width="650dp"
-        android:layout_height="650dp"
-
-        android:src="@mipmap/tripster_blue"
-        android:scaleType="centerCrop"
-        android:layout_marginLeft="-70dp"
-        android:layout_marginRight="-50dp"
-        android:layout_above="@+id/signins" />
+    <com.jrummyapps.android.widget.AnimatedSvgView
+        android:id="@+id/animated_svg_view"
+        android:layout_above="@+id/signins"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="20dp"
+        app:animatedSvgFillColors="@array/endless_colors"
+        app:animatedSvgTraceColors="@array/endless_colors_reversed"
+        app:animatedSvgTraceResidueColors="@array/endless_colors_reversed"
+        app:animatedSvgGlyphStrings="@array/endless_paths"
+        app:animatedSvgFillStart="2800"
+        app:animatedSvgTraceMarkerLength="60"
+        app:animatedSvgFillTime="1000"
+        app:animatedSvgImageSizeX="710"
+        app:animatedSvgImageSizeY="600"
+        app:animatedSvgTraceTime="4000"
+        app:animatedSvgTraceTimePerGlyph="4000"/>
 
 </RelativeLayout>

@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
+import com.jrummyapps.android.widget.AnimatedSvgView;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +31,19 @@ public class LoginActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
+    setContentView(R.layout.activity_login);
+
+    final AnimatedSvgView logo = (AnimatedSvgView) findViewById(R.id.animated_svg_view);
+    logo.start();
+    logo.setOnStateChangeListener(new AnimatedSvgView.OnStateChangeListener() {
+      @Override
+      public void onStateChange(int state) {
+        if (state == AnimatedSvgView.STATE_FINISHED) {
+          startDelayed(logo);
+        }
+      }
+    });
+
     loginProviders.add(new GoogleProvider(this));
     loginProviders.add(new FacebookProvider(this));
 
@@ -36,13 +51,20 @@ public class LoginActivity extends AppCompatActivity {
       lP.silentSignIn(); //TODO: This works only if Google (which logins synchronously) is the first in the list
     }
 
-    setContentView(R.layout.activity_login);
-
     for (LoginProvider lP : loginProviders) {
       lP.setupLoginButton();
     }
 
     Log.d(TAG, "created LoginActivity and added possible Providers");
+  }
+
+  private void startDelayed(final AnimatedSvgView logo) {
+    logo.postDelayed(new Runnable() {
+      @Override
+      public void run() {
+        logo.start();
+      }
+    }, 1000);
   }
 
   @Override
