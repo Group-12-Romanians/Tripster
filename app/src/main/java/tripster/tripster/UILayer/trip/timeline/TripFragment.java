@@ -263,6 +263,8 @@ public class TripFragment extends Fragment {
 
   protected void initListAdapter(List<String> events) {
     TimeLineAdapter timeLineAdapter = new TimeLineAdapter(events);
+    int pos = ((LinearLayoutManager)timeline.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
     timeline.setAdapter(timeLineAdapter);
+    ((LinearLayoutManager)timeline.getLayoutManager()).scrollToPosition(pos);
   }
 }

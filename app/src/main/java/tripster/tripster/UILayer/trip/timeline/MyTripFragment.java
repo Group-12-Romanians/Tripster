@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
 import android.text.InputType;
 import android.view.LayoutInflater;
@@ -273,6 +274,8 @@ public class MyTripFragment extends  TripFragment {
 
   @Override
   protected void initListAdapter(List<String> events) {
+    int pos = ((LinearLayoutManager)timeline.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
     timeline.setAdapter(new MyTimelineAdapter(events));
+    ((LinearLayoutManager)timeline.getLayoutManager()).scrollToPosition(pos);
   }
 }
