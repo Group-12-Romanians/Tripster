@@ -94,6 +94,7 @@ public class MyTimelineAdapter extends TimeLineAdapter {
 
         final EditText input = new EditText(view.getContext());
         input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setText((CharSequence) tDb.getDocumentById(placeId).getProperty(PLACE_DESC_K));
         builder.setView(input);
         builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
           @Override
@@ -125,6 +126,7 @@ public class MyTimelineAdapter extends TimeLineAdapter {
 
         final EditText input = new EditText(view.getContext());
         input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setText((CharSequence) tDb.getDocumentById(placeId).getProperty(PLACE_NAME_K));
         builder.setView(input);
         builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
           @Override

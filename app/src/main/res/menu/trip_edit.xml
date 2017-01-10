@@ -12,4 +12,8 @@
         android:id="@+id/deleteTrip"
         android:title="Delete trip and all its data"/>
 
+    <item
+        android:id="@+id/shareTrip"
+        android:title="Share video on facebook"/>
+
 </menu>

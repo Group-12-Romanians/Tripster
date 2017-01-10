@@ -1,6 +1,7 @@
 package tripster.tripster.UILayer.trip.timeline;
 
 import android.content.DialogInterface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
@@ -25,6 +26,8 @@ import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
+import com.facebook.share.model.ShareLinkContent;
+import com.facebook.share.widget.ShareDialog;
 import com.github.channguyen.rsv.RangeSliderView;
 
 import java.util.ArrayList;
@@ -38,10 +41,11 @@ import static junit.framework.Assert.assertNotNull;
 import static tripster.tripster.Constants.IMAGES_BY_TRIP_AND_PLACE;
 import static tripster.tripster.Constants.LOCATIONS_BY_TRIP_AND_TIME;
 import static tripster.tripster.Constants.SERVER_URL;
-import static tripster.tripster.Constants.TRIP_LEVEL_K;
-import static tripster.tripster.Constants.levels;
 import static tripster.tripster.Constants.TRIP_DESCRIPTION_K;
+import static tripster.tripster.Constants.TRIP_LEVEL_K;
 import static tripster.tripster.Constants.TRIP_NAME_K;
+import static tripster.tripster.Constants.TRIP_VIDEO_K;
+import static tripster.tripster.Constants.levels;
 import static tripster.tripster.UILayer.TripsterActivity.tDb;
 
 public class MyTripFragment extends  TripFragment {
@@ -66,6 +70,7 @@ public class MyTripFragment extends  TripFragment {
         builder.setTitle("Trip Name");
 
         final EditText input = new EditText(getActivity());
+        input.setText((CharSequence) tDb.getDocumentById(tripId).getProperty(TRIP_NAME_K));
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         builder.setView(input);
         builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
@@ -111,6 +116,9 @@ public class MyTripFragment extends  TripFragment {
               case R.id.deleteTrip:
                 deleteTrip();
                 break;
+              case R.id.shareTrip:
+                shareTrip();
+                break;
             }
             return true;
           }
@@ -128,6 +136,7 @@ public class MyTripFragment extends  TripFragment {
 
         final EditText input = new EditText(getActivity());
         input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setText((CharSequence) tDb.getDocumentById(tripId).getProperty(TRIP_DESCRIPTION_K));
         builder.setView(input);
         builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
           @Override
@@ -149,6 +158,16 @@ public class MyTripFragment extends  TripFragment {
       }
     });
     return view;
+  }
+
+  private void shareTrip() {
+    String video = (String) tDb.getDocumentById(tripId).getProperty(TRIP_VIDEO_K);
+    if (video != null) {
+      ShareLinkContent content = new ShareLinkContent.Builder()
+          .setContentUrl(Uri.parse(video))
+          .build();
+      ShareDialog.show(this, content);
+    }
   }
 
   private void updateLevelDetails() {

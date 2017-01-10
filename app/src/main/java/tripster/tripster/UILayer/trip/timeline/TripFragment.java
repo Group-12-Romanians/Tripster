@@ -14,6 +14,7 @@ import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -67,6 +68,8 @@ public class TripFragment extends Fragment {
   TextView time;
   private ImageView preview;
 
+  private Button videoBtn;
+
   @Nullable
   @Override
   public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -75,6 +78,8 @@ public class TripFragment extends Fragment {
     timeline = (RecyclerView) view.findViewById(R.id.recyclerView);
     timeline.setLayoutManager(new LinearLayoutManager(getContext()));
     timeline.setHasFixedSize(true);
+
+    videoBtn = (Button) view.findViewById(R.id.video);
 
     tM = new TransactionManager(getContext());
 
@@ -108,7 +113,7 @@ public class TripFragment extends Fragment {
           Collections.sort(results, new Comparator<Pair<Long, String>>() {
             @Override
             public int compare(Pair<Long, String> o1, Pair<Long, String> o2) {
-              return o2.first.compareTo(o1.first);
+              return o1.first.compareTo(o2.first);
             }
           });
           ArrayList<String> photos = new ArrayList<>();
@@ -189,7 +194,19 @@ public class TripFragment extends Fragment {
       tripPrev = DEFAULT_PREVIEW;
     }
     new Image(tripPrev).displayIn(preview);
+    final ArrayList<String> photos = new ArrayList<>();
+    photos.add(tripPrev);
     preview.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        ZGallery.with(getActivity(), photos)
+            .setGalleryBackgroundColor(ZColor.WHITE) // activity background color
+            .setToolbarColorResId(R.color.colorPrimary) // toolbar color
+            .show();
+      }
+    });
+
+    videoBtn.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         tM.accessVideo((String) tripDoc.getProperty(TRIP_VIDEO_K));
@@ -212,9 +229,8 @@ public class TripFragment extends Fragment {
     List<Object> lastKey = new ArrayList<>();
     lastKey.add(tripId);
     lastKey.add(Long.MAX_VALUE);
-    q.setStartKey(lastKey);
-    q.setEndKey(firstKey);
-    q.setDescending(true);
+    q.setStartKey(firstKey);
+    q.setEndKey(lastKey);
     placesLQ = q.toLiveQuery();
     placesLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override

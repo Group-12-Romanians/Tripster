@@ -46,6 +46,7 @@ import tripster.tripster.Image;
 import tripster.tripster.R;
 import tripster.tripster.UILayer.newsfeed.NewsfeedFragment;
 import tripster.tripster.UILayer.notifications.NotificationsFragment;
+import tripster.tripster.UILayer.settings.SettingsFragment;
 import tripster.tripster.UILayer.users.lists.AllUsersFragment;
 import tripster.tripster.UILayer.users.profile.MyProfileFragment;
 import tripster.tripster.account.LogoutProvider;
@@ -54,6 +55,7 @@ import tripster.tripster.services.ImageUploader;
 import tripster.tripster.services.LocationService;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.CAMERA;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
@@ -126,10 +128,11 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   private void askForPermissions() {
     // Here, thisActivity is the current activity
     if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PERMISSION_GRANTED
-        || ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE) != PERMISSION_GRANTED) {
+        || ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE) != PERMISSION_GRANTED
+        || ContextCompat.checkSelfPermission(this, CAMERA) != PERMISSION_GRANTED) {
 
       ActivityCompat.requestPermissions(this,
-          new String[]{ACCESS_FINE_LOCATION, READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST);
+          new String[]{ACCESS_FINE_LOCATION, READ_EXTERNAL_STORAGE, CAMERA}, MY_PERMISSIONS_REQUEST);
     }
   }
 
@@ -137,7 +140,10 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
   public void onRequestPermissionsResult(int requestCode, @NonNull String perms[], @NonNull int[] grantResults) {
     switch (requestCode) {
       case MY_PERMISSIONS_REQUEST: {
-        if (grantResults.length != 2 || grantResults[0] == PERMISSION_DENIED ||  grantResults[1] == PERMISSION_DENIED) {
+        if (grantResults.length != 3
+            || grantResults[0] == PERMISSION_DENIED
+            || grantResults[1] == PERMISSION_DENIED
+            || grantResults[2] == PERMISSION_DENIED) {
           Toast.makeText(this, "Cannot proceed without your permission!", Toast.LENGTH_LONG).show();
           accountProvider.logOut();
         }
@@ -279,18 +285,25 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
     int id = item.getItemId();
 
     Fragment frag = null;
-    if (id == R.id.nav_camera) {
+    if (id == R.id.my_profile) {
       frag = new MyProfileFragment();
       Bundle args = new Bundle();
       args.putString(USER_ID, currentUserId);
       frag.setArguments(args);
       Log.d(TAG, "I want to switch to MyProfile fragment");
-    } else if (id == R.id.nav_slideshow) {
+    } else if (id == R.id.users) {
       frag = new AllUsersFragment();
       Log.d(TAG, "I want to switch to AllUsers fragment");
     } else if (id == R.id.news_feed) {
       frag = new NewsfeedFragment();
       Log.d(TAG, "I want to switch to NewsFeed fragment");
+    } else if (id == R.id.settings) {
+      frag = new SettingsFragment();
+      Log.d(TAG, "I want to switch to Settings fragment");
+    } else if (id == R.id.camera) {
+      Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
+      startActivity(intent);
+      Log.d(TAG, "I want to switch to Camera application");
     } else if (id == R.id.nav_logout) {
       Log.d(TAG, "I want to switch to logout");
       accountProvider.logOut();

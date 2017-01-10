@@ -64,7 +64,7 @@ class TimeLineViewHolder extends RecyclerView.ViewHolder {
       Collections.sort(results, new Comparator<Pair<Long, String>>() {
         @Override
         public int compare(Pair<Long, String> o1, Pair<Long, String> o2) {
-          return o2.first.compareTo(o1.first);
+          return o1.first.compareTo(o2.first);
         }
       });
       List<String> photos = new ArrayList<>();

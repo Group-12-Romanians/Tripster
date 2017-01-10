@@ -17,7 +17,7 @@
             android:id="@+id/options"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/settings"
+            android:src="@drawable/settings_24dp"
             android:background="@color/white"
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"/>
@@ -45,18 +45,20 @@
             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                           android:layout_width="wrap_content"
                           android:layout_height="wrap_content"
+                          android:paddingTop="10dp"
                           android:layout_gravity="center_horizontal"
                           android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/mapButton"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:layout_margin="5dp"
                     android:background="@drawable/rounded_button"
                     android:minHeight="1dp"
                     android:padding="2dp"
-                    android:text="On Map"
+                    android:text="Map"
                     android:textAlignment="center"
                     android:textColor="@color/white"
                     android:textAllCaps="false"
@@ -64,13 +66,29 @@
 
                 <Button
                     android:id="@+id/gallery"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:layout_margin="5dp"
                     android:background="@drawable/rounded_button"
                     android:minHeight="1dp"
                     android:padding="2dp"
-                    android:text="In Gallery"
+                    android:text="Gallery"
+                    android:textAlignment="center"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textSize="15sp"/>
+
+                <Button
+                    android:id="@+id/video"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:background="@drawable/rounded_button"
+                    android:minHeight="1dp"
+                    android:padding="2dp"
+                    android:text="Video"
                     android:textAlignment="center"
                     android:textAllCaps="false"
                     android:textColor="@color/white"
