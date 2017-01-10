@@ -1,6 +1,9 @@
 package tripster.tripster.UILayer;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -310,8 +313,19 @@ public class TripsterActivity extends AppCompatActivity implements NavigationVie
       frag = new SettingsFragment();
       Log.d(TAG, "I want to switch to Settings fragment");
     } else if (id == R.id.camera) {
-      Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
-      startActivity(intent);
+      Intent i = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+      try {
+        PackageManager pm = getPackageManager();
+
+        final ResolveInfo mInfo = pm.resolveActivity(i, 0);
+
+        Intent intent = new Intent();
+        intent.setComponent(new ComponentName(mInfo.activityInfo.packageName, mInfo.activityInfo.name));
+        intent.setAction(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+
+        startActivity(intent);
+      } catch (Exception e){ Log.i(TAG, "Unable to launch camera: " + e); }
       Log.d(TAG, "I want to switch to Camera application");
     } else if (id == R.id.nav_logout) {
       Log.d(TAG, "I want to switch to logout");

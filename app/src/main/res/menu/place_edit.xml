@@ -2,18 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/addPlaceAfter"
-        android:title="Add place with description after"/>
+        android:title="Add event after"/>
 
     <item
         android:id="@+id/addPlaceBefore"
-        android:title="Add place with description before"/>
-
-    <item
-        android:id="@+id/deleteFullPlace"
-        android:title="Delete place and connecting routes"/>
+        android:title="Add event before"/>
 
     <item
         android:id="@+id/deletePlace"
-        android:title="Delete only place"/>
+        android:title="Delete place"/>
+
+    <item
+        android:id="@+id/deleteFullPlace"
+        android:title="Delete place and routes"/>
 
 </menu>
