@@ -27,6 +27,7 @@ import java.util.Map;
 import tripster.tripster.R;
 
 import static tripster.tripster.Constants.FOLLOWING_BY_USER;
+import static tripster.tripster.Constants.LEVEL_PUBLIC;
 import static tripster.tripster.Constants.TRIPS_BY_OWNER;
 import static tripster.tripster.Constants.TRIP_STOPPED_AT_K;
 import static tripster.tripster.UILayer.TripsterActivity.currentUserId;
@@ -88,7 +89,7 @@ public class NewsfeedFragment extends Fragment {
         for (int i = 0; i < event.getRows().getCount(); i++) {
           QueryRow r = event.getRows().getRow(i);
           String ownerId = (String) r.getKey();
-          if ((Integer) r.getValue() <= followingLevels.get(ownerId)) {
+          if ((Integer) r.getValue() <= Math.max(followingLevels.get(ownerId), LEVEL_PUBLIC)) {
             Document d = r.getDocument();
             Long stoppedAt = (Long) d.getProperty(TRIP_STOPPED_AT_K);
             if (stoppedAt != null) {

@@ -34,12 +34,12 @@ public class UserProfileFragment extends ProfileFragment {
 
   private String followerId;
   private String followingId;
-  private int followerLevel = LEVEL_PUBLIC_DEFAULT;
+  private int followerLevel = LEVEL_PUBLIC;
 
-  private Button followerButton; // wether you follow the user or not
+  private Button followerButton; // whether you follow the user or not
   private TextView followingHint;
   private LinearLayout followingInfo;
-  private RangeSliderView followingSeek; // wether he follows you and on what level
+  private RangeSliderView followingSeek; // whether he follows you and on what level
 
   @Nullable
   @Override
@@ -125,30 +125,29 @@ public class UserProfileFragment extends ProfileFragment {
   }
 
   private void updateFollowerDetails() {
-    followerButton.setVisibility(View.VISIBLE);
+    int prevLevel = followerLevel;
     Document d = tDb.getDocumentById(followerId);
     if (d == null || d.isDeleted()) {
-      followerLevel = LEVEL_PUBLIC_DEFAULT;
+      followerLevel = LEVEL_PUBLIC;
       followerButton.setText("Follow");
     } else {
-      followerLevel = (int) d.getProperty(FOL_LEVEL_K);
+      followerLevel = Math.max((int) d.getProperty(FOL_LEVEL_K), LEVEL_PUBLIC);
       followerButton.setText("Unfollow");
+    }
+    if (followerLevel != prevLevel) {
+      restartTripsLiveQuery();
     }
   }
 
   Document.ChangeListener followerChangeListener =  new Document.ChangeListener() {
     @Override
     public void changed(Document.ChangeEvent event) {
-      int prevLevel = followerLevel;
       new Handler(Looper.getMainLooper()).post(new Runnable() {
         @Override
         public void run() {
           updateFollowerDetails();
         }
       });
-      if (followerLevel != prevLevel) {
-        restartTripsLiveQuery();
-      }
     }
   };
 
