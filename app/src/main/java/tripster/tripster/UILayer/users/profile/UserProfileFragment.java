@@ -85,12 +85,12 @@ public class UserProfileFragment extends ProfileFragment {
     followingInfo = (LinearLayout) view.findViewById(R.id.followingInfo);
     followingHint = (TextView) view.findViewById(R.id.levelHint);
     followingSeek = (RangeSliderView) view.findViewById(R.id.followSeek);
-//    new Handler(Looper.getMainLooper()).post(new Runnable() {
-//      @Override
-//      public void run() {
-//        followingInfo.setVisibility(View.GONE);
-//      }
-//    });
+    new Handler(Looper.getMainLooper()).post(new Runnable() {
+      @Override
+      public void run() {
+        followingInfo.setVisibility(View.GONE);
+      }
+    });
 
     updateUserLevelDetails();
     return view;
@@ -108,6 +108,18 @@ public class UserProfileFragment extends ProfileFragment {
           if (followingInfo.getVisibility() == View.GONE) {
             userLevelBtn.setImageResource(R.drawable.ic_expand_less_black_24dp);
             followingInfo.setVisibility(View.VISIBLE);
+            followingSeek.setOnSlideListener(new RangeSliderView.OnSlideListener() {
+              @Override
+              public void onSlide(int index) {
+                Document d = tDb.getDocumentById(followingId);
+                if (d != null && !d.isDeleted()) {
+                  Map<String, Object> props = new HashMap<>();
+                  props.put(FOL_LEVEL_K, index);
+                  tDb.upsertNewDocById(followingId, props);
+                  activateFollowingDetails();
+                }
+              }
+            });
             activateFollowingDetails();
             Log.d(TAG, "Open");
           } else {
@@ -125,26 +137,16 @@ public class UserProfileFragment extends ProfileFragment {
 
   private void activateFollowingDetails() {
     Document d = tDb.getDocumentById(followingId);
-    int folLevel = (Integer) d.getProperty(FOL_LEVEL_K);
-    userLevel.setText(levels.get(folLevel));
-    followingHint.setText("This user has visibility: " + levels.get(folLevel));
-    if (folLevel == LEVEL_PUBLIC_DEFAULT) {
-      followingSeek.setInitialIndex(LEVEL_PUBLIC);
-    } else {
-      followingSeek.setInitialIndex(folLevel);
-    }
-    followingSeek.setOnSlideListener(new RangeSliderView.OnSlideListener() {
-      @Override
-      public void onSlide(int index) {
-        Document d = tDb.getDocumentById(followingId);
-        if (d != null && !d.isDeleted()) {
-          Map<String, Object> props = new HashMap<>();
-          props.put(FOL_LEVEL_K, index);
-          tDb.upsertNewDocById(followingId, props);
-          activateFollowingDetails();
-        }
+    if (d != null && !d.isDeleted()) {
+      int folLevel = (Integer) d.getProperty(FOL_LEVEL_K);
+      userLevel.setText(levels.get(folLevel));
+      followingHint.setText("This user has visibility: " + levels.get(folLevel));
+      if (folLevel == LEVEL_PUBLIC_DEFAULT) {
+        followingSeek.setInitialIndex(LEVEL_PUBLIC);
+      } else {
+        followingSeek.setInitialIndex(folLevel);
       }
-    });
+    }
   }
 
   @Override
