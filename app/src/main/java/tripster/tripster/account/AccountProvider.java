@@ -1,6 +1,5 @@
 package tripster.tripster.account;
 
-import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 
 import tripster.tripster.UILayer.LoginActivity;
@@ -21,8 +20,6 @@ abstract class AccountProvider implements LoginProvider, LogoutProvider {
 
   @Override
   public void logOut() {
-    Intent i = new Intent(parentActivity, LoginActivity.class);
-    parentActivity.startActivity(i);
-    parentActivity.finish();
+    System.exit(1);
   }
 }

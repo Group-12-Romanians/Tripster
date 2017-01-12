@@ -155,7 +155,7 @@ public abstract class ProfileFragment extends Fragment {
     tripsLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(LiveQuery.ChangeEvent event) {
-        final List<Pair<Long, String>> results = new ArrayList<>();
+        List<Pair<Long, String>> results = new ArrayList<>();
         for (int i = 0; i < event.getRows().getCount(); i++) {
           QueryRow r = event.getRows().getRow(i);
           if ((int) r.getValue() <= getLevel()) {
@@ -174,11 +174,15 @@ public abstract class ProfileFragment extends Fragment {
             return o2.first.compareTo(o1.first);
           }
         });
+        final List<String> trips = new ArrayList<>();
+        for (Pair<Long, String> p : results) {
+          trips.add(p.second);
+        }
         new Handler(Looper.getMainLooper()).post(new Runnable() {
           @Override
           public void run() {
-            noOfTripsButton.setText(String.valueOf(results.size()));
-            initItemGridAdapter(results);
+            noOfTripsButton.setText(String.valueOf(trips.size()));
+            initItemGridAdapter(trips);
           }
         });
       }
@@ -225,17 +229,13 @@ public abstract class ProfileFragment extends Fragment {
     super.onPause();
   }
 
-  private void initItemGridAdapter(List<Pair<Long, String>> results) {
-    List<String> trips = new ArrayList<>();
-    for (Pair<Long, String> p : results) {
-      trips.add(p.second);
-    }
-    UserTripsAdapter tripsAdapter = new UserTripsAdapter(
-        getContext(),
-        R.layout.trips_grid_item,
-        R.id.tripName,
-        trips);
-    grid.setAdapter(tripsAdapter);
+  private void initItemGridAdapter(List<String> trips) {
+      UserTripsAdapter tripsAdapter = new UserTripsAdapter(
+          getContext(),
+          R.layout.trips_grid_item,
+          R.id.tripName,
+          trips);
+      grid.setAdapter(tripsAdapter);
   }
 }
 
