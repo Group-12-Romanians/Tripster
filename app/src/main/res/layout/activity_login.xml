@@ -47,13 +47,13 @@
         app:animatedSvgTraceColors="@array/endless_colors_reversed"
         app:animatedSvgTraceResidueColors="@array/endless_colors"
         app:animatedSvgGlyphStrings="@array/endless_paths"
-        app:animatedSvgFillStart="4700"
+        app:animatedSvgFillStart="8700"
         app:animatedSvgTraceMarkerLength="60"
         app:animatedSvgFillTime="2000"
         app:animatedSvgImageSizeX="710"
         app:animatedSvgImageSizeY="600"
-        app:animatedSvgTraceTime="5000"
-        app:animatedSvgTraceTimePerGlyph="5000"/>
+        app:animatedSvgTraceTime="10000"
+        app:animatedSvgTraceTimePerGlyph="10000"/>
 
     <ImageView
         android:layout_width="match_parent"

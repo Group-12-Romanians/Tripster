@@ -50,8 +50,8 @@ import static tripster.tripster.Constants.TRIP_STOPPED_AT_K;
 public class LocationService extends Service implements GoogleApiClient.ConnectionCallbacks {
   private static final String TAG = LocationService.class.getName();
 
-  private static final int TRACKING_FREQUENCY = 1000; //ms
-  private static final int MIN_DIST = 50; //meters
+  private static final int TRACKING_FREQUENCY = 5000; //ms
+  private static final int MIN_DIST = 10; //meters
 
   private GoogleApiClient googleClient;
   private Timer timer;
