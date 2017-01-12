@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -37,9 +38,14 @@ public class UserProfileFragment extends ProfileFragment {
   private int followerLevel = LEVEL_PUBLIC;
 
   private Button followerButton; // whether you follow the user or not
-  private TextView followingHint;
+
+  private TextView userLevel;
+  private LinearLayout userLevelInfo;
+  private ImageButton userLevelBtn;
+
   private LinearLayout followingInfo;
-  private RangeSliderView followingSeek; // whether he follows you and on what level
+  private TextView followingHint;
+  private RangeSliderView followingSeek;
 
   @Nullable
   @Override
@@ -71,38 +77,74 @@ public class UserProfileFragment extends ProfileFragment {
         }
       }
     });
+
+    userLevelInfo = (LinearLayout) view.findViewById(R.id.user_level_info);
+    userLevel = (TextView) view.findViewById(R.id.userLevel);
+    userLevelBtn = (ImageButton) view.findViewById(R.id.userLevelMenu);
+
     followingInfo = (LinearLayout) view.findViewById(R.id.followingInfo);
     followingHint = (TextView) view.findViewById(R.id.levelHint);
     followingSeek = (RangeSliderView) view.findViewById(R.id.followSeek);
-    updateFollowingDetails();
+//    new Handler(Looper.getMainLooper()).post(new Runnable() {
+//      @Override
+//      public void run() {
+//        followingInfo.setVisibility(View.GONE);
+//      }
+//    });
+
+    updateUserLevelDetails();
     return view;
   }
 
-  private void updateFollowingDetails() {
+  private void updateUserLevelDetails() {
     Document d = tDb.getDocumentById(followingId);
     if (d != null && !d.isDeleted()) {
+      userLevelInfo.setVisibility(View.VISIBLE);
       int folLevel = (Integer) d.getProperty(FOL_LEVEL_K);
-      followingHint.setText("This user has visibility: " + levels.get(folLevel));
-      if (folLevel == LEVEL_PUBLIC_DEFAULT) {
-        followingSeek.setInitialIndex(LEVEL_PUBLIC);
-      } else {
-        followingSeek.setInitialIndex(folLevel);
-      }
-      followingSeek.setOnSlideListener(new RangeSliderView.OnSlideListener() {
+      userLevel.setText(levels.get(folLevel));
+      userLevelBtn.setOnClickListener(new View.OnClickListener() {
         @Override
-        public void onSlide(int index) {
-          Document d = tDb.getDocumentById(followingId);
-          if (d != null && !d.isDeleted()) {
-            Map<String, Object> props = new HashMap<>();
-            props.put(FOL_LEVEL_K, index);
-            tDb.upsertNewDocById(followingId, props);
-            updateFollowingDetails();
+        public void onClick(View view) {
+          if (followingInfo.getVisibility() == View.GONE) {
+            userLevelBtn.setImageResource(R.drawable.ic_expand_less_black_24dp);
+            followingInfo.setVisibility(View.VISIBLE);
+            activateFollowingDetails();
+            Log.d(TAG, "Open");
+          } else {
+            userLevelBtn.setImageResource(R.drawable.ic_expand_more_black_24dp);
+            followingInfo.setVisibility(View.GONE);
+            Log.d(TAG, "Close");
           }
         }
       });
     } else {
+      userLevelInfo.setVisibility(View.GONE);
       followingInfo.setVisibility(View.GONE);
     }
+  }
+
+  private void activateFollowingDetails() {
+    Document d = tDb.getDocumentById(followingId);
+    int folLevel = (Integer) d.getProperty(FOL_LEVEL_K);
+    userLevel.setText(levels.get(folLevel));
+    followingHint.setText("This user has visibility: " + levels.get(folLevel));
+    if (folLevel == LEVEL_PUBLIC_DEFAULT) {
+      followingSeek.setInitialIndex(LEVEL_PUBLIC);
+    } else {
+      followingSeek.setInitialIndex(folLevel);
+    }
+    followingSeek.setOnSlideListener(new RangeSliderView.OnSlideListener() {
+      @Override
+      public void onSlide(int index) {
+        Document d = tDb.getDocumentById(followingId);
+        if (d != null && !d.isDeleted()) {
+          Map<String, Object> props = new HashMap<>();
+          props.put(FOL_LEVEL_K, index);
+          tDb.upsertNewDocById(followingId, props);
+          activateFollowingDetails();
+        }
+      }
+    });
   }
 
   @Override
