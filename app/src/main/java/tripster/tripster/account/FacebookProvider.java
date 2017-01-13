@@ -8,7 +8,6 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
-import com.facebook.AccessTokenTracker;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
@@ -22,7 +21,6 @@ import org.json.JSONObject;
 
 import java.util.Arrays;
 
-import tripster.tripster.UILayer.LoginActivity;
 import tripster.tripster.R;
 
 public class FacebookProvider extends AccountProvider {
@@ -39,14 +37,14 @@ public class FacebookProvider extends AccountProvider {
 
   @Override
   public void silentSignIn() {
-    AccessTokenTracker accessTokenTracker = new AccessTokenTracker() { //TODO: How the fuck does this remain in memory after we exit the scope??? (it does, but why)
-      @Override
-      protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken newAccessToken) {
-        if (newAccessToken != null && parentActivity instanceof LoginActivity) {
-          signInWith(newAccessToken);
-        }
-      }
-    };
+//    AccessTokenTracker accessTokenTracker = new AccessTokenTracker() { //TODO: How the fuck does this remain in memory after we exit the scope??? (it does, but why)
+//      @Override
+//      protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken newAccessToken) {
+//        if (newAccessToken != null && parentActivity instanceof LoginActivity) {
+//          signInWith(newAccessToken);
+//        }
+//      }
+//    };
   }
 
   @Override
