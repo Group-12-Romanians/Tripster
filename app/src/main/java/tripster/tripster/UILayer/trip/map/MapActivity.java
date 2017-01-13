@@ -29,6 +29,7 @@ import com.couchbase.lite.LiveQuery;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
+import com.couchbase.lite.replicator.Replication;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
@@ -81,6 +82,9 @@ public class MapActivity extends BaseDemoActivity implements
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     tDb = TripsterDb.getInstance(getApplicationContext());
+    for (Replication r : tDb.getDb().getAllReplications()) {
+      r.stop();
+    }
     tDb.initAllViews();
     tDb.startSync();
 
@@ -204,7 +208,12 @@ public class MapActivity extends BaseDemoActivity implements
 
                 clusterImageView.setImageDrawable(multiDrawable);
                 Bitmap icon = clusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
-                marker.setIcon(BitmapDescriptorFactory.fromBitmap(icon));
+                try {
+                  marker.setIcon(BitmapDescriptorFactory.fromBitmap(icon));
+                } catch (IllegalArgumentException e) {
+                  e.printStackTrace();
+                  return;
+                }
               }
             });
 
@@ -310,6 +319,7 @@ public class MapActivity extends BaseDemoActivity implements
     locationsLQ.addChangeListener(new LiveQuery.ChangeListener() {
       @Override
       public void changed(LiveQuery.ChangeEvent event) {
+        Log.d(TAG, "GOT CHANGE TO LOCATIONS!!!!!!!!!!!!!!!!!!!!!");
         final PolylineOptions options = new PolylineOptions().width(4).color(Color.BLUE).geodesic(true);
         for (int i = 0; i < event.getRows().getCount(); i++) {
           QueryRow r = event.getRows().getRow(i);

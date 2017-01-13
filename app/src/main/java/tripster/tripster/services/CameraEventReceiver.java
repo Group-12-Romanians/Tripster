@@ -7,15 +7,10 @@ import android.database.Cursor;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.android.volley.Response;
-
 import net.grandcentrix.tray.AppPreferences;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import tripster.tripster.dataLayer.TripsterDb;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import static junit.framework.Assert.assertNotNull;
 import static tripster.tripster.Constants.CURR_TRIP_ID;
@@ -33,7 +28,6 @@ public class CameraEventReceiver extends BroadcastReceiver {
 
   @Override
   public void onReceive(Context context, Intent intent) {
-    TripsterDb tDb = TripsterDb.getInstance(context.getApplicationContext());
     AppPreferences pref = new AppPreferences(context.getApplicationContext());
     String currentTripId = pref.getString(CURR_TRIP_ID, "");
     String currentTripState = pref.getString(CURR_TRIP_ST, "");
@@ -53,37 +47,27 @@ public class CameraEventReceiver extends BroadcastReceiver {
     cursor.close();
     Log.d(TAG, "gotPic");
 
-    // Generate Image Id
-    String photoId = UUID.randomUUID().toString();
+    // Create image doc
+    String lastLocationId = pref.getString(CURR_TRIP_LL, "");
+    assertNotNull(lastLocationId);
+    if (lastLocationId.isEmpty()) return;
+    Log.d(TAG, "got last location: " + lastLocationId);
 
-    context.getSharedPreferences("photos", Context.MODE_PRIVATE).edit().putString(imagePath, photoId).commit();
+    JSONObject props = new JSONObject();
+    try {
+      props.put(PHOTO_PLACE_K, lastLocationId);
+      props.put(PHOTO_TRIP_K, currentTripId);
+      props.put(PHOTO_TIME_K, System.currentTimeMillis());
+    } catch (JSONException e) {
+      e.printStackTrace();
+      return;
+    }
+
+    context.getSharedPreferences("photos", Context.MODE_PRIVATE).edit().putString(imagePath, props.toString()).commit();
 
     // Try upload image
     new ImageUploader(context).execute();
 
-    // Insert image in DB
-    String lastLocationId = pref.getString(CURR_TRIP_LL, "");
-    assertNotNull(lastLocationId);
-
-    if (!lastLocationId.isEmpty()) {
-      Log.d(TAG, "got last location: " + lastLocationId);
-      Map<String, Object> props = new HashMap<>();
-      props.put(PHOTO_PLACE_K, lastLocationId);
-      props.put(PHOTO_TRIP_K, currentTripId);
-      props.put(PHOTO_TIME_K, System.currentTimeMillis());
-      tDb.upsertNewDocById(photoId, props);
-    }
-
     Toast.makeText(context.getApplicationContext(), "Tripster saved this photo.", Toast.LENGTH_LONG).show();
-
-    status = "running";
-    tDb.pushChanges(new Response.Listener<String>() {
-      @Override
-      public void onResponse(String response) {
-        status = response;
-      }
-    });
-    while(status.equals("running"));
-    Log.d(TAG, "Closing receiver");
   }
 }

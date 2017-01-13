@@ -70,6 +70,7 @@
         <CheckBoxPreference
             android:key="suggestions"
             android:summary="Get notified about restaurants/attractions in your area."
+            android:defaultValue="true"
             android:title="Suggestions"/>
     </PreferenceCategory>
 

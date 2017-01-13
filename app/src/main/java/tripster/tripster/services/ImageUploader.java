@@ -7,6 +7,11 @@ import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.os.AsyncTask;
 
+import com.android.volley.Response;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -19,10 +24,17 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+
+import tripster.tripster.dataLayer.TripsterDb;
 
 import static junit.framework.Assert.assertNotNull;
 import static tripster.tripster.Constants.MAX_SIZE;
+import static tripster.tripster.Constants.PHOTO_PLACE_K;
+import static tripster.tripster.Constants.PHOTO_TIME_K;
+import static tripster.tripster.Constants.PHOTO_TRIP_K;
 import static tripster.tripster.Constants.SERVER_URL;
 
 public class ImageUploader extends AsyncTask<Void, Void, Void> {
@@ -31,6 +43,7 @@ public class ImageUploader extends AsyncTask<Void, Void, Void> {
   private static final String BOUNDARY = "*****";
 
   private Context context;
+  private String status;
 
   public ImageUploader(Context context) {
     this.context = context;
@@ -40,12 +53,13 @@ public class ImageUploader extends AsyncTask<Void, Void, Void> {
   protected Void doInBackground(Void... params) {
     Map<String, ?> photos = context.getSharedPreferences("photos", Context.MODE_PRIVATE).getAll();
     for (String photo : photos.keySet()) {
-      uploadPhoto(photo, context.getSharedPreferences("photos", Context.MODE_PRIVATE).getString(photo, ""));
+      uploadPhoto(photo, context.getSharedPreferences("photos", Context.MODE_PRIVATE).getString(photo, "error"));
     }
     return null;
   }
 
-  private void uploadPhoto(String photoPath, String photoId) {
+  private void uploadPhoto(String photoPath, String photoDocStr) {
+    String photoId = UUID.randomUUID().toString();
     HttpURLConnection httpUrlConnection;
     URL url = null;
     try {
@@ -101,6 +115,27 @@ public class ImageUploader extends AsyncTask<Void, Void, Void> {
       return;
     }
     context.getSharedPreferences("photos", Context.MODE_PRIVATE).edit().remove(photoPath).commit();
+    TripsterDb tDb = TripsterDb.getInstance(context.getApplicationContext());
+    try {
+      JSONObject photoDoc = new JSONObject(photoDocStr);
+      Map<String, Object> props = new HashMap<>();
+      props.put(PHOTO_PLACE_K, photoDoc.get(PHOTO_PLACE_K));
+      props.put(PHOTO_TRIP_K, photoDoc.get(PHOTO_TRIP_K));
+      props.put(PHOTO_TIME_K, photoDoc.get(PHOTO_TIME_K));
+      tDb.upsertNewDocById(photoId, props);
+    } catch (JSONException e) {
+      e.printStackTrace();
+      return;
+    }
+
+    status = "running";
+    tDb.pushChanges(new Response.Listener<String>() {
+      @Override
+      public void onResponse(String response) {
+        status = response;
+      }
+    });
+    while(status.equals("running"));
   }
 
 

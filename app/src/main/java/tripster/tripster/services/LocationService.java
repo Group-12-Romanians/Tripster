@@ -12,6 +12,7 @@ import android.util.Log;
 
 import com.android.volley.Response;
 import com.couchbase.lite.Document;
+import com.couchbase.lite.replicator.Replication;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -33,13 +34,13 @@ import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static tripster.tripster.Constants.CURR_TRIP_ID;
 import static tripster.tripster.Constants.CURR_TRIP_LL;
 import static tripster.tripster.Constants.CURR_TRIP_ST;
+import static tripster.tripster.Constants.LEVEL_PRIVATE;
 import static tripster.tripster.Constants.MY_ID;
 import static tripster.tripster.Constants.PLACE_LAT_K;
 import static tripster.tripster.Constants.PLACE_LNG_K;
 import static tripster.tripster.Constants.PLACE_TIME_K;
 import static tripster.tripster.Constants.PLACE_TRIP_K;
 import static tripster.tripster.Constants.TRIP_LEVEL_K;
-import static tripster.tripster.Constants.LEVEL_PRIVATE;
 import static tripster.tripster.Constants.TRIP_NAME_K;
 import static tripster.tripster.Constants.TRIP_OWNER_K;
 import static tripster.tripster.Constants.TRIP_PAUSED;
@@ -50,8 +51,8 @@ import static tripster.tripster.Constants.TRIP_STOPPED_AT_K;
 public class LocationService extends Service implements GoogleApiClient.ConnectionCallbacks {
   private static final String TAG = LocationService.class.getName();
 
-  private static final int TRACKING_FREQUENCY = 5000; //ms
-  private static final int MIN_DIST = 10; //meters
+  private static final int TRACKING_FREQUENCY = 1000; //ms
+  private static final int MIN_DIST = 25; //meters
 
   private GoogleApiClient googleClient;
   private Timer timer;
@@ -71,10 +72,13 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
   public int onStartCommand(Intent intent, int flags, int startId) {
     super.onStartCommand(intent, flags, startId);
 
-    pref = new AppPreferences(getApplicationContext());
     tDb = TripsterDb.getInstance(getApplicationContext());
-    tDb.startPushSync(); // start push replication
+    for (Replication r : tDb.getDb().getAllReplications()) {
+      r.stop();
+    }
+    tDb.startSync(); // start push replication
 
+    pref = new AppPreferences(getApplicationContext());
     String userId = pref.getString(MY_ID, "");
 
     if (intent != null) {
